@@ -17,6 +17,11 @@ on:
         required: false
         type: string
         default: ""
+      base_ref:
+        description: "Branche/SHA de base pour comparaison (optionnel, pour mode changed sans PR)"
+        required: false
+        type: string
+        default: ""
 
 jobs:
   analyze:
@@ -58,13 +63,18 @@ jobs:
             # Pour workflow_dispatch avec PR number (exclure les fichiers supprimés)
             FILES=$(gh pr view ${{ github.event.inputs.pr_number }} --json files --jq '.files[] | select(.status != "removed") | .path' || echo "")
           else
-            # Pour les commits, comparer avec la branche de base
-            BASE_SHA="${{ github.event.before }}"
+            # Pour workflow_dispatch sans PR, comparer avec la branche de base spécifiée ou la branche par défaut
+            BASE_REF="${{ github.event.inputs.base_ref }}"
             HEAD_SHA="${{ github.sha }}"
-            if [ -z "$BASE_SHA" ]; then
-              BASE_SHA="HEAD~1"
+            
+            if [ -z "$BASE_REF" ]; then
+              # Détecter la branche par défaut du repository
+              DEFAULT_BRANCH=$(gh repo view ${{ github.repository }} --json defaultBranchRef --jq '.defaultBranchRef.name' || echo "main")
+              BASE_REF="$DEFAULT_BRANCH"
             fi
-            FILES=$(git diff --name-only --diff-filter=ACMR $BASE_SHA $HEAD_SHA || echo "")
+            
+            echo "🔍 Comparaison avec la base: $BASE_REF"
+            FILES=$(git diff --name-only --diff-filter=ACMR $BASE_REF $HEAD_SHA || echo "")
           fi
 
           # Filtrer uniquement les fichiers de code (exclure docs, markdown, etc.)
@@ -86,7 +96,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install GitHub CLI (if needed)
-        if: steps.analysis_mode.outputs.mode == 'changed' && github.event.inputs.pr_number != ''
+        if: steps.analysis_mode.outputs.mode == 'changed'
         run: |
           type -p curl >/dev/null || (apt update && apt install curl -y)
           curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
