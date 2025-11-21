@@ -156,3 +156,23 @@ class ProgressManager:
         panel = Panel(content, title=title, style=style)
         self.console.print(panel)
 
+    def print_reasoning(self, reasoning_text: str, model_name: str = ""):
+        """
+        Affiche le reasoning du modèle dans un panneau dédié
+
+        Args:
+            reasoning_text: Texte du reasoning
+            model_name: Nom du modèle (optionnel)
+        """
+        if not self.enabled or not self.console:
+            print(f"🤔 Reasoning ({model_name}):\n{reasoning_text}")
+            return
+
+        title = f"🤔 Reasoning {model_name}" if model_name else "🤔 Reasoning"
+        panel = Panel(
+            reasoning_text,
+            title=title,
+            style="cyan",
+            border_style="cyan",
+        )
+        self.console.print(panel)

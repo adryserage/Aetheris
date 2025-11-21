@@ -5,6 +5,26 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [1.1.0] - 2025-01-15
+
+### ✨ Nouvelles fonctionnalités
+
+- **Affichage du reasoning** : Possibilité d'afficher le processus de raisonnement des modèles AI (si disponible)
+- **Support OpenAI o1** : Support du reasoning pour les modèles o1-preview et o1-mini d'OpenAI
+- **Panneau de reasoning** : Affichage du reasoning dans un panneau Rich dédié avec syntax highlighting
+
+### 🔧 Modifications
+
+- **AIProvider** : Ajout de la méthode `generate_content_with_reasoning()` pour récupérer le reasoning
+- **BaseAgent** : Ajout de `_call_ai_with_reasoning()` pour utiliser le reasoning si activé
+- **Configuration** : Ajout de l'option `show_reasoning` dans `AnalysisConfig`
+- **Agents** : Passage de `progress_manager` aux agents pour afficher le reasoning
+
+### 📝 Documentation
+
+- Mise à jour du README avec explication du reasoning
+- Ajout de la variable d'environnement `SHOW_REASONING` dans la documentation
+
 ## [1.0.9] - 2025-01-15
 
 ### ✨ Nouvelles fonctionnalités
@@ -178,6 +198,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Génération de rapports détaillés en Markdown
 - Configuration flexible via variables d'environnement
 
+[1.1.0]: https://github.com/adryserage/aetheris/compare/v1.0.9...v1.1.0
 [1.0.9]: https://github.com/adryserage/aetheris/compare/v1.0.8...v1.0.9
 [1.0.8]: https://github.com/adryserage/aetheris/compare/v1.0.7...v1.0.8
 [1.0.7]: https://github.com/adryserage/aetheris/compare/v1.0.6...v1.0.7

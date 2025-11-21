@@ -23,7 +23,15 @@ SUPPORTED_MODELS = {
         "gemini-3-pro-preview",
         "gemini-pro",
     ],
-    "openai": ["gpt-4o", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo", "gpt-4-turbo-preview"],
+    "openai": [
+        "gpt-4o",
+        "gpt-4-turbo",
+        "gpt-4",
+        "gpt-3.5-turbo",
+        "gpt-4-turbo-preview",
+        "o1-preview",
+        "o1-mini",
+    ],
     "claude": ["claude-3-5-sonnet-20241022", "claude-3-opus-20240229", "claude-3-haiku-20240307"],
 }
 
@@ -76,6 +84,7 @@ class AnalysisConfig:
     )
     changed_files: List[str] = field(default_factory=list)  # Liste des fichiers à analyser
     pr_number: Optional[int] = None  # Numéro de PR (optionnel)
+    show_reasoning: bool = False  # Afficher le processus de reasoning du modèle (si disponible)
 
     def __post_init__(self):
         """Initialise les valeurs par défaut après création"""
