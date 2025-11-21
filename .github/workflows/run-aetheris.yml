@@ -1,5 +1,6 @@
 name: Run Aetheris Analysis
 
+# Ce workflow ne s'exécute QUE manuellement via l'onglet Actions de GitHub
 on:
   workflow_dispatch:
     inputs:
@@ -29,14 +30,10 @@ jobs:
         with:
           python-version: '3.11'
       
-      - name: Install Aetheris from GitHub Packages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Aetheris from PyPI
         run: |
           python -m pip install --upgrade pip
-          pip install \
-            --extra-index-url https://${{ github.repository_owner }}:${{ secrets.GITHUB_TOKEN }}@pypi.github.com/${{ github.repository_owner }}/code_reviewer/simple/ \
-            adryserage-aetheris
+          pip install adryserage-aetheris
       
       - name: Configure GEMINI_API_KEY
         env:
