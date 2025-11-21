@@ -19,16 +19,16 @@ permissions:
 jobs:
   analyze:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-      
+          python-version: "3.11"
+
       - name: Install Aetheris from GitHub Packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -37,24 +37,24 @@ jobs:
           pip install \
             --extra-index-url https://${{ github.repository_owner }}:${{ secrets.GITHUB_TOKEN }}@pypi.github.com/${{ github.repository_owner }}/code_reviewer/simple/ \
             adryserage-aetheris
-      
+
       - name: Configure GEMINI_API_KEY
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || '' }}
         run: |
           echo "GEMINI_API_KEY=$GEMINI_API_KEY" >> $GITHUB_ENV
-      
+
       - name: Run Aetheris Analysis (Full)
         if: inputs.mode == 'full'
         run: |
           aetheris analysis
-      
+
       - name: Run Aetheris Analysis (Changed Files)
         if: inputs.mode == 'changed'
         run: |
           # Exemple avec fichiers modifiés
           aetheris analysis --changed-files-only --files "main.py,src/cli.py"
-      
+
       - name: Upload analysis reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -64,4 +64,3 @@ jobs:
             docs/analyses/
             docs/architecture_overview.md
           retention-days: 30
-

@@ -2,55 +2,49 @@
 Classe de base pour tous les agents d'analyse
 """
 
-import asyncio
-from typing import Optional
-import google.generativeai as genai
 from src.core.config import AnalysisConfig
+from src.core.ai_providers import create_ai_provider, AIProvider
 
 
 class BaseAgent:
     """Classe de base pour tous les agents d'analyse avec logique commune"""
-    
+
     def __init__(self, config: AnalysisConfig):
         self.config = config
-        genai.configure(api_key=config.gemini_api_key)
-        self.model = genai.GenerativeModel(config.gemini_model)
-    
-    async def _call_gemini_with_retry(self, prompt: str, timeout_multiplier: float = 1.0) -> str:
+        self.ai_provider: AIProvider = create_ai_provider(
+            provider=config.ai_provider,
+            api_key=config.ai_api_key,
+            model=config.ai_model,
+            timeout_seconds=config.timeout_seconds,
+            max_retries=config.max_retries,
+        )
+
+    async def _call_ai_with_retry(self, prompt: str, timeout_multiplier: float = 1.0) -> str:
         """
-        Appelle l'API Gemini avec retry et gestion des timeouts
-        
+        Appelle l'API AI avec retry et gestion des timeouts
+
         Args:
-            prompt: Le prompt à envoyer à Gemini
+            prompt: Le prompt à envoyer au modèle AI
             timeout_multiplier: Multiplicateur pour le timeout (défaut: 1.0)
-        
+
         Returns:
-            Le texte de la réponse de Gemini
-        
+            Le texte de la réponse du modèle AI
+
         Raises:
             Exception: Si toutes les tentatives échouent
         """
-        timeout = int(self.config.timeout_seconds * timeout_multiplier)
-        
-        for attempt in range(self.config.max_retries):
-            try:
-                response = await asyncio.wait_for(
-                    asyncio.to_thread(
-                        self.model.generate_content,
-                        prompt
-                    ),
-                    timeout=timeout
-                )
-                return response.text
-                
-            except asyncio.TimeoutError:
-                if attempt == self.config.max_retries - 1:
-                    raise
-                await asyncio.sleep(2 ** attempt)
-            except Exception as e:
-                if attempt == self.config.max_retries - 1:
-                    raise
-                await asyncio.sleep(2 ** attempt)
-        
-        raise Exception("Toutes les tentatives ont échoué")
+        return await self.ai_provider.generate_content_with_retry(prompt, timeout_multiplier)
 
+    # Alias pour compatibilité avec le code existant
+    async def _call_gemini_with_retry(self, prompt: str, timeout_multiplier: float = 1.0) -> str:
+        """
+        Alias pour _call_ai_with_retry (maintenu pour compatibilité)
+
+        Args:
+            prompt: Le prompt à envoyer au modèle AI
+            timeout_multiplier: Multiplicateur pour le timeout (défaut: 1.0)
+
+        Returns:
+            Le texte de la réponse du modèle AI
+        """
+        return await self._call_ai_with_retry(prompt, timeout_multiplier)

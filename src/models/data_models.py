@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 @dataclass
 class FileDependency:
     """Dépendance d'un fichier"""
+
     import_path: str  # Chemin importé (ex: './utils', '../types')
     resolved_path: Optional[str] = None  # Chemin résolu si trouvé
     exists: bool = False  # Si le fichier existe
@@ -19,6 +20,7 @@ class FileDependency:
 @dataclass
 class SecurityIssue:
     """Problème de sécurité détecté"""
+
     severity: str  # 'critical', 'high', 'medium', 'low'
     issue_type: str  # Type de vulnérabilité
     description: str
@@ -30,6 +32,7 @@ class SecurityIssue:
 @dataclass
 class CodeMetrics:
     """Métriques de code"""
+
     file_path: str
     language: str
     lines_of_code: int
@@ -37,13 +40,16 @@ class CodeMetrics:
     max_nesting_depth: int
     function_count: int
     average_function_length: float
-    duplicate_code_blocks: List[Tuple[int, int]] = field(default_factory=list)  # (start_line, end_line)
+    duplicate_code_blocks: List[Tuple[int, int]] = field(
+        default_factory=list
+    )  # (start_line, end_line)
     maintainability_index: float = 0.0  # 0-100
 
 
 @dataclass
 class DependencyVulnerability:
     """Vulnérabilité dans une dépendance"""
+
     package_name: str
     version: str
     vulnerability_id: str
@@ -57,6 +63,7 @@ class DependencyVulnerability:
 @dataclass
 class FileAnalysis:
     """Résultat d'analyse d'un fichier"""
+
     file_path: str
     language: str
     objective: str
@@ -70,4 +77,3 @@ class FileAnalysis:
     security_issues: List[SecurityIssue] = field(default_factory=list)
     code_metrics: Optional[CodeMetrics] = None
     error: Optional[str] = None
-

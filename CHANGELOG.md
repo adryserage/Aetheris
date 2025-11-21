@@ -5,6 +5,40 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [1.0.8] - 2025-01-XX
+
+### ✨ Nouvelles fonctionnalités
+
+- **Support multi-fournisseurs AI** : Ajout du support pour OpenAI, Claude (Anthropic) et Gemini
+- **Choix du modèle** : Possibilité de choisir le modèle AI selon le fournisseur sélectionné
+- **Abstraction des providers** : Architecture modulaire permettant d'ajouter facilement de nouveaux fournisseurs AI
+- **Documentation des coûts** : Ajout d'un tableau détaillé des coûts d'analyse dans le README
+- **Modèles à jour** : Mise à jour avec les derniers modèles disponibles (Gemini 2.5 Pro, GPT-4o, Claude 3.5 Sonnet)
+
+### 🔧 Modifications
+
+- **Configuration** : Remplacement de `gemini_api_key` et `gemini_model` par `ai_api_key` et `ai_model` génériques
+- **Variables d'environnement** : Ajout de `AI_PROVIDER` pour choisir le fournisseur (gemini, openai, claude)
+- **BaseAgent** : Refactorisation pour utiliser l'abstraction `AIProvider` au lieu de Gemini directement
+- **CodeGenerator** : Adaptation pour utiliser l'abstraction `AIProvider`
+
+### 📦 Dépendances
+
+- Ajout de `openai>=1.0.0` pour le support OpenAI
+- Ajout de `anthropic>=0.25.0` pour le support Claude
+
+### 📝 Documentation
+
+- Ajout de la section "Choix du fournisseur AI" dans le README
+- Ajout du tableau des modèles supportés par fournisseur
+- Ajout de la section "Coûts d'analyse" avec estimations pour différents scénarios
+- Mise à jour des instructions de configuration pour les différents fournisseurs
+
+### 🔄 Compatibilité
+
+- **Breaking change** : Les variables `GEMINI_API_KEY` et `GEMINI_MODEL` sont remplacées par `AI_PROVIDER`, `AI_API_KEY` (selon provider) et `AI_MODEL`
+- Pour la rétrocompatibilité, si `AI_PROVIDER` n'est pas défini, le système utilise Gemini par défaut
+
 ## [1.0.7] - 2025-11-21
 
 ### 🔧 Corrections et améliorations
@@ -30,7 +64,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - **Installation PyPI** : Le workflow `run-aetheris.yml` utilise maintenant PyPI au lieu de GitHub Packages
 - **Documentation** : Mise à jour complète de README, CHANGELOG, .gitignore, .gitattributes et scripts
 - **Correction URLs** : Correction des URLs du repository dans pyproject.toml
-- **Amélioration .gitignore** : Ajout des fichiers de packaging Python (build/, dist/, *.egg-info, etc.)
+- **Amélioration .gitignore** : Ajout des fichiers de packaging Python (build/, dist/, \*.egg-info, etc.)
 - **Amélioration .gitattributes** : Ajout des règles de fin de ligne pour différents types de fichiers
 
 ### 📝 Documentation
@@ -122,8 +156,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Génération de rapports détaillés en Markdown
 - Configuration flexible via variables d'environnement
 
-
-
+[1.0.8]: https://github.com/adryserage/aetheris/compare/v1.0.7...v1.0.8
 [1.0.7]: https://github.com/adryserage/aetheris/compare/v1.0.6...v1.0.7
 [1.0.6]: https://github.com/adryserage/aetheris/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/adryserage/aetheris/compare/v1.0.4...v1.0.5

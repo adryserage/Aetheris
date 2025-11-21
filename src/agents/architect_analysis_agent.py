@@ -15,78 +15,90 @@ from src.models.data_models import FileAnalysis
 
 class ArchitectAnalysisAgent(BaseAgent):
     """Agent d'analyse architecturale (AAA)"""
-    
+
     def __init__(self, config: AnalysisConfig, doc_searcher=None):
         super().__init__(config)
         self.doc_searcher = doc_searcher
-    
-    async def generate_architecture_report(self, analyses: List[FileAnalysis], cycles: List[List[str]] = None) -> str:
+
+    async def generate_architecture_report(
+        self, analyses: List[FileAnalysis], cycles: List[List[str]] = None
+    ) -> str:
         """Génère le rapport d'architecture global"""
         try:
             if cycles is None:
                 cycles = []
-            
+
             # Préparer les synthèses
             summaries = []
             all_inconsistencies = []
             dependency_stats = {
-                'total_dependencies': 0,
-                'missing_dependencies': 0,
-                'files_with_dependencies': 0
+                "total_dependencies": 0,
+                "missing_dependencies": 0,
+                "files_with_dependencies": 0,
             }
-            
+
             for analysis in analyses:
                 if analysis.success:
-                    summaries.append({
-                        'file': os.path.relpath(analysis.file_path, self.config.root_dir),
-                        'language': analysis.language,
-                        'objective': analysis.objective,
-                        'strengths': analysis.strengths,
-                        'risks': analysis.risks,
-                        'suggestions': analysis.suggestions,
-                        'dependencies_count': len(analysis.dependencies),
-                        'inconsistencies': analysis.inconsistencies
-                    })
-                    
+                    summaries.append(
+                        {
+                            "file": os.path.relpath(analysis.file_path, self.config.root_dir),
+                            "language": analysis.language,
+                            "objective": analysis.objective,
+                            "strengths": analysis.strengths,
+                            "risks": analysis.risks,
+                            "suggestions": analysis.suggestions,
+                            "dependencies_count": len(analysis.dependencies),
+                            "inconsistencies": analysis.inconsistencies,
+                        }
+                    )
+
                     # Compiler les statistiques de dépendances
                     if analysis.dependencies:
-                        dependency_stats['files_with_dependencies'] += 1
-                        dependency_stats['total_dependencies'] += len(analysis.dependencies)
-                        dependency_stats['missing_dependencies'] += sum(1 for d in analysis.dependencies if not d.exists)
-                    
+                        dependency_stats["files_with_dependencies"] += 1
+                        dependency_stats["total_dependencies"] += len(analysis.dependencies)
+                        dependency_stats["missing_dependencies"] += sum(
+                            1 for d in analysis.dependencies if not d.exists
+                        )
+
                     # Compiler les incohérences
                     if analysis.inconsistencies:
                         all_inconsistencies.extend(analysis.inconsistencies)
-            
+
             # Grouper par langage et module
             by_language = {}
             by_module = {}
-            
+
             for summary in summaries:
-                lang = summary['language']
+                lang = summary["language"]
                 if lang not in by_language:
                     by_language[lang] = []
                 by_language[lang].append(summary)
-                
+
                 # Extraire le module (dossier parent)
-                file_path = summary['file']
-                module = '/'.join(file_path.split('/')[:2]) if '/' in file_path else file_path.split('/')[0]
+                file_path = summary["file"]
+                module = (
+                    "/".join(file_path.split("/")[:2])
+                    if "/" in file_path
+                    else file_path.split("/")[0]
+                )
                 if module not in by_module:
                     by_module[module] = []
                 by_module[module].append(summary)
-            
+
             # Préparer les informations sur les cycles
             cycles_info = ""
             if cycles:
                 cycles_paths = []
                 for cycle in cycles:
-                    cycles_paths.append([os.path.relpath(f, self.config.root_dir).replace('\\', '/') for f in cycle])
+                    cycles_paths.append(
+                        [os.path.relpath(f, self.config.root_dir).replace("\\", "/") for f in cycle]
+                    )
                 cycles_info = f"""
 
 ⚠️ CYCLES DE DÉPENDANCES DÉTECTÉS ({len(cycles)}):
 {json.dumps(cycles_paths, indent=2, ensure_ascii=False)}
 """
-            
+
             # Rechercher de la documentation architecturale si activé
             web_docs = ""
             if self.doc_searcher:
@@ -97,11 +109,11 @@ class ArchitectAnalysisAgent(BaseAgent):
                     web_docs = await self.doc_searcher.search_documentation(
                         languages_used[0] if languages_used else "Unknown",
                         "architecture",
-                        search_content
+                        search_content,
                     )
                 except Exception as e:
                     print(f"⚠️  Erreur lors de la recherche de documentation architecturale: {e}")
-            
+
             # Construire le prompt
             prompt = f"""Tu es un Architecte Logiciel Expert. Analyse l'ensemble des synthèses de code et génère un rapport d'architecture complet.
 
@@ -159,11 +171,11 @@ Recommandations pour améliorer la gouvernance, les standards, et la qualité du
 
 Sois précis, structuré et actionnable. Focus sur l'architecture globale et les améliorations systémiques.
 Si une documentation en ligne est fournie ci-dessus, utilise-la pour enrichir tes recommandations avec les meilleures pratiques actuelles et les patterns architecturaux modernes."""
-            
+
             # Appel à Gemini (utilise la méthode de BaseAgent avec timeout_multiplier=2.0)
             response_text = await self._call_gemini_with_retry(prompt, timeout_multiplier=2.0)
             return response_text
-            
+
         except Exception as e:
             return f"""# Vue d'ensemble de l'architecture
 
@@ -177,4 +189,3 @@ Une erreur s'est produite lors de la génération du rapport d'architecture:
 
 Nombre de fichiers analysés: {len(analyses)}
 """
-

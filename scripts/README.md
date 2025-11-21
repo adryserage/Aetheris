@@ -31,7 +31,7 @@ python scripts/analyze_changes.py --output changed_files.txt
 Le script filtre automatiquement les fichiers pour ne garder que ceux qui doivent être analysés :
 
 - **Extensions supportées** : `.dart`, `.ts`, `.tsx`, `.js`, `.jsx`, `.py`, `.java`, `.kt`, `.swift`, `.go`, `.rs`, `.cpp`, `.c`, `.h`, `.cs`, `.php`, `.rb`, `.sh`, `.yaml`, `.yml`, `.json`, `.xml`, `.md`, `.sql`, `.html`, `.css`, `.scss`, `.sass`, `.vue`, `.svelte`
-- **Exclusions** : 
+- **Exclusions** :
   - Dossiers : `node_modules`, `.git`, `.venv`, `venv`, `__pycache__`, `build`, `dist`, `.next`, `.dart_tool`, `.gradle`
   - Fichiers générés : `.min.js`, `.min.css`, `.bundle.js`, `.chunk.js`, `.g.dart`, `.freezed.dart`, `.pb.dart`, `.d.ts`
 

@@ -60,7 +60,10 @@ Le système utilise **6 agents spécialisés** qui travaillent ensemble pour ana
 ### Prérequis
 
 - Python 3.8 ou supérieur
-- Clé API Google Gemini ([Obtenir une clé](https://makersuite.google.com/app/apikey))
+- Clé API pour l'un des fournisseurs supportés :
+  - **Gemini** : [Obtenir une clé](https://makersuite.google.com/app/apikey)
+  - **OpenAI** : [Obtenir une clé](https://platform.openai.com/api-keys)
+  - **Claude** : [Obtenir une clé](https://console.anthropic.com/)
 
 ### Installation depuis PyPI (Recommandé)
 
@@ -95,6 +98,8 @@ pip install -e .
 ### Dépendances
 
 - `google-generativeai` - API Gemini pour l'analyse de code
+- `openai` - API OpenAI pour l'analyse de code
+- `anthropic` - API Claude (Anthropic) pour l'analyse de code
 - `pathspec` - Gestion des patterns .gitignore
 - `requests` - Requêtes HTTP pour l'API OSV (version >=2.32.0 pour corriger les vulnérabilités CVE-2024-47081 et CVE-2024-35195)
 - `pyyaml` - Parsing des fichiers YAML (pubspec.yaml pour Dart/Flutter)
@@ -152,27 +157,63 @@ Cette structure modulaire facilite :
 
 ## ⚙️ Configuration
 
-### Configuration de la clé API Gemini
+### Choix du fournisseur AI
 
-Créez un fichier `.env` à la racine du projet (vous pouvez utiliser `.env.example` comme modèle) :
+Aetheris supporte maintenant **trois fournisseurs AI** : Google Gemini, OpenAI et Anthropic Claude. Vous pouvez choisir le fournisseur et le modèle qui convient le mieux à vos besoins et à votre budget.
+
+#### Configuration du fournisseur
+
+Créez un fichier `.env` à la racine du projet :
 
 ```env
-GEMINI_API_KEY=votre_cle_api_ici
+# Choisir le fournisseur (gemini, openai, claude)
+AI_PROVIDER=gemini
+
+# Clé API selon le fournisseur choisi
+GEMINI_API_KEY=votre_cle_api_ici        # Pour Gemini
+# OU
+OPENAI_API_KEY=votre_cle_api_ici         # Pour OpenAI
+# OU
+ANTHROPIC_API_KEY=votre_cle_api_ici      # Pour Claude
+
+# Modèle à utiliser (optionnel, défaut selon provider)
+AI_MODEL=gemini-3-pro-preview
 ```
 
-Ou définissez la variable d'environnement :
+Ou définissez les variables d'environnement :
 
 **Windows (PowerShell):**
 
 ```powershell
-$env:GEMINI_API_KEY='votre_cle_api_ici'
+$env:AI_PROVIDER='openai'
+$env:OPENAI_API_KEY='votre_cle_api_ici'
 ```
 
 **Linux/Mac:**
 
 ```bash
-export GEMINI_API_KEY=votre_cle_api_ici
+export AI_PROVIDER=claude
+export ANTHROPIC_API_KEY=votre_cle_api_ici
 ```
+
+#### Modèles supportés
+
+| Fournisseur | Modèles disponibles                                                                          | Modèle par défaut            |
+| ----------- | -------------------------------------------------------------------------------------------- | ---------------------------- |
+| **Gemini**  | `gemini-2.5-pro`, `gemini-1.5-pro`, `gemini-1.5-flash`, `gemini-3-pro-preview`, `gemini-pro` | `gemini-1.5-pro`             |
+| **OpenAI**  | `gpt-4o`, `gpt-4-turbo`, `gpt-4`, `gpt-3.5-turbo`, `gpt-4-turbo-preview`                     | `gpt-4o`                     |
+| **Claude**  | `claude-3-5-sonnet-20241022`, `claude-3-opus-20240229`, `claude-3-haiku-20240307`            | `claude-3-5-sonnet-20241022` |
+
+**Note importante** :
+
+- **Codex (OpenAI)** : Le modèle Codex original a été déprécié. Pour l'analyse de code, utilisez **GPT-4o** ou **GPT-4 Turbo** qui offrent d'excellentes performances pour le code.
+- Certains modèles spécialisés (comme GPT-5 Codex pour OpenAI ou Claude Opus 4.1) peuvent nécessiter un accès spécial ou ne pas être disponibles via l'API standard. Consultez la documentation officielle de chaque fournisseur pour les modèles les plus récents et leur disponibilité.
+
+#### Obtenir les clés API
+
+- **Gemini** : [Google AI Studio](https://makersuite.google.com/app/apikey)
+- **OpenAI** : [OpenAI Platform](https://platform.openai.com/api-keys)
+- **Claude** : [Anthropic Console](https://console.anthropic.com/)
 
 ### Options de configuration
 
@@ -180,7 +221,11 @@ Vous pouvez personnaliser le comportement via des variables d'environnement ou l
 
 | Variable                          | Description                               | Défaut                          |
 | --------------------------------- | ----------------------------------------- | ------------------------------- |
-| `GEMINI_MODEL`                    | Modèle Gemini à utiliser                  | `gemini-3-pro-preview`          |
+| `AI_PROVIDER`                     | Fournisseur AI à utiliser                 | `gemini`                        |
+| `AI_MODEL`                        | Modèle AI à utiliser                      | Défaut selon provider           |
+| `GEMINI_API_KEY`                  | Clé API Gemini (si provider=gemini)       | -                               |
+| `OPENAI_API_KEY`                  | Clé API OpenAI (si provider=openai)       | -                               |
+| `ANTHROPIC_API_KEY`               | Clé API Claude (si provider=claude)       | -                               |
 | `BATCH_SIZE`                      | Nombre de fichiers analysés en parallèle  | `10`                            |
 | `MAX_RETRIES`                     | Nombre de tentatives en cas d'erreur      | `3`                             |
 | `TIMEOUT_SECONDS`                 | Timeout pour chaque requête (secondes)    | `60`                            |
@@ -193,6 +238,57 @@ Vous pouvez personnaliser le comportement via des variables d'environnement ou l
 | `ENABLE_METRICS_ANALYSIS`         | Activer l'analyse de métriques            | `true`                          |
 | `ENABLE_DEPENDENCY_VULNERABILITY` | Activer l'analyse des vulnérabilités      | `true`                          |
 | `ENABLE_CODE_GENERATION`          | Permettre la génération de code d'analyse | `true`                          |
+
+### 💰 Coûts d'analyse
+
+Les coûts d'analyse dépendent du fournisseur, du modèle choisi et de la taille de votre codebase. Voici des estimations pour différents scénarios :
+
+#### Estimation des tokens
+
+- **1 ligne de code** ≈ 10-20 tokens (input)
+- **1 fichier** ≈ 500-2000 tokens selon la taille
+- **Rapport généré** ≈ 1000-5000 tokens (output) par fichier analysé
+
+#### Tableau des coûts estimés
+
+| Scénario              | Fichiers | Lignes | Tokens Input | Tokens Output | **Gemini Pro** | **GPT-4** | **GPT-3.5 Turbo** | **Claude 3.5 Sonnet** | **Claude 3 Opus** |
+| --------------------- | -------- | ------ | ------------ | ------------- | -------------- | --------- | ----------------- | --------------------- | ----------------- |
+| **Petit projet**      | 10       | 1 000  | ~15 000      | ~15 000       | $0.10          | $0.75     | $0.05             | $0.27                 | $1.35             |
+| **Projet moyen**      | 50       | 5 000  | ~75 000      | ~75 000       | $0.52          | $3.75     | $0.23             | $1.35                 | $6.75             |
+| **Grand projet**      | 100      | 10 000 | ~150 000     | ~150 000      | $1.03          | $7.50     | $0.45             | $2.70                 | $13.50            |
+| **Très grand projet** | 500      | 50 000 | ~750 000     | ~750 000      | $5.16          | $37.50    | $2.25             | $13.50                | $67.50            |
+
+_Note : Les coûts sont approximatifs et peuvent varier selon la complexité du code et la longueur des réponses générées._
+
+#### Tarifs par million de tokens (2024)
+
+| Fournisseur | Modèle        | Input (par M tokens) | Output (par M tokens) |
+| ----------- | ------------- | -------------------- | --------------------- |
+| **Gemini**  | 2.5 Pro       | ~$3.50               | ~$10.50               |
+| **Gemini**  | 1.5 Pro       | $3.50                | $10.50                |
+| **Gemini**  | 1.5 Flash     | $0.35                | $1.05                 |
+| **OpenAI**  | GPT-4o        | $2.50                | $10.00                |
+| **OpenAI**  | GPT-4 Turbo   | $10.00               | $30.00                |
+| **OpenAI**  | GPT-4         | $30.00               | $60.00                |
+| **OpenAI**  | GPT-3.5 Turbo | $0.50                | $1.50                 |
+| **Claude**  | 3.5 Sonnet    | $3.00                | $15.00                |
+| **Claude**  | 3 Opus        | $15.00               | $75.00                |
+| **Claude**  | 3 Haiku       | $0.25                | $1.25                 |
+
+_Note : Les tarifs peuvent varier. Consultez les pages de tarification officielles pour les tarifs les plus récents._
+
+#### Recommandations selon le budget
+
+- **Budget serré** : Utilisez **Gemini 1.5 Flash** ou **GPT-3.5 Turbo** pour des analyses rapides et économiques
+- **Équilibre qualité/prix** : Utilisez **Gemini 1.5 Pro**, **GPT-4o** ou **Claude 3.5 Sonnet** pour une bonne qualité à un prix raisonnable
+- **Qualité maximale** : Utilisez **GPT-4**, **Claude 3 Opus** ou **Gemini 2.5 Pro** pour les analyses les plus approfondies
+- **Spécialisé code** : Pour l'analyse de code, **GPT-4o** et **Claude 3.5 Sonnet** offrent d'excellentes performances
+
+_Note : Consultez les pages de tarification officielles pour les tarifs les plus récents :_
+
+- [Tarification Gemini](https://ai.google.dev/gemini-api/docs/pricing)
+- [Tarification OpenAI](https://openai.com/api/pricing/)
+- [Tarification Claude](https://www.anthropic.com/pricing)
 
 ## 📖 Utilisation
 
@@ -264,9 +360,10 @@ Le projet inclut un workflow GitHub Actions pour automatiser l'analyse de code d
 1. **Ajouter le secret GitHub** :
    - Allez dans votre repository → Settings → Secrets and variables → Actions
    - Cliquez sur "New repository secret"
-   - Nom : `GEMINI_API_KEY`
-   - Valeur : Votre clé API Gemini
+   - Nom : `GEMINI_API_KEY`, `OPENAI_API_KEY` ou `ANTHROPIC_API_KEY` selon le provider choisi
+   - Valeur : Votre clé API correspondante
    - Cliquez sur "Add secret"
+   - Optionnel : Ajoutez `AI_PROVIDER` et `AI_MODEL` pour personnaliser le provider et le modèle
 
 2. **Le workflow est déjà configuré** dans `.github/workflows/code-review.yml`
 
@@ -392,7 +489,8 @@ Les règles `.gitignore` sont respectées automatiquement.
 
 📁 Répertoire racine: .
 📂 Répertoire de sortie: docs/analyses
-🤖 Modèle Gemini: gemini-3-pro-preview
+🤖 Provider AI: GEMINI
+🤖 Modèle: gemini-3-pro-preview
 
 🌐 Recherche web activée pour les documentations
 
@@ -438,9 +536,15 @@ Les règles `.gitignore` sont respectées automatiquement.
 
 ## 🐛 Dépannage
 
-### Erreur: "Variable d'environnement GEMINI_API_KEY non définie"
+### Erreur: "Variable d'environnement [API_KEY] non définie"
 
-Créez un fichier `.env` avec votre clé API ou définissez la variable d'environnement.
+Créez un fichier `.env` avec votre clé API selon le provider choisi :
+
+- `GEMINI_API_KEY` pour Gemini
+- `OPENAI_API_KEY` pour OpenAI
+- `ANTHROPIC_API_KEY` pour Claude
+
+Ou définissez la variable d'environnement correspondante.
 
 ### Erreur: "ModuleNotFoundError"
 
@@ -469,6 +573,8 @@ Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou un
 ## 📚 Ressources
 
 - [Documentation Google Gemini](https://ai.google.dev/docs)
+- [Documentation OpenAI](https://platform.openai.com/docs)
+- [Documentation Claude](https://docs.anthropic.com)
 - [API OSV (Open Source Vulnerabilities)](https://osv.dev/)
 - [Documentation pathspec](https://github.com/cpburnz/python-pathspec)
 - [Repository GitHub](https://github.com/adryserage/aetheris)

@@ -30,6 +30,8 @@ classifiers = [
 
 dependencies = [
     "google-generativeai>=0.8.0",
+    "openai>=1.0.0",
+    "anthropic>=0.25.0",
     "pathspec>=0.12.0",
     "requests>=2.32.0",
     "pyyaml>=6.0",
@@ -49,4 +51,25 @@ packages = ["src", "src.agents", "src.core", "src.models", "src.services"]
 
 [tool.setuptools.package-data]
 "*" = ["*.md", "*.txt", "*.yaml", "*.yml"]
+
+[tool.black]
+line-length = 100
+target-version = ["py38", "py39", "py310", "py311", "py312"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | __pycache__
+)/
+'''
 
