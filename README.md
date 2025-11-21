@@ -3,9 +3,9 @@
 [![PyPI version](https://badge.fury.io/py/adryserage-aetheris.svg)](https://badge.fury.io/py/adryserage-aetheris)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/adryserage/aetheris/code-review.yml?label=CI)](https://github.com/adryserage/aetheris/actions)
+[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/adryserage/code_reviewer/code-review.yml?label=CI)](https://github.com/adryserage/code_reviewer/actions)
 [![PyPI downloads](https://img.shields.io/pypi/dm/adryserage-aetheris.svg)](https://pypi.org/project/adryserage-aetheris/)
-[![GitHub stars](https://img.shields.io/github/stars/adryserage/aetheris.svg?style=social&label=Star)](https://github.com/adryserage/aetheris)
+[![GitHub stars](https://img.shields.io/github/stars/adryserage/code_reviewer.svg?style=social&label=Star)](https://github.com/adryserage/code_reviewer)
 
 Système d'analyse de code automatisé utilisant plusieurs agents coopérants pour fournir une analyse complète de la qualité, de la sécurité et de l'architecture de votre codebase.
 
