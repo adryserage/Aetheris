@@ -5,7 +5,29 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
-## [1.0.8] - 2025-01-XX
+## [1.0.9] - 2025-01-15
+
+### ✨ Nouvelles fonctionnalités
+
+- **Barre de progression moderne** : Ajout d'une barre de progression interactive avec Rich pour un suivi visuel clair de l'analyse
+- **Affichage en temps réel** : Progression détaillée pour chaque étape (scan, analyse, rapports)
+- **Statistiques visuelles** : Affichage du temps écoulé, temps restant et pourcentage de progression
+
+### 🔧 Modifications
+
+- **CodeAnalyzer** : Intégration de `ProgressManager` pour remplacer les logs simples par des barres de progression
+- **Points d'entrée** : `main.py` et `src/cli.py` créent automatiquement un `ProgressManager` si le terminal le supporte
+- **Fallback automatique** : Si Rich n'est pas disponible ou si on n'est pas dans un terminal interactif, le système utilise les logs simples
+
+### 📦 Dépendances
+
+- Ajout de `rich>=13.0.0` pour les barres de progression modernes
+
+### 📝 Documentation
+
+- Mise à jour du README avec description de la barre de progression
+
+## [1.0.8] - 2025-01-15
 
 ### ✨ Nouvelles fonctionnalités
 
@@ -156,6 +178,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Génération de rapports détaillés en Markdown
 - Configuration flexible via variables d'environnement
 
+[1.0.9]: https://github.com/adryserage/aetheris/compare/v1.0.8...v1.0.9
 [1.0.8]: https://github.com/adryserage/aetheris/compare/v1.0.7...v1.0.8
 [1.0.7]: https://github.com/adryserage/aetheris/compare/v1.0.6...v1.0.7
 [1.0.6]: https://github.com/adryserage/aetheris/compare/v1.0.5...v1.0.6

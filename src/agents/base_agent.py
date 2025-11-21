@@ -2,15 +2,18 @@
 Classe de base pour tous les agents d'analyse
 """
 
+from typing import Optional
 from src.core.config import AnalysisConfig
 from src.core.ai_providers import create_ai_provider, AIProvider
+from src.core.progress import ProgressManager
 
 
 class BaseAgent:
     """Classe de base pour tous les agents d'analyse avec logique commune"""
 
-    def __init__(self, config: AnalysisConfig):
+    def __init__(self, config: AnalysisConfig, progress_manager: Optional[ProgressManager] = None):
         self.config = config
+        self.progress_manager = progress_manager
         self.ai_provider: AIProvider = create_ai_provider(
             provider=config.ai_provider,
             api_key=config.ai_api_key,
@@ -34,6 +37,25 @@ class BaseAgent:
             Exception: Si toutes les tentatives échouent
         """
         return await self.ai_provider.generate_content_with_retry(prompt, timeout_multiplier)
+
+    async def _call_ai_with_reasoning(self, prompt: str, timeout_multiplier: float = 1.0) -> str:
+        """
+        Appelle l'API AI avec reasoning si activé et disponible
+
+        Args:
+            prompt: Le prompt à envoyer au modèle AI
+            timeout_multiplier: Multiplicateur pour le timeout (défaut: 1.0)
+
+        Returns:
+            Le texte de la réponse du modèle AI
+        """
+        if self.config.show_reasoning:
+            content, reasoning = await self.ai_provider.generate_content_with_reasoning(prompt)
+            if reasoning and self.progress_manager:
+                self.progress_manager.print_reasoning(reasoning, self.config.ai_model)
+            return content
+        else:
+            return await self._call_ai_with_retry(prompt, timeout_multiplier)
 
     # Alias pour compatibilité avec le code existant
     async def _call_gemini_with_retry(self, prompt: str, timeout_multiplier: float = 1.0) -> str:

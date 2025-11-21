@@ -109,7 +109,7 @@ pip install -e .
 
 Le projet est organisé en modules pour une meilleure maintenabilité :
 
-```
+```text
 aetheris/
 ├── src/
 │   ├── core/              # Modules principaux
@@ -198,11 +198,23 @@ export ANTHROPIC_API_KEY=votre_cle_api_ici
 
 #### Modèles supportés
 
-| Fournisseur | Modèles disponibles                                                                          | Modèle par défaut            |
-| ----------- | -------------------------------------------------------------------------------------------- | ---------------------------- |
-| **Gemini**  | `gemini-2.5-pro`, `gemini-1.5-pro`, `gemini-1.5-flash`, `gemini-3-pro-preview`, `gemini-pro` | `gemini-1.5-pro`             |
-| **OpenAI**  | `gpt-4o`, `gpt-4-turbo`, `gpt-4`, `gpt-3.5-turbo`, `gpt-4-turbo-preview`                     | `gpt-4o`                     |
-| **Claude**  | `claude-3-5-sonnet-20241022`, `claude-3-opus-20240229`, `claude-3-haiku-20240307`            | `claude-3-5-sonnet-20241022` |
+##### Modèles avec reasoning (affichage du processus de raisonnement disponible via l'API)
+
+| Fournisseur | Modèles avec reasoning  | Modèle par défaut | Notes                                                                                                            |
+| ----------- | ----------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **OpenAI**  | `o1-preview`, `o1-mini` | `o1-preview`      | Ces modèles exposent leur processus de raisonnement étape par étape via le champ `reasoning` dans la réponse API |
+
+> **Note** : Seuls les modèles OpenAI `o1-preview` et `o1-mini` exposent actuellement leur reasoning via l'API. D'autres modèles (comme o3, GPT-5) peuvent avoir des capacités de reasoning internes mais ne l'exposent pas via l'API de la même manière.
+
+##### Modèles sans reasoning (affichage standard)
+
+| Fournisseur | Modèles disponibles                                                                          | Modèle par défaut            | Notes                             |
+| ----------- | -------------------------------------------------------------------------------------------- | ---------------------------- | --------------------------------- |
+| **Gemini**  | `gemini-2.5-pro`, `gemini-1.5-pro`, `gemini-1.5-flash`, `gemini-3-pro-preview`, `gemini-pro` | `gemini-1.5-pro`             | Pas de reasoning exposé via l'API |
+| **OpenAI**  | `gpt-4o`, `gpt-4-turbo`, `gpt-4`, `gpt-3.5-turbo`, `gpt-4-turbo-preview`                     | `gpt-4o`                     | Pas de reasoning exposé via l'API |
+| **Claude**  | `claude-3-5-sonnet-20241022`, `claude-3-opus-20240229`, `claude-3-haiku-20240307`            | `claude-3-5-sonnet-20241022` | Pas de reasoning exposé via l'API |
+
+> **Note** : Pour utiliser le mode reasoning avec les modèles OpenAI `o1-preview` ou `o1-mini`, définissez `AI_MODEL=o1-preview` (ou `o1-mini`) et `SHOW_REASONING=true`. Le reasoning s'affichera dans un panneau dédié pendant l'analyse.
 
 **Note importante** :
 
@@ -219,25 +231,26 @@ export ANTHROPIC_API_KEY=votre_cle_api_ici
 
 Vous pouvez personnaliser le comportement via des variables d'environnement ou le fichier `.env` :
 
-| Variable                          | Description                               | Défaut                          |
-| --------------------------------- | ----------------------------------------- | ------------------------------- |
-| `AI_PROVIDER`                     | Fournisseur AI à utiliser                 | `gemini`                        |
-| `AI_MODEL`                        | Modèle AI à utiliser                      | Défaut selon provider           |
-| `GEMINI_API_KEY`                  | Clé API Gemini (si provider=gemini)       | -                               |
-| `OPENAI_API_KEY`                  | Clé API OpenAI (si provider=openai)       | -                               |
-| `ANTHROPIC_API_KEY`               | Clé API Claude (si provider=claude)       | -                               |
-| `BATCH_SIZE`                      | Nombre de fichiers analysés en parallèle  | `10`                            |
-| `MAX_RETRIES`                     | Nombre de tentatives en cas d'erreur      | `3`                             |
-| `TIMEOUT_SECONDS`                 | Timeout pour chaque requête (secondes)    | `60`                            |
-| `OUTPUT_DIR`                      | Répertoire de sortie des analyses         | `docs/analyses`                 |
-| `ARCHITECTURE_REPORT`             | Chemin du rapport d'architecture          | `docs/architecture_overview.md` |
-| `ROOT_DIR`                        | Répertoire racine à analyser              | `.`                             |
-| `ENABLE_WEB_SEARCH`               | Activer la recherche web                  | `true`                          |
-| `MAX_WEB_RESULTS`                 | Nombre max de résultats de recherche      | `3`                             |
-| `ENABLE_SECURITY_ANALYSIS`        | Activer l'analyse de sécurité             | `true`                          |
-| `ENABLE_METRICS_ANALYSIS`         | Activer l'analyse de métriques            | `true`                          |
-| `ENABLE_DEPENDENCY_VULNERABILITY` | Activer l'analyse des vulnérabilités      | `true`                          |
-| `ENABLE_CODE_GENERATION`          | Permettre la génération de code d'analyse | `true`                          |
+| Variable                          | Description                                                  | Défaut                          |
+| --------------------------------- | ------------------------------------------------------------ | ------------------------------- |
+| `AI_PROVIDER`                     | Fournisseur AI à utiliser                                    | `gemini`                        |
+| `AI_MODEL`                        | Modèle AI à utiliser                                         | Défaut selon provider           |
+| `GEMINI_API_KEY`                  | Clé API Gemini (si provider=gemini)                          | -                               |
+| `OPENAI_API_KEY`                  | Clé API OpenAI (si provider=openai)                          | -                               |
+| `ANTHROPIC_API_KEY`               | Clé API Claude (si provider=claude)                          | -                               |
+| `BATCH_SIZE`                      | Nombre de fichiers analysés en parallèle                     | `10`                            |
+| `MAX_RETRIES`                     | Nombre de tentatives en cas d'erreur                         | `3`                             |
+| `TIMEOUT_SECONDS`                 | Timeout pour chaque requête (secondes)                       | `60`                            |
+| `OUTPUT_DIR`                      | Répertoire de sortie des analyses                            | `docs/analyses`                 |
+| `ARCHITECTURE_REPORT`             | Chemin du rapport d'architecture                             | `docs/architecture_overview.md` |
+| `ROOT_DIR`                        | Répertoire racine à analyser                                 | `.`                             |
+| `ENABLE_WEB_SEARCH`               | Activer la recherche web                                     | `true`                          |
+| `MAX_WEB_RESULTS`                 | Nombre max de résultats de recherche                         | `3`                             |
+| `ENABLE_SECURITY_ANALYSIS`        | Activer l'analyse de sécurité                                | `true`                          |
+| `ENABLE_METRICS_ANALYSIS`         | Activer l'analyse de métriques                               | `true`                          |
+| `ENABLE_DEPENDENCY_VULNERABILITY` | Activer l'analyse des vulnérabilités                         | `true`                          |
+| `ENABLE_CODE_GENERATION`          | Permettre la génération de code d'analyse                    | `true`                          |
+| `SHOW_REASONING`                  | Afficher le processus de reasoning du modèle (si disponible) | `false`                         |
 
 ### 💰 Coûts d'analyse
 
@@ -482,41 +495,44 @@ Les règles `.gitignore` sont respectées automatiquement.
 
 ## 📝 Exemple de sortie
 
-```
-============================================================
-🚀 Démarrage de l'analyse de code
+### Avec barre de progression (terminal interactif)
+
+Lorsque vous exécutez Aetheris dans un terminal interactif, vous verrez des barres de progression modernes avec Rich :
+
+```text
+🚀 Aetheris by Allowebs - Démarrage de l'analyse de code
 ============================================================
 
 📁 Répertoire racine: .
 📂 Répertoire de sortie: docs/analyses
 🤖 Provider AI: GEMINI
-🤖 Modèle: gemini-3-pro-preview
+🤖 Modèle: gemini-1.5-pro
 
 🌐 Recherche web activée pour les documentations
 
-🔍 Scan des fichiers...
+🔍 Scan des fichiers...                    ████████████████████ 100% 0:00:01
 ✅ 25 fichiers trouvés à analyser
 
-🔗 Initialisation de l'analyseur de dépendances...
-✅ Analyseur de dépendances initialisé
+🔗 Initialisation de l'analyseur de dépendances...  ████████████████████ 100%
 
-📦 Batch 1/3 (10 fichiers)...
-  ✅ src/main.py
-  ✅ src/utils.py
+📦 Analyse des fichiers...                 ████████████████████ 100% 0:02:15
+  📦 Batch 1/3 (10 fichiers)...
+  📦 Analyse: main.py ✅
+  📦 Analyse: utils.py ✅
   ...
 
 ✅ Analyse de 25 fichiers terminée
 
-🔄 Analyse des dépendances et détection des cycles...
+🔄 Analyse des dépendances et détection des cycles...  ████████████████████ 100%
 ✅ Aucun cycle de dépendances détecté
 
-🏗️  Génération du rapport d'architecture...
+🏗️  Génération du rapport d'architecture...  ████████████████████ 100%
 ✅ Rapport d'architecture sauvegardé: docs/architecture_overview.md
 
-🔒 Analyse des vulnérabilités des dépendances via OSV API...
+🔒 Analyse des vulnérabilités des dépendances via OSV API...  ████████████████████ 100%
 ✅ Analyse terminée: 15 package(s) vérifié(s), 2 vulnérabilité(s) trouvée(s)
 
-📋 Génération du rapport d'assurance qualité...
+📋 Génération du rapport d'assurance qualité...  ████████████████████ 100%
 ✅ Rapport d'assurance qualité sauvegardé: docs/analyses/quality_assurance_report.md
 
 📊 Statistiques:
@@ -533,6 +549,36 @@ Les règles `.gitignore` sont respectées automatiquement.
 ✅ Analyse terminée avec succès!
 ============================================================
 ```
+
+### Mode non-interactif
+
+Si vous exécutez Aetheris dans un environnement non-interactif (CI/CD, redirection de sortie), le système utilise automatiquement des logs simples sans barres de progression.
+
+## 🤔 Affichage du Reasoning (v1.1.0+)
+
+Certains modèles AI (comme OpenAI o1-preview, o1-mini) exposent leur processus de raisonnement. Vous pouvez activer l'affichage du reasoning pour voir comment le modèle arrive à ses conclusions.
+
+### Activation
+
+Définissez la variable d'environnement `SHOW_REASONING=true` :
+
+```env
+SHOW_REASONING=true
+```
+
+Ou via la ligne de commande :
+
+```bash
+SHOW_REASONING=true aetheris analysis
+```
+
+### Modèles avec reasoning disponibles
+
+- **OpenAI o1-preview** : Affiche le reasoning complet
+- **OpenAI o1-mini** : Affiche le reasoning complet
+- **Autres modèles** : Le reasoning n'est pas disponible via l'API
+
+Le reasoning s'affiche dans un panneau dédié pendant l'analyse, particulièrement utile pour les analyses d'architecture et d'assurance qualité.
 
 ## 🐛 Dépannage
 

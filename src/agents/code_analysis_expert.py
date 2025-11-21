@@ -22,8 +22,9 @@ class CodeAnalysisExpert(BaseAgent):
         dependency_analyzer=None,
         doc_searcher=None,
         code_generator=None,
+        progress_manager=None,
     ):
-        super().__init__(config)
+        super().__init__(config, progress_manager)
         self.dependency_analyzer = dependency_analyzer
         self.doc_searcher = doc_searcher
         self.code_generator = code_generator
