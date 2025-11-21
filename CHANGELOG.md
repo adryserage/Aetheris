@@ -5,6 +5,23 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [1.0.6] - 2025-01-XX
+
+### 🔧 Corrections et améliorations
+
+- **Workflows manuels uniquement** : Les workflows `code-review.yml` et `run-aetheris.yml` ne s'exécutent maintenant que manuellement
+- **Installation PyPI** : Le workflow `run-aetheris.yml` utilise maintenant PyPI au lieu de GitHub Packages
+- **Documentation** : Mise à jour complète de README, CHANGELOG, .gitignore, .gitattributes et scripts
+- **Correction URLs** : Correction des URLs du repository dans pyproject.toml
+- **Amélioration .gitignore** : Ajout des fichiers de packaging Python (build/, dist/, *.egg-info, etc.)
+- **Amélioration .gitattributes** : Ajout des règles de fin de ligne pour différents types de fichiers
+
+### 📝 Documentation
+
+- Mise à jour du README avec les liens PyPI et repository GitHub
+- Documentation améliorée des scripts utilitaires
+- CHANGELOG mis à jour avec toutes les versions
+
 ## [1.0.5] - 2025-01-XX
 
 ### 🚀 Publication sur PyPI
@@ -90,6 +107,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 
 
+[1.0.6]: https://github.com/adryserage/aetheris/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/adryserage/aetheris/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/adryserage/aetheris/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/adryserage/aetheris/compare/v1.0.2...v1.0.3
