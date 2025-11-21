@@ -98,7 +98,7 @@ pip install -e .
 - `pathspec` - Gestion des patterns .gitignore
 - `requests` - Requêtes HTTP pour l'API OSV (version >=2.32.0 pour corriger les vulnérabilités CVE-2024-47081 et CVE-2024-35195)
 - `pyyaml` - Parsing des fichiers YAML (pubspec.yaml pour Dart/Flutter)
-- `duckduckgo-search` - Recherche web pour enrichir les analyses (optionnel)
+- `duckduckgo-search` - Recherche web pour enrichir les analyses
 
 ## 🏗️ Structure du Projet
 

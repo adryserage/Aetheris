@@ -17,23 +17,12 @@ setup_utf8_encoding()
 try:
     import google.generativeai as genai
     from pathspec import PathSpec
-    try:
-        from duckduckgo_search import DDGS
-        WEB_SEARCH_AVAILABLE = True
-    except ImportError:
-        WEB_SEARCH_AVAILABLE = False
-    try:
-        import requests
-        REQUESTS_AVAILABLE = True
-    except ImportError:
-        REQUESTS_AVAILABLE = False
-    try:
-        import yaml
-        YAML_AVAILABLE = True
-    except ImportError:
-        YAML_AVAILABLE = False
-except ImportError:
-    print("❌ Dépendances manquantes. Installez avec: pip install -r requirements.txt")
+    from duckduckgo_search import DDGS
+    import requests
+    import yaml
+except ImportError as e:
+    print(f"❌ Dépendances manquantes: {e}")
+    print("   Installez avec: pip install -r requirements.txt")
     sys.exit(1)
 
 # Import de la configuration depuis le module dédié

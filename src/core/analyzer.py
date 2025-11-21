@@ -442,8 +442,6 @@ class CodeAnalyzer:
         """Exécute l'analyse complète"""
         if self.doc_searcher and self.doc_searcher.enabled:
             log_print("🌐 Recherche web activée pour les documentations\n")
-        elif self.config.enable_web_search:
-            log_print("⚠️  Recherche web désactivée (bibliothèque manquante). Installez 'duckduckgo-search' pour l'activer.\n")
         
         log_print("🔍 Scan des fichiers...")
         # Si une liste de fichiers est fournie, utiliser celle-ci, sinon scanner tout

@@ -5,15 +5,9 @@ Rechercheur de documentation en ligne pour enrichir les analyses
 import asyncio
 from typing import List
 
-from src.core.config import AnalysisConfig
+from duckduckgo_search import DDGS
 
-# Vérifier la disponibilité de duckduckgo_search
-try:
-    from duckduckgo_search import DDGS
-    WEB_SEARCH_AVAILABLE = True
-except ImportError:
-    WEB_SEARCH_AVAILABLE = False
-    DDGS = None
+from src.core.config import AnalysisConfig
 
 
 class DocumentationSearcher:
@@ -21,7 +15,7 @@ class DocumentationSearcher:
     
     def __init__(self, config: AnalysisConfig):
         self.config = config
-        self.enabled = config.enable_web_search and WEB_SEARCH_AVAILABLE
+        self.enabled = config.enable_web_search
         self.ddgs = None
         if self.enabled:
             try:

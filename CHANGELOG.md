@@ -5,6 +5,23 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [1.0.7] - 2025-11-21
+
+### 🔧 Corrections et améliorations
+
+- **Dépendance obligatoire** : `duckduckgo-search` est maintenant une dépendance obligatoire au lieu d'optionnelle
+- **Simplification du code** : Suppression des vérifications conditionnelles pour `duckduckgo-search` dans tout le codebase
+- **Amélioration des imports** : Simplification des imports dans `main.py` et `src/cli.py` avec gestion d'erreur unifiée
+- **Suppression des avertissements inutiles** : L'avertissement pour `duckduckgo-search` ne s'affiche plus si la recherche web est désactivée dans la configuration
+
+### 📦 Dépendances
+
+- `duckduckgo-search>=6.0.0` déplacé des dépendances optionnelles vers les dépendances principales dans `pyproject.toml` et `requirements.txt`
+
+### 📝 Documentation
+
+- Mise à jour du README pour indiquer que `duckduckgo-search` est une dépendance obligatoire
+
 ## [1.0.6] - 2025-01-XX
 
 ### 🔧 Corrections et améliorations
@@ -107,6 +124,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 
 
+[1.0.7]: https://github.com/adryserage/aetheris/compare/v1.0.6...v1.0.7
 [1.0.6]: https://github.com/adryserage/aetheris/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/adryserage/aetheris/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/adryserage/aetheris/compare/v1.0.3...v1.0.4

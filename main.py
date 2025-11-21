@@ -25,26 +25,12 @@ setup_utf8_encoding()
 try:
     import google.generativeai as genai
     from pathspec import PathSpec
-    try:
-        from duckduckgo_search import DDGS
-        WEB_SEARCH_AVAILABLE = True
-    except ImportError:
-        WEB_SEARCH_AVAILABLE = False
-        print("⚠️  Recherche web désactivée. Installez 'duckduckgo-search' pour l'activer: pip install duckduckgo-search")
-    try:
-        import requests
-        REQUESTS_AVAILABLE = True
-    except ImportError:
-        REQUESTS_AVAILABLE = False
-        print("⚠️  'requests' non installé. L'analyse des vulnérabilités sera désactivée: pip install requests")
-    try:
-        import yaml
-        YAML_AVAILABLE = True
-    except ImportError:
-        YAML_AVAILABLE = False
-        print("⚠️  'pyyaml' non installé. L'analyse des dépendances Dart sera limitée: pip install pyyaml")
-except ImportError:
-    print("❌ Dépendances manquantes. Installez avec: pip install -r requirements.txt")
+    from duckduckgo_search import DDGS
+    import requests
+    import yaml
+except ImportError as e:
+    print(f"❌ Dépendances manquantes: {e}")
+    print("   Installez avec: pip install -r requirements.txt")
     sys.exit(1)
 
 
