@@ -1,7 +1,8 @@
 name: Code Review Analysis
 
+# Ce workflow ne s'exécute QUE manuellement via l'onglet Actions de GitHub
+# Il n'y a aucun déclencheur automatique (pas de push, pull_request, etc.)
 on:
-  # Exécution manuelle uniquement
   workflow_dispatch:
     inputs:
       analyze_mode:
