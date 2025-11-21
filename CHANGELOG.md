@@ -22,7 +22,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 - Mise à jour du README pour indiquer que `duckduckgo-search` est une dépendance obligatoire
 
-## [1.0.6] - 2025-01-XX
+## [1.0.6] - 2025-11-21
 
 ### 🔧 Corrections et améliorations
 
@@ -39,7 +39,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Documentation améliorée des scripts utilitaires
 - CHANGELOG mis à jour avec toutes les versions
 
-## [1.0.5] - 2025-01-XX
+## [1.0.5] - 2025-11-21
 
 ### 🚀 Publication sur PyPI
 
@@ -54,7 +54,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Commande CLI : `aetheris` (inchangée)
 - Installation : `pip install adryserage-aetheris` (depuis PyPI)
 
-## [1.0.4] - 2025-01-XX
+## [1.0.4] - 2025-11-21
 
 ### 🔧 Corrections
 
@@ -62,7 +62,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Configuration du token PyPI comme secret GitHub
 - Mise à jour des workflows avec les dernières versions des actions GitHub (checkout@v4, setup-python@v5)
 
-## [1.0.3] - 2025-01-XX
+## [1.0.3] - 2025-11-21
 
 ### 🚀 Publication
 
