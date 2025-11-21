@@ -16,8 +16,8 @@ from src.models.data_models import SecurityIssue
 class SecurityAnalysisAgent(BaseAgent):
     """Agent d'analyse de sécurité (SSA)"""
 
-    def __init__(self, config: AnalysisConfig, doc_searcher=None):
-        super().__init__(config)
+    def __init__(self, config: AnalysisConfig, doc_searcher=None, progress_manager=None):
+        super().__init__(config, progress_manager)
         self.doc_searcher = doc_searcher
 
         # Patterns de sécurité communs

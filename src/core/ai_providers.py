@@ -4,7 +4,7 @@ Abstraction pour les fournisseurs AI (OpenAI, Claude, Gemini)
 
 import asyncio
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Tuple
 
 
 class AIProvider(ABC):
@@ -31,6 +31,23 @@ class AIProvider(ABC):
             Exception: Si la génération échoue
         """
         pass
+
+    async def generate_content_with_reasoning(self, prompt: str) -> Tuple[str, Optional[str]]:
+        """
+        Génère du contenu avec reasoning si disponible
+
+        Args:
+            prompt: Le prompt à envoyer au modèle
+
+        Returns:
+            Tuple (contenu, reasoning) où reasoning est None si non disponible
+
+        Raises:
+            Exception: Si la génération échoue
+        """
+        # Par défaut, retourner le contenu sans reasoning
+        content = await self.generate_content(prompt)
+        return content, None
 
     async def generate_content_with_retry(
         self, prompt: str, timeout_multiplier: float = 1.0
@@ -108,6 +125,25 @@ class OpenAIProvider(AIProvider):
         )
         return response.choices[0].message.content
 
+    async def generate_content_with_reasoning(self, prompt: str) -> Tuple[str, Optional[str]]:
+        """Génère du contenu avec reasoning pour les modèles o1"""
+        # Les modèles o1 (o1-preview, o1-mini) ont un reasoning
+        if self.model.startswith("o1"):
+            response = await asyncio.to_thread(
+                self._client.chat.completions.create,
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                timeout=self.timeout_seconds,
+            )
+            content = response.choices[0].message.content
+            # Le reasoning est dans response.choices[0].message.reasoning si disponible
+            reasoning = getattr(response.choices[0].message, "reasoning", None)
+            return content, reasoning
+        else:
+            # Pour les autres modèles, pas de reasoning
+            content = await self.generate_content(prompt)
+            return content, None
+
 
 class ClaudeProvider(AIProvider):
     """Provider pour Anthropic Claude"""
@@ -134,6 +170,13 @@ class ClaudeProvider(AIProvider):
             timeout=self.timeout_seconds,
         )
         return response.content[0].text
+
+    async def generate_content_with_reasoning(self, prompt: str) -> Tuple[str, Optional[str]]:
+        """Génère du contenu avec reasoning pour Claude (si disponible)"""
+        # Claude peut avoir un reasoning dans certains modèles, mais l'API actuelle ne l'expose pas directement
+        # On retourne None pour le reasoning pour l'instant
+        content = await self.generate_content(prompt)
+        return content, None
 
 
 def create_ai_provider(

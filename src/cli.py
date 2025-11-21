@@ -31,6 +31,7 @@ from src.core.config import AnalysisConfig, load_env_file
 
 # Import de CodeAnalyzer depuis le module dédié
 from src.core.analyzer import CodeAnalyzer
+from src.core.progress import ProgressManager
 
 
 def parse_changed_files(files_input: Optional[str]) -> List[str]:
@@ -182,6 +183,7 @@ async def run_analysis(args):
         analyze_changed_files_only=analyze_changed_only,
         changed_files=changed_files,
         pr_number=pr_number,
+        show_reasoning=os.getenv("SHOW_REASONING", "false").lower() == "true",
     )
 
     log_print(f"📁 Répertoire racine: {config.root_dir}")
@@ -200,7 +202,10 @@ async def run_analysis(args):
 
     log_print()
 
-    analyzer = CodeAnalyzer(config)
+    # Créer ProgressManager si on est dans un terminal interactif
+    progress_manager = ProgressManager(enabled=True)
+
+    analyzer = CodeAnalyzer(config, progress_manager=progress_manager)
     await analyzer.run()
 
     log_print()

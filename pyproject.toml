@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "adryserage-aetheris"
-version = "1.0.7"
+version = "1.0.9"
 description = "Aetheris by Allowebs - Système d'analyse de code multi-agents avec plusieurs agents coopérants"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -36,6 +36,7 @@ dependencies = [
     "requests>=2.32.0",
     "pyyaml>=6.0",
     "duckduckgo-search>=6.0.0",
+    "rich>=13.0.0",
 ]
 
 [project.scripts]

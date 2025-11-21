@@ -14,6 +14,7 @@ from pathspec import PathSpec
 
 from src.core.config import AnalysisConfig
 from src.core.logger import log_print
+from src.core.progress import ProgressManager
 from src.models.data_models import FileAnalysis
 from src.services.code_generator import CodeGenerator
 from src.services.documentation_searcher import DocumentationSearcher
@@ -122,21 +123,31 @@ def sanitize_markdown(text: str) -> str:
 class CodeAnalyzer:
     """Orchestrateur principal du système d'analyse"""
 
-    def __init__(self, config: AnalysisConfig, files_to_analyze: Optional[List[str]] = None):
+    def __init__(
+        self,
+        config: AnalysisConfig,
+        files_to_analyze: Optional[List[str]] = None,
+        progress_manager: Optional[ProgressManager] = None,
+    ):
         self.config = config
         self.files_to_analyze = (
             files_to_analyze  # Liste optionnelle de fichiers spécifiques à analyser
         )
         self.dependency_analyzer = None  # Sera initialisé après le scan des fichiers
+        self.progress_manager = progress_manager or ProgressManager(enabled=False)
         self.doc_searcher = DocumentationSearcher(config) if config.enable_web_search else None
         self.code_generator = CodeGenerator(config) if config.enable_code_generation else None
         self.cae = CodeAnalysisExpert(
-            config, self.dependency_analyzer, self.doc_searcher, self.code_generator
+            config,
+            self.dependency_analyzer,
+            self.doc_searcher,
+            self.code_generator,
+            self.progress_manager,
         )
-        self.aaa = ArchitectAnalysisAgent(config, self.doc_searcher)
+        self.aaa = ArchitectAnalysisAgent(config, self.doc_searcher, self.progress_manager)
         # Nouveaux agents
         self.ssa = (
-            SecurityAnalysisAgent(config, self.doc_searcher)
+            SecurityAnalysisAgent(config, self.doc_searcher, self.progress_manager)
             if config.enable_security_analysis
             else None
         )
@@ -146,7 +157,9 @@ class CodeAnalyzer:
             if config.enable_dependency_vulnerability
             else None
         )
-        self.qaa = QualityAssuranceAgent(config, self.doc_searcher)  # Agent d'assurance qualité
+        self.qaa = QualityAssuranceAgent(
+            config, self.doc_searcher, self.progress_manager
+        )  # Agent d'assurance qualité
         self.gitignore_spec = None
 
     def load_gitignore(self) -> PathSpec:
@@ -581,91 +594,125 @@ class CodeAnalyzer:
     async def run(self):
         """Exécute l'analyse complète"""
         if self.doc_searcher and self.doc_searcher.enabled:
-            log_print("🌐 Recherche web activée pour les documentations\n")
+            self.progress_manager.print("🌐 Recherche web activée pour les documentations\n")
 
-        log_print("🔍 Scan des fichiers...")
-        # Si une liste de fichiers est fournie, utiliser celle-ci, sinon scanner tout
-        if self.files_to_analyze:
-            # Filtrer les fichiers pour ne garder que ceux qui doivent être analysés
-            files = []
-            for file_path in self.files_to_analyze:
-                # Normaliser le chemin
-                if not os.path.isabs(file_path):
-                    file_path = os.path.join(self.config.root_dir, file_path)
-                file_path = os.path.normpath(file_path)
+        # Utiliser ProgressManager si disponible
+        with self.progress_manager.create_progress():
+            # Scan des fichiers
+            scan_task = self.progress_manager.add_task("🔍 Scan des fichiers...", total=100)
 
-                # Vérifier que le fichier existe et doit être analysé
-                if os.path.exists(file_path) and self.should_analyze(file_path):
-                    files.append(file_path)
-            log_print(f"✅ {len(files)} fichier(s) à analyser (mode diff)\n")
-        else:
-            files = self.scan_files()
-            log_print(f"✅ {len(files)} fichiers trouvés à analyser (mode full)\n")
+            # Si une liste de fichiers est fournie, utiliser celle-ci, sinon scanner tout
+            if self.files_to_analyze:
+                # Filtrer les fichiers pour ne garder que ceux qui doivent être analysés
+                files = []
+                for file_path in self.files_to_analyze:
+                    # Normaliser le chemin
+                    if not os.path.isabs(file_path):
+                        file_path = os.path.join(self.config.root_dir, file_path)
+                    file_path = os.path.normpath(file_path)
 
-        if not files:
-            log_print("❌ Aucun fichier à analyser")
-            return
+                    # Vérifier que le fichier existe et doit être analysé
+                    if os.path.exists(file_path) and self.should_analyze(file_path):
+                        files.append(file_path)
+                self.progress_manager.update_task(
+                    scan_task,
+                    advance=100,
+                    description=f"✅ {len(files)} fichier(s) à analyser (mode diff)",
+                )
+            else:
+                files = self.scan_files()
+                self.progress_manager.update_task(
+                    scan_task,
+                    advance=100,
+                    description=f"✅ {len(files)} fichiers trouvés à analyser (mode full)",
+                )
 
-        # Initialiser l'analyseur de dépendances
-        log_print("🔗 Initialisation de l'analyseur de dépendances...")
-        self.dependency_analyzer = DependencyAnalyzer(self.config.root_dir, files)
-        self.cae.dependency_analyzer = self.dependency_analyzer
-        log_print("✅ Analyseur de dépendances initialisé\n")
+            if not files:
+                self.progress_manager.print("❌ Aucun fichier à analyser")
+                return
 
-        # Créer le dossier de sortie
-        os.makedirs(self.config.output_dir, exist_ok=True)
+            # Initialiser l'analyseur de dépendances
+            dep_task = self.progress_manager.add_task(
+                "🔗 Initialisation de l'analyseur de dépendances...", total=100
+            )
+            self.dependency_analyzer = DependencyAnalyzer(self.config.root_dir, files)
+            self.cae.dependency_analyzer = self.dependency_analyzer
+            self.progress_manager.complete_task(dep_task)
 
-        # Analyser par batch
-        all_analyses = []
-        total_batches = (len(files) + self.config.batch_size - 1) // self.config.batch_size
+            # Créer le dossier de sortie
+            os.makedirs(self.config.output_dir, exist_ok=True)
 
-        for batch_idx in range(0, len(files), self.config.batch_size):
-            batch = files[batch_idx : batch_idx + self.config.batch_size]
-            batch_num = (batch_idx // self.config.batch_size) + 1
+            # Analyser par batch
+            all_analyses = []
+            total_files = len(files)
+            analysis_task = self.progress_manager.add_task(
+                "📦 Analyse des fichiers...", total=total_files
+            )
 
-            log_print(f"📦 Batch {batch_num}/{total_batches} ({len(batch)} fichiers)...")
+            for batch_idx in range(0, len(files), self.config.batch_size):
+                batch = files[batch_idx : batch_idx + self.config.batch_size]
+                batch_num = (batch_idx // self.config.batch_size) + 1
+                total_batches = (len(files) + self.config.batch_size - 1) // self.config.batch_size
 
-            analyses = await self.analyze_batch(batch)
+                self.progress_manager.update_task(
+                    analysis_task,
+                    description=f"📦 Batch {batch_num}/{total_batches} ({len(batch)} fichiers)...",
+                )
 
-            # Sauvegarder chaque analyse
-            for analysis in analyses:
-                self.save_analysis(analysis)
-                status = "✅" if analysis.success else "❌"
-                log_print(f"  {status} {os.path.relpath(analysis.file_path, self.config.root_dir)}")
+                analyses = await self.analyze_batch(batch)
 
-            all_analyses.extend(analyses)
+                # Sauvegarder chaque analyse
+                for analysis in analyses:
+                    self.save_analysis(analysis)
+                    self.progress_manager.update_task(
+                        analysis_task,
+                        advance=1,
+                        description=f"📦 Analyse: {os.path.basename(analysis.file_path)} {'✅' if analysis.success else '❌'}",
+                    )
 
-            # Pause entre batches pour éviter les rate limits
-            if batch_idx + self.config.batch_size < len(files):
-                await asyncio.sleep(2)
+                all_analyses.extend(analyses)
 
-        log_print(f"\n✅ Analyse de {len(all_analyses)} fichiers terminée\n")
+                # Pause entre batches pour éviter les rate limits
+                if batch_idx + self.config.batch_size < len(files):
+                    await asyncio.sleep(2)
 
-        # Construire le graphe de dépendances et détecter les cycles
-        log_print("🔄 Analyse des dépendances et détection des cycles...")
-        dependencies_map = {}
-        for analysis in all_analyses:
-            if analysis.success and analysis.dependencies:
-                dependencies_map[analysis.file_path] = analysis.dependencies
+            self.progress_manager.complete_task(analysis_task)
+            self.progress_manager.print(f"\n✅ Analyse de {len(all_analyses)} fichiers terminée\n")
 
-        cycles = self.dependency_analyzer.detect_circular_dependencies(dependencies_map)
-        if cycles:
-            log_print(f"⚠️  {len(cycles)} cycle(s) de dépendances détecté(s):")
-            for i, cycle in enumerate(cycles, 1):
-                cycle_paths = [
-                    os.path.relpath(f, self.config.root_dir).replace("\\", "/") for f in cycle
-                ]
-                log_print(f"  Cycle {i}: {' → '.join(cycle_paths)}")
-        else:
-            log_print("✅ Aucun cycle de dépendances détecté")
-        log_print()
+            # Construire le graphe de dépendances et détecter les cycles
+            cycles_task = self.progress_manager.add_task(
+                "🔄 Analyse des dépendances et détection des cycles...", total=100
+            )
+            dependencies_map = {}
+            for analysis in all_analyses:
+                if analysis.success and analysis.dependencies:
+                    dependencies_map[analysis.file_path] = analysis.dependencies
 
-        # Générer le rapport d'architecture
-        log_print("🏗️  Génération du rapport d'architecture...")
-        architecture_report = await self.aaa.generate_architecture_report(all_analyses, cycles)
+            cycles = self.dependency_analyzer.detect_circular_dependencies(dependencies_map)
+            if cycles:
+                self.progress_manager.update_task(
+                    cycles_task, description=f"⚠️  {len(cycles)} cycle(s) de dépendances détecté(s)"
+                )
+                for i, cycle in enumerate(cycles, 1):
+                    cycle_paths = [
+                        os.path.relpath(f, self.config.root_dir).replace("\\", "/") for f in cycle
+                    ]
+                    self.progress_manager.print(f"  Cycle {i}: {' → '.join(cycle_paths)}")
+            else:
+                self.progress_manager.update_task(
+                    cycles_task, description="✅ Aucun cycle de dépendances détecté"
+                )
+            self.progress_manager.complete_task(cycles_task)
+            self.progress_manager.print()
 
-        # Ajouter des métadonnées
-        report_with_metadata = f"""# Vue d'ensemble de l'architecture
+            # Générer le rapport d'architecture
+            arch_task = self.progress_manager.add_task(
+                "🏗️  Génération du rapport d'architecture...", total=100
+            )
+            architecture_report = await self.aaa.generate_architecture_report(all_analyses, cycles)
+
+            # Ajouter des métadonnées
+            report_with_metadata = f"""# Vue d'ensemble de l'architecture
 
 *Généré le {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*
 *Nombre de fichiers analysés: {len(all_analyses)}*
@@ -677,37 +724,47 @@ class CodeAnalyzer:
 {architecture_report}
 """
 
-        # Sauvegarder le rapport (sanitisé pour prévenir XSS)
-        os.makedirs(os.path.dirname(self.config.architecture_report_path), exist_ok=True)
-        sanitized_report = sanitize_markdown(report_with_metadata)
-        with open(self.config.architecture_report_path, "w", encoding="utf-8") as f:
-            f.write(sanitized_report)
+            # Sauvegarder le rapport (sanitisé pour prévenir XSS)
+            os.makedirs(os.path.dirname(self.config.architecture_report_path), exist_ok=True)
+            sanitized_report = sanitize_markdown(report_with_metadata)
+            with open(self.config.architecture_report_path, "w", encoding="utf-8") as f:
+                f.write(sanitized_report)
 
-        log_print(f"✅ Rapport d'architecture sauvegardé: {self.config.architecture_report_path}\n")
+            self.progress_manager.complete_task(arch_task)
+            self.progress_manager.print(
+                f"✅ Rapport d'architecture sauvegardé: {self.config.architecture_report_path}\n"
+            )
 
-        # Analyser les vulnérabilités des dépendances
-        if self.dva:
-            log_print("🔒 Analyse des vulnérabilités des dépendances via OSV API...")
-            dep_vulnerabilities = await self.dva.analyze_dependencies()
-
-            if dep_vulnerabilities:
-                log_print(
-                    f"\n⚠️  {len(dep_vulnerabilities)} vulnérabilité(s) détectée(s) dans les dépendances\n"
+            # Analyser les vulnérabilités des dépendances
+            dep_vulnerabilities = []
+            if self.dva:
+                vuln_task = self.progress_manager.add_task(
+                    "🔒 Analyse des vulnérabilités des dépendances via OSV API...", total=100
                 )
+                dep_vulnerabilities = await self.dva.analyze_dependencies()
 
-                # Grouper par sévérité
-                by_severity = defaultdict(list)
-                for vuln in dep_vulnerabilities:
-                    by_severity[vuln.severity].append(vuln)
+                if dep_vulnerabilities:
+                    self.progress_manager.update_task(
+                        vuln_task,
+                        description=f"⚠️  {len(dep_vulnerabilities)} vulnérabilité(s) détectée(s)",
+                    )
 
-                log_print("📊 Répartition par sévérité:")
-                for severity in ["critical", "high", "medium", "low"]:
-                    if severity in by_severity:
-                        count = len(by_severity[severity])
-                        emoji = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🟢"}.get(
-                            severity, "⚪"
-                        )
-                        log_print(f"  {emoji} {severity.upper()}: {count}")
+                    # Grouper par sévérité
+                    by_severity = defaultdict(list)
+                    for vuln in dep_vulnerabilities:
+                        by_severity[vuln.severity].append(vuln)
+
+                    self.progress_manager.print("\n📊 Répartition par sévérité:")
+                    for severity in ["critical", "high", "medium", "low"]:
+                        if severity in by_severity:
+                            count = len(by_severity[severity])
+                            emoji = {
+                                "critical": "🔴",
+                                "high": "🟠",
+                                "medium": "🟡",
+                                "low": "🟢",
+                            }.get(severity, "⚪")
+                            self.progress_manager.print(f"  {emoji} {severity.upper()}: {count}")
 
                 # Sauvegarder un rapport des vulnérabilités (sanitisé pour prévenir XSS)
                 vuln_report_path = os.path.join(self.config.output_dir, "vulnerabilities_report.md")
@@ -737,24 +794,29 @@ class CodeAnalyzer:
                                 )
                             vuln_report_content += "\n"
 
-                sanitized_vuln_report = sanitize_markdown(vuln_report_content)
-                with open(vuln_report_path, "w", encoding="utf-8") as f:
-                    f.write(sanitized_vuln_report)
+                    sanitized_vuln_report = sanitize_markdown(vuln_report_content)
+                    with open(vuln_report_path, "w", encoding="utf-8") as f:
+                        f.write(sanitized_vuln_report)
 
-                log_print(f"📄 Rapport sauvegardé: {vuln_report_path}\n")
+                    self.progress_manager.print(f"📄 Rapport sauvegardé: {vuln_report_path}\n")
+                else:
+                    self.progress_manager.update_task(
+                        vuln_task, description="✅ Aucune vulnérabilité détectée"
+                    )
+                self.progress_manager.complete_task(vuln_task)
             else:
-                log_print("✅ Aucune vulnérabilité détectée dans les dépendances\n")
-        else:
-            dep_vulnerabilities = []
+                dep_vulnerabilities = []
 
-        # Générer le rapport d'assurance qualité (synthèse de tout)
-        log_print("📋 Génération du rapport d'assurance qualité...")
-        quality_report = await self.qaa.generate_quality_report(
-            all_analyses, architecture_report, dep_vulnerabilities, cycles
-        )
+            # Générer le rapport d'assurance qualité (synthèse de tout)
+            qa_task = self.progress_manager.add_task(
+                "📋 Génération du rapport d'assurance qualité...", total=100
+            )
+            quality_report = await self.qaa.generate_quality_report(
+                all_analyses, architecture_report, dep_vulnerabilities, cycles
+            )
 
-        # Ajouter des métadonnées
-        quality_report_with_metadata = f"""# Rapport d'Assurance Qualité
+            # Ajouter des métadonnées
+            quality_report_with_metadata = f"""# Rapport d'Assurance Qualité
 
 *Généré le {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*
 *Synthèse de toutes les analyses effectuées*
@@ -764,29 +826,36 @@ class CodeAnalyzer:
 {quality_report}
 """
 
-        # Sauvegarder le rapport d'assurance qualité (sanitisé pour prévenir XSS)
-        quality_report_path = os.path.join(self.config.output_dir, "quality_assurance_report.md")
-        os.makedirs(os.path.dirname(quality_report_path), exist_ok=True)
-        sanitized_quality_report = sanitize_markdown(quality_report_with_metadata)
-        with open(quality_report_path, "w", encoding="utf-8") as f:
-            f.write(sanitized_quality_report)
+            # Sauvegarder le rapport d'assurance qualité (sanitisé pour prévenir XSS)
+            quality_report_path = os.path.join(
+                self.config.output_dir, "quality_assurance_report.md"
+            )
+            os.makedirs(os.path.dirname(quality_report_path), exist_ok=True)
+            sanitized_quality_report = sanitize_markdown(quality_report_with_metadata)
+            with open(quality_report_path, "w", encoding="utf-8") as f:
+                f.write(sanitized_quality_report)
 
-        log_print(f"✅ Rapport d'assurance qualité sauvegardé: {quality_report_path}\n")
+            self.progress_manager.complete_task(qa_task)
+            self.progress_manager.print(
+                f"✅ Rapport d'assurance qualité sauvegardé: {quality_report_path}\n"
+            )
 
-        # Statistiques finales
-        log_print("📊 Statistiques:")
-        log_print(f"  - Fichiers analysés: {len(all_analyses)}")
-        log_print(f"  - Succès: {sum(1 for a in all_analyses if a.success)}")
-        log_print(f"  - Échecs: {sum(1 for a in all_analyses if not a.success)}")
+            # Statistiques finales
+            self.progress_manager.print("📊 Statistiques:")
+            self.progress_manager.print(f"  - Fichiers analysés: {len(all_analyses)}")
+            self.progress_manager.print(f"  - Succès: {sum(1 for a in all_analyses if a.success)}")
+            self.progress_manager.print(
+                f"  - Échecs: {sum(1 for a in all_analyses if not a.success)}"
+            )
 
-        languages = {}
-        for analysis in all_analyses:
-            lang = analysis.language
-            languages[lang] = languages.get(lang, 0) + 1
+            languages = {}
+            for analysis in all_analyses:
+                lang = analysis.language
+                languages[lang] = languages.get(lang, 0) + 1
 
-        log_print(f"\n  Répartition par langage:")
-        for lang, count in sorted(languages.items(), key=lambda x: -x[1]):
-            log_print(f"    - {lang}: {count}")
+            self.progress_manager.print(f"\n  Répartition par langage:")
+            for lang, count in sorted(languages.items(), key=lambda x: -x[1]):
+                self.progress_manager.print(f"    - {lang}: {count}")
 
         # Nettoyer les fichiers temporaires générés
         if self.code_generator:

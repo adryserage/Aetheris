@@ -15,8 +15,8 @@ from src.models.data_models import FileAnalysis, DependencyVulnerability
 class QualityAssuranceAgent(BaseAgent):
     """Agent d'Assurance Qualité - Synthétise toutes les informations d'analyse (QAA)"""
 
-    def __init__(self, config: AnalysisConfig, doc_searcher=None):
-        super().__init__(config)
+    def __init__(self, config: AnalysisConfig, doc_searcher=None, progress_manager=None):
+        super().__init__(config, progress_manager)
         self.doc_searcher = doc_searcher
 
     async def generate_quality_report(
