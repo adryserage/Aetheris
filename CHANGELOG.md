@@ -5,21 +5,38 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
-## [1.0.3] - 2025-01-XX
+## [1.0.5] - 2025-01-XX
 
-### 🚀 Publication
+### 🚀 Publication sur PyPI
 
-- Renommage du package Python en `adryserage-aetheris` pour publication sur GitHub Packages
-- Configuration complète du package avec `pyproject.toml`
-- Ajout de la commande CLI `aetheris` avec sous-commandes (`aetheris analysis`)
-- Workflow GitHub Actions pour publication automatique sur GitHub Packages lors des tags de version
-- Documentation mise à jour avec instructions d'installation depuis GitHub Packages
+- **Publication sur PyPI** : Le package est maintenant disponible sur PyPI (Python Package Index)
+- **Installation simplifiée** : Plus besoin de `--extra-index-url`, installez simplement avec `pip install adryserage-aetheris`
+- Correction du workflow de publication (suppression de GitHub Packages avec URL incorrecte)
+- Workflow GitHub Actions mis à jour pour publier uniquement sur PyPI
 
 ### 📦 Package
 
 - Nom du package : `adryserage-aetheris`
 - Commande CLI : `aetheris` (inchangée)
-- Installation : `pip install --extra-index-url ... adryserage-aetheris`
+- Installation : `pip install adryserage-aetheris` (depuis PyPI)
+
+## [1.0.4] - 2025-01-XX
+
+### 🔧 Corrections
+
+- Ajout du support PyPI dans le workflow de publication
+- Configuration du token PyPI comme secret GitHub
+- Mise à jour des workflows avec les dernières versions des actions GitHub (checkout@v4, setup-python@v5)
+
+## [1.0.3] - 2025-01-XX
+
+### 🚀 Publication
+
+- Renommage du package Python en `adryserage-aetheris` pour publication
+- Configuration complète du package avec `pyproject.toml`
+- Ajout de la commande CLI `aetheris` avec sous-commandes (`aetheris analysis`)
+- Workflow GitHub Actions pour publication automatique lors des tags de version
+- Documentation mise à jour avec instructions d'installation
 
 ## [1.0.2] - 2025-11-21
 
@@ -73,7 +90,9 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 
 
-[1.0.3]: https://github.com/adryserage/code_reviewer/compare/v1.0.2...v1.0.3
-[1.0.2]: https://github.com/adryserage/code_reviewer/compare/v1.0.1...v1.0.2
-[1.0.1]: https://github.com/adryserage/code_reviewer/compare/v1.0.0...v1.0.1
-[1.0.0]: https://github.com/adryserage/code_reviewer/releases/tag/v1.0.0
+[1.0.5]: https://github.com/adryserage/aetheris/compare/v1.0.4...v1.0.5
+[1.0.4]: https://github.com/adryserage/aetheris/compare/v1.0.3...v1.0.4
+[1.0.3]: https://github.com/adryserage/aetheris/compare/v1.0.2...v1.0.3
+[1.0.2]: https://github.com/adryserage/aetheris/compare/v1.0.1...v1.0.2
+[1.0.1]: https://github.com/adryserage/aetheris/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/adryserage/aetheris/releases/tag/v1.0.0

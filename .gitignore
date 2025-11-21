@@ -95,3 +95,17 @@ dmypy.json
 .pyre/
 .pytype/
 cython_debug/
+
+# Python packaging / distribution
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+*.whl
+*.tar.gz
+*.zip
+
+# Package metadata
+MANIFEST
+.pypirc

@@ -65,44 +65,24 @@ pip install adryserage-aetheris
 
 C'est tout ! Le package est maintenant installé et la commande `aetheris` est disponible.
 
-### Installation depuis GitHub Packages (Alternative)
-
-Si vous préférez installer depuis GitHub Packages :
-
-1. **Créer un Personal Access Token (PAT)** :
-   - Allez dans GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
-   - Créez un nouveau token avec le scope `read:packages`
-   - Copiez le token
-
-2. **Installer le package** :
-
-```bash
-# Linux/Mac
-pip install --extra-index-url https://USERNAME:TOKEN@pypi.github.com/adryserage/code_reviewer/simple/ adryserage-aetheris
-
-# Windows (PowerShell)
-pip install --extra-index-url https://USERNAME:TOKEN@pypi.github.com/adryserage/code_reviewer/simple/ adryserage-aetheris
-```
-
-Remplacez `USERNAME` par votre nom d'utilisateur GitHub et `TOKEN` par votre Personal Access Token.
-
-**Alternative avec variable d'environnement** :
-
-```bash
-export PIP_EXTRA_INDEX_URL="https://USERNAME:TOKEN@pypi.github.com/adryserage/code_reviewer/simple/"
-pip install adryserage-aetheris
-```
-
-**Note** : Après l'installation, la commande CLI reste `aetheris` (définie dans le package).
+**Note** : Après l'installation, la commande CLI `aetheris` est disponible dans votre terminal.
 
 ### Installation depuis les sources
 
 Si vous préférez installer depuis les sources :
 
 ```bash
-git clone https://github.com/Allowebs/code_reviewer.git
-cd code_reviewer
+git clone https://github.com/adryserage/aetheris.git
+cd aetheris
 pip install -r requirements.txt
+```
+
+Ou installez le package en mode développement :
+
+```bash
+git clone https://github.com/adryserage/aetheris.git
+cd aetheris
+pip install -e .
 ```
 
 ### Dépendances
@@ -138,7 +118,13 @@ aetheris/
 │       ├── code_generator.py
 │       ├── documentation_searcher.py
 │       └── dependency_analyzer.py
-├── main.py               # Point d'entrée principal
+├── main.py               # Point d'entrée principal (pour développement)
+├── src/
+│   └── cli.py           # Interface CLI avec sous-commandes
+├── scripts/              # Scripts utilitaires
+│   ├── analyze_changes.py  # Analyse des fichiers modifiés
+│   └── README.md
+├── pyproject.toml        # Configuration du package Python
 ├── requirements.txt      # Dépendances Python
 └── README.md            # Documentation
 ```
@@ -478,3 +464,5 @@ Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou un
 - [Documentation Google Gemini](https://ai.google.dev/docs)
 - [API OSV (Open Source Vulnerabilities)](https://osv.dev/)
 - [Documentation pathspec](https://github.com/cpburnz/python-pathspec)
+- [Repository GitHub](https://github.com/adryserage/aetheris)
+- [Package PyPI](https://pypi.org/project/adryserage-aetheris/)
