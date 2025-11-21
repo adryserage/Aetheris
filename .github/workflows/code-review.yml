@@ -1,7 +1,7 @@
 name: Code Review Analysis
 
 on:
-  # Exécution manuelle avec options
+  # Exécution manuelle uniquement
   workflow_dispatch:
     inputs:
       analyze_mode:
@@ -17,24 +17,6 @@ on:
         required: false
         type: string
         default: ""
-
-  # Sur push vers main/master
-  push:
-    branches:
-      - main
-      - master
-    paths-ignore:
-      - "**.md"
-      - ".gitignore"
-      - "LICENSE"
-
-  # Sur ouverture/modification de PR
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths-ignore:
-      - "**.md"
-      - ".gitignore"
-      - "LICENSE"
 
 jobs:
   analyze:
@@ -64,13 +46,7 @@ jobs:
       - name: Determine analysis mode
         id: analysis_mode
         run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            MODE="${{ github.event.inputs.analyze_mode }}"
-          elif [ "${{ github.event_name }}" == "pull_request" ]; then
-            MODE="changed"
-          else
-            MODE="full"
-          fi
+          MODE="${{ github.event.inputs.analyze_mode }}"
           echo "mode=$MODE" >> $GITHUB_OUTPUT
           echo "🔍 Mode d'analyse: $MODE"
 
@@ -78,10 +54,7 @@ jobs:
         id: changed_files
         if: steps.analysis_mode.outputs.mode == 'changed'
         run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            # Pour les PR, utiliser l'API GitHub pour obtenir les fichiers modifiés (exclure les fichiers supprimés)
-            FILES=$(gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[] | select(.status != "removed") | .path' || echo "")
-          elif [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.pr_number }}" ]; then
+          if [ -n "${{ github.event.inputs.pr_number }}" ]; then
             # Pour workflow_dispatch avec PR number (exclure les fichiers supprimés)
             FILES=$(gh pr view ${{ github.event.inputs.pr_number }} --json files --jq '.files[] | select(.status != "removed") | .path' || echo "")
           else
@@ -113,7 +86,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install GitHub CLI (if needed)
-        if: steps.analysis_mode.outputs.mode == 'changed' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != ''))
+        if: steps.analysis_mode.outputs.mode == 'changed' && github.event.inputs.pr_number != ''
         run: |
           type -p curl >/dev/null || (apt update && apt install curl -y)
           curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
@@ -136,7 +109,7 @@ jobs:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           ANALYSIS_MODE: ${{ steps.analysis_mode.outputs.mode }}
           CHANGED_FILES: ${{ steps.changed_files.outputs.files }}
-          PR_NUMBER: ${{ github.event.pull_request.number || github.event.inputs.pr_number || '' }}
+          PR_NUMBER: ${{ github.event.inputs.pr_number || '' }}
         run: |
           if [ "$ANALYSIS_MODE" == "changed" ] && [ "${{ steps.changed_files.outputs.has_files }}" == "true" ]; then
             echo "🔍 Analyse des fichiers modifiés uniquement"
