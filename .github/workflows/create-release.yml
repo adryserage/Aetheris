@@ -1,0 +1,58 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*" # Déclenché sur les tags de version (ex: v1.0.0)
+
+permissions:
+  contents: write # Nécessaire pour créer des releases
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Nécessaire pour avoir accès à tous les commits et tags
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Extract version from tag
+        id: tag_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag_name=v$VERSION" >> $GITHUB_OUTPUT
+          echo "Version extraite: $VERSION"
+
+      - name: Extract release notes from CHANGELOG
+        id: release_notes
+        run: |
+          python scripts/extract_release_notes.py "${{ steps.tag_version.outputs.version }}" > release_notes.md || echo "## Release ${{ steps.tag_version.outputs.tag_name }}" > release_notes.md
+          echo "✅ Notes de release extraites"
+
+      - name: Display release notes preview
+        run: |
+          echo "📝 Aperçu des notes de release:"
+          echo "---"
+          head -20 release_notes.md
+          echo "---"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag_version.outputs.tag_name }}
+          name: Release ${{ steps.tag_version.outputs.tag_name }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: ${{ contains(steps.tag_version.outputs.version, '-alpha') || contains(steps.tag_version.outputs.version, '-beta') || contains(steps.tag_version.outputs.version, '-rc') }}
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
