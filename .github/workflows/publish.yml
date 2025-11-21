@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write  # Nécessaire pour l'authentification OIDC avec PyPI Trusted Publisher
 
 jobs:
   publish:
@@ -37,10 +38,8 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
       
-      - name: Publish to PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: |
-          python -m twine upload dist/*
+      - name: Publish to PyPI using Trusted Publisher
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
 
