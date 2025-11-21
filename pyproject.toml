@@ -45,7 +45,7 @@ aetheris = "src.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/adryserage/aetheris"
-Repository = "https://github.com//adryserage/aetheris"
+Repository = "https://github.com/adryserage/aetheris"
 Issues = "https://github.com/adryserage/aetheris/issues"
 
 [tool.setuptools]
