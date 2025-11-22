@@ -57,7 +57,7 @@ Le système utilise **6 agents spécialisés** qui travaillent ensemble pour ana
 
 ### Installation depuis GitHub Packages (Recommandé)
 
-Aetheris est disponible en tant que package Python sur GitHub Packages. Pour l'installer :
+Aetheris est disponible en tant que package Python sur GitHub Packages sous le nom `adryserage-aetheris`. Pour l'installer :
 
 1. **Créer un Personal Access Token (PAT)** :
    - Allez dans GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
@@ -68,10 +68,10 @@ Aetheris est disponible en tant que package Python sur GitHub Packages. Pour l'i
 
 ```bash
 # Linux/Mac
-pip install --extra-index-url https://USERNAME:TOKEN@pypi.github.com/Allowebs/code_reviewer/simple/ aetheris
+pip install --extra-index-url https://USERNAME:TOKEN@pypi.github.com/Allowebs/code_reviewer/simple/ adryserage-aetheris
 
 # Windows (PowerShell)
-pip install --extra-index-url https://USERNAME:TOKEN@pypi.github.com/Allowebs/code_reviewer/simple/ aetheris
+pip install --extra-index-url https://USERNAME:TOKEN@pypi.github.com/Allowebs/code_reviewer/simple/ adryserage-aetheris
 ```
 
 Remplacez `USERNAME` par votre nom d'utilisateur GitHub et `TOKEN` par votre Personal Access Token.
@@ -80,8 +80,10 @@ Remplacez `USERNAME` par votre nom d'utilisateur GitHub et `TOKEN` par votre Per
 
 ```bash
 export PIP_EXTRA_INDEX_URL="https://USERNAME:TOKEN@pypi.github.com/Allowebs/code_reviewer/simple/"
-pip install aetheris
+pip install adryserage-aetheris
 ```
+
+**Note** : Après l'installation, la commande CLI reste `aetheris` (définie dans le package).
 
 ### Installation depuis les sources
 
