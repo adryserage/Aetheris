@@ -61,9 +61,11 @@ Le script attend un format de CHANGELOG conforme à [Keep a Changelog](https://k
 ## [1.1.0] - 2025-01-15
 
 ### ✨ Nouvelles fonctionnalités
+
 - ...
 
 ### 🔧 Modifications
+
 - ...
 ```
 

@@ -208,11 +208,11 @@ export ANTHROPIC_API_KEY=votre_cle_api_ici
 
 ##### Modèles sans reasoning (affichage standard)
 
-| Fournisseur | Modèles disponibles                                                                          | Modèle par défaut            | Notes                             |
-| ----------- | -------------------------------------------------------------------------------------------- | ---------------------------- | --------------------------------- |
+| Fournisseur | Modèles disponibles                                                                                                                           | Modèle par défaut            | Notes                             |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | --------------------------------- |
 | **Gemini**  | `gemini-1.5-flash`, `gemini-1.5-pro-latest`, `gemini-2.0-flash-exp`, `gemini-2.5-pro`, `gemini-1.5-pro`, `gemini-3-pro-preview`, `gemini-pro` | `gemini-1.5-flash`           | Pas de reasoning exposé via l'API |
-| **OpenAI**  | `gpt-4o`, `gpt-4-turbo`, `gpt-4`, `gpt-3.5-turbo`, `gpt-4-turbo-preview`                     | `gpt-4o`                     | Pas de reasoning exposé via l'API |
-| **Claude**  | `claude-3-5-sonnet-20241022`, `claude-3-opus-20240229`, `claude-3-haiku-20240307`            | `claude-3-5-sonnet-20241022` | Pas de reasoning exposé via l'API |
+| **OpenAI**  | `gpt-4o`, `gpt-4-turbo`, `gpt-4`, `gpt-3.5-turbo`, `gpt-4-turbo-preview`                                                                      | `gpt-4o`                     | Pas de reasoning exposé via l'API |
+| **Claude**  | `claude-3-5-sonnet-20241022`, `claude-3-opus-20240229`, `claude-3-haiku-20240307`                                                             | `claude-3-5-sonnet-20241022` | Pas de reasoning exposé via l'API |
 
 > **Note** : Pour utiliser le mode reasoning avec les modèles OpenAI `o1-preview` ou `o1-mini`, définissez `AI_MODEL=o1-preview` (ou `o1-mini`) et `SHOW_REASONING=true`. Le reasoning s'affichera dans un panneau dédié pendant l'analyse.
 
