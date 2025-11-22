@@ -5,6 +5,14 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [1.0.2] - 2025-11-21
+
+### 🔧 Corrections
+
+- Correction de la commande `gh pr diff` qui utilisait des flags invalides (`--json` et `--jq` non supportés)
+- Remplacement par `gh pr view` avec filtrage approprié pour exclure les fichiers supprimés
+- Alignement du comportement entre les modes PR et commit pour exclure les fichiers supprimés (cohérence avec `git diff --diff-filter=ACMR`)
+
 ## [1.0.1] - 2025-11-21
 
 ### 🔧 Corrections
@@ -49,5 +57,6 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 
 
+[1.0.2]: https://github.com/adryserage/code_reviewer/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/adryserage/code_reviewer/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/adryserage/code_reviewer/releases/tag/v1.0.0
