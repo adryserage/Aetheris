@@ -11,6 +11,7 @@ Python
 Ce fichier constitue le cœur d'un système d'analyse de code automatisé basé sur l'IA (Multi-Agent System). Il orchestre plusieurs agents spécialisés pour analyser un repository complet via l'API Google Gemini.
 
 Ses fonctions principales sont :
+
 1.  **Configuration et Initialisation :** Gestion des dépendances, de l'encodage (support Windows) et des clés API.
 2.  **Modélisation des données :** Définition des structures via `dataclasses` (FileAnalysis, SecurityIssue, FileDependency).
 3.  **Analyse de Dépendances :** Résolution des imports et détection des cycles pour Python, TypeScript/JS et Dart.
@@ -30,14 +31,16 @@ Ses fonctions principales sont :
 Le fichier dépend fortement de bibliothèques externes et standards pour fonctionner.
 
 **Dépendances manquantes ou introuvables (selon le rapport d'erreur) :**
+
 - Bibliothèques standards Python signalées manquantes : `io`, `requests`, `tempfile`, `uuid`. C'est critique car ces modules sont essentiels au fonctionnement de base.
 - Bibliothèques tierces manquantes :
-    - `google.generativeai` : Indispensable pour l'accès au LLM.
-    - `pathspec` : Nécessaire pour gérer les patterns de fichiers (ex: .gitignore).
-    - `duckduckgo_search` : Nécessaire pour l'agent de recherche documentaire.
-    - `yaml` : Utilisé pour l'analyse des fichiers Dart/Flutter.
+  - `google.generativeai` : Indispensable pour l'accès au LLM.
+  - `pathspec` : Nécessaire pour gérer les patterns de fichiers (ex: .gitignore).
+  - `duckduckgo_search` : Nécessaire pour l'agent de recherche documentaire.
+  - `yaml` : Utilisé pour l'analyse des fichiers Dart/Flutter.
 
 **Analyse des relations :**
+
 - Le code tente de gérer l'absence de certains modules (blocs `try...except ImportError`) en désactivant des fonctionnalités (ex: `WEB_SEARCH_AVAILABLE`), ce qui est une bonne pratique de dégradation gracieuse.
 - Le fichier contient des classes (`DeepCodeAnalyzer` dans la chaîne de caractères) qui semblent être du code destiné à être injecté ou exécuté dynamiquement, créant une relation de méta-programmation.
 

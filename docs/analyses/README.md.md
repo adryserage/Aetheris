@@ -9,6 +9,7 @@ Markdown
 ## Objectif / Fonction principale
 
 Ce fichier sert de point d'entrée documentaire minimaliste pour le projet "code_reviewer". Ses fonctions actuelles sont :
+
 1.  Identifier le nom du projet via un titre principal.
 2.  Noter une contrainte technique spécifique (limite de 50 000 caractères) liée à la gestion du contexte, probablement pour un traitement par IA.
 
@@ -20,6 +21,7 @@ Ce fichier sert de point d'entrée documentaire minimaliste pour le projet "code
 ## Relations et dépendances
 
 Ce fichier est un document statique et ne présente pas de dépendances logicielles (imports, exports, types).
+
 - **Dépendances manquantes :** Néant (fichier autonome).
 - **Incohérences :** Aucune relation inter-fichiers à analyser.
 
@@ -32,21 +34,26 @@ Ce fichier est un document statique et ne présente pas de dépendances logiciel
 
 1.  **Structurer le document :**
     Ajouter les sections standards pour guider l'utilisateur.
+
     ```markdown
     # Code Reviewer
 
     ## Description
+
     Outil d'analyse de code...
 
     ## Installation
+
     ...
 
     ## Usage
+
     ...
     ```
 
 2.  **Corriger la syntaxe de la note :**
     Transformer la ligne indentée en une note d'avertissement claire ou en texte simple pour une meilleure lisibilité.
+
     ```markdown
     > **Note :** Ce projet impose une limite de 50k caractères pour éviter les dépassements de contexte.
     ```

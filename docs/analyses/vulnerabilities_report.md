@@ -1,6 +1,6 @@
 # Rapport des Vulnérabilités des Dépendances
 
-*Généré le 2025-11-21 19:39:55*
+_Généré le 2025-11-21 19:39:55_
 
 **Total:** 2 vulnérabilité(s)
 
@@ -19,4 +19,3 @@
 - **CVE:** CVE-2024-35195
 - **Description:** Requests `Session` object does not verify requests after making first request with verify=False
 - **Versions affectées:** Toutes les versions
-

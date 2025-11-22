@@ -27,7 +27,7 @@ python scripts/analyze_changes.py --output changed_files.txt
 ### Notes
 
 Le script filtre automatiquement les fichiers pour ne garder que ceux qui doivent être analysés :
+
 - Extensions de code source supportées
 - Exclusion des fichiers générés, node_modules, etc.
 - Exclusion des fichiers binaires et trop volumineux
-

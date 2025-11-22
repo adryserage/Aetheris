@@ -8,7 +8,7 @@ Le système utilise **6 agents spécialisés** qui travaillent ensemble pour ana
 
 ### Agents d'Analyse
 
-1. **Code Analysis Expert (CAE)** 
+1. **Code Analysis Expert (CAE)**
    - Analyse chaque fichier individuellement
    - Identifie les objectifs et fonctions principales
    - Détecte les points forts et bonnes pratiques
@@ -107,6 +107,7 @@ code_reviewer/
 - **`src/services/`** : Services utilitaires réutilisables (génération de code, recherche web, analyse de dépendances)
 
 Cette structure modulaire facilite :
+
 - La maintenance et l'extension du code
 - La réutilisation des composants
 - Les tests unitaires
@@ -125,11 +126,13 @@ GEMINI_API_KEY=votre_cle_api_ici
 Ou définissez la variable d'environnement :
 
 **Windows (PowerShell):**
+
 ```powershell
 $env:GEMINI_API_KEY='votre_cle_api_ici'
 ```
 
 **Linux/Mac:**
+
 ```bash
 export GEMINI_API_KEY=votre_cle_api_ici
 ```
@@ -138,21 +141,21 @@ export GEMINI_API_KEY=votre_cle_api_ici
 
 Vous pouvez personnaliser le comportement via des variables d'environnement ou le fichier `.env` :
 
-| Variable | Description | Défaut |
-|----------|-------------|--------|
-| `GEMINI_MODEL` | Modèle Gemini à utiliser | `gemini-3-pro-preview` |
-| `BATCH_SIZE` | Nombre de fichiers analysés en parallèle | `10` |
-| `MAX_RETRIES` | Nombre de tentatives en cas d'erreur | `3` |
-| `TIMEOUT_SECONDS` | Timeout pour chaque requête (secondes) | `60` |
-| `OUTPUT_DIR` | Répertoire de sortie des analyses | `docs/analyses` |
-| `ARCHITECTURE_REPORT` | Chemin du rapport d'architecture | `docs/architecture_overview.md` |
-| `ROOT_DIR` | Répertoire racine à analyser | `.` |
-| `ENABLE_WEB_SEARCH` | Activer la recherche web | `true` |
-| `MAX_WEB_RESULTS` | Nombre max de résultats de recherche | `3` |
-| `ENABLE_SECURITY_ANALYSIS` | Activer l'analyse de sécurité | `true` |
-| `ENABLE_METRICS_ANALYSIS` | Activer l'analyse de métriques | `true` |
-| `ENABLE_DEPENDENCY_VULNERABILITY` | Activer l'analyse des vulnérabilités | `true` |
-| `ENABLE_CODE_GENERATION` | Permettre la génération de code d'analyse | `true` |
+| Variable                          | Description                               | Défaut                          |
+| --------------------------------- | ----------------------------------------- | ------------------------------- |
+| `GEMINI_MODEL`                    | Modèle Gemini à utiliser                  | `gemini-3-pro-preview`          |
+| `BATCH_SIZE`                      | Nombre de fichiers analysés en parallèle  | `10`                            |
+| `MAX_RETRIES`                     | Nombre de tentatives en cas d'erreur      | `3`                             |
+| `TIMEOUT_SECONDS`                 | Timeout pour chaque requête (secondes)    | `60`                            |
+| `OUTPUT_DIR`                      | Répertoire de sortie des analyses         | `docs/analyses`                 |
+| `ARCHITECTURE_REPORT`             | Chemin du rapport d'architecture          | `docs/architecture_overview.md` |
+| `ROOT_DIR`                        | Répertoire racine à analyser              | `.`                             |
+| `ENABLE_WEB_SEARCH`               | Activer la recherche web                  | `true`                          |
+| `MAX_WEB_RESULTS`                 | Nombre max de résultats de recherche      | `3`                             |
+| `ENABLE_SECURITY_ANALYSIS`        | Activer l'analyse de sécurité             | `true`                          |
+| `ENABLE_METRICS_ANALYSIS`         | Activer l'analyse de métriques            | `true`                          |
+| `ENABLE_DEPENDENCY_VULNERABILITY` | Activer l'analyse des vulnérabilités      | `true`                          |
+| `ENABLE_CODE_GENERATION`          | Permettre la génération de code d'analyse | `true`                          |
 
 ## 📖 Utilisation
 
@@ -163,6 +166,7 @@ python main.py
 ```
 
 Le script va :
+
 1. Scanner tous les fichiers du répertoire courant
 2. Analyser chaque fichier avec les agents appropriés
 3. Générer des rapports détaillés dans `docs/analyses/`
@@ -218,6 +222,7 @@ Le workflow s'exécute automatiquement dans les cas suivants :
 ### Résultats
 
 Les rapports d'analyse sont disponibles en tant qu'**artifacts GitHub** :
+
 - Allez dans l'onglet Actions
 - Sélectionnez l'exécution du workflow
 - Téléchargez l'artifact "code-analysis-reports"
@@ -237,6 +242,7 @@ Les rapports d'analyse sont disponibles en tant qu'**artifacts GitHub** :
 ### Personnalisation
 
 Vous pouvez personnaliser le workflow en modifiant `.github/workflows/code-review.yml` :
+
 - Changer les branches déclencheuses
 - Modifier les chemins exclus (`paths-ignore`)
 - Ajuster les options d'analyse
@@ -247,6 +253,7 @@ Vous pouvez personnaliser le workflow en modifiant `.github/workflows/code-revie
 ### Rapports individuels
 
 Chaque fichier analysé génère un rapport Markdown dans `docs/analyses/` avec :
+
 - Objectif et fonction principale
 - Points forts et bonnes pratiques
 - Relations et dépendances
@@ -258,6 +265,7 @@ Chaque fichier analysé génère un rapport Markdown dans `docs/analyses/` avec 
 ### Rapport d'architecture
 
 `docs/architecture_overview.md` contient :
+
 - Vue d'ensemble de l'architecture
 - Patterns identifiés
 - Cohérence inter-modules
@@ -269,6 +277,7 @@ Chaque fichier analysé génère un rapport Markdown dans `docs/analyses/` avec 
 ### Rapport d'assurance qualité
 
 `docs/analyses/quality_assurance_report.md` contient :
+
 - Score de qualité global (sur 100)
 - Analyse par dimension (Sécurité, Maintenabilité, Architecture, etc.)
 - Plan d'action priorisé
@@ -277,6 +286,7 @@ Chaque fichier analysé génère un rapport Markdown dans `docs/analyses/` avec 
 ### Rapport des vulnérabilités
 
 `docs/analyses/vulnerabilities_report.md` contient :
+
 - Liste des vulnérabilités détectées dans les dépendances
 - Répartition par sévérité (critical, high, medium, low)
 - CVE et identifiants de vulnérabilités
@@ -285,6 +295,7 @@ Chaque fichier analysé génère un rapport Markdown dans `docs/analyses/` avec 
 ## 🔍 Langages supportés
 
 Le système détecte automatiquement et analyse :
+
 - **Dart/Flutter** (`.dart`)
 - **TypeScript/JavaScript** (`.ts`, `.tsx`, `.js`, `.jsx`)
 - **Python** (`.py`)
@@ -302,6 +313,7 @@ Le système détecte automatiquement et analyse :
 ## 🛡️ Fichiers exclus
 
 Le système exclut automatiquement :
+
 - Dossiers de build (`build/`, `dist/`, `node_modules/`, etc.)
 - Fichiers générés (`.g.dart`, `.d.ts`, `.pyc`, etc.)
 - Fichiers de lock (`package-lock.json`, `yarn.lock`, etc.)
@@ -372,6 +384,7 @@ Créez un fichier `.env` avec votre clé API ou définissez la variable d'enviro
 ### Erreur: "ModuleNotFoundError"
 
 Installez les dépendances :
+
 ```bash
 pip install -r requirements.txt
 ```

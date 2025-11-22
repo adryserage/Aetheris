@@ -5,36 +5,36 @@ on:
   workflow_dispatch:
     inputs:
       analyze_mode:
-        description: 'Mode d''analyse'
+        description: "Mode d'analyse"
         required: true
         type: choice
         options:
           - full
           - changed
-        default: 'full'
+        default: "full"
       pr_number:
-        description: 'Numéro de PR (optionnel, pour mode changed)'
+        description: "Numéro de PR (optionnel, pour mode changed)"
         required: false
         type: string
-        default: ''
-  
+        default: ""
+
   # Sur push vers main/master
   push:
     branches:
       - main
       - master
     paths-ignore:
-      - '**.md'
-      - '.gitignore'
-      - 'LICENSE'
-  
+      - "**.md"
+      - ".gitignore"
+      - "LICENSE"
+
   # Sur ouverture/modification de PR
   pull_request:
     types: [opened, synchronize, reopened]
     paths-ignore:
-      - '**.md'
-      - '.gitignore'
-      - 'LICENSE'
+      - "**.md"
+      - ".gitignore"
+      - "LICENSE"
 
 jobs:
   analyze:
@@ -43,24 +43,24 @@ jobs:
       contents: read
       pull-requests: read
       actions: read
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Nécessaire pour comparer les commits
-      
+          fetch-depth: 0 # Nécessaire pour comparer les commits
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip'
-      
+          python-version: "3.11"
+          cache: "pip"
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      
+
       - name: Determine analysis mode
         id: analysis_mode
         run: |
@@ -73,17 +73,17 @@ jobs:
           fi
           echo "mode=$MODE" >> $GITHUB_OUTPUT
           echo "🔍 Mode d'analyse: $MODE"
-      
+
       - name: Get changed files (if needed)
         id: changed_files
         if: steps.analysis_mode.outputs.mode == 'changed'
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            # Pour les PR, utiliser l'API GitHub pour obtenir les fichiers modifiés
-            FILES=$(gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[].path' || echo "")
+            # Pour les PR, utiliser l'API GitHub pour obtenir les fichiers modifiés (exclure les fichiers supprimés)
+            FILES=$(gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[] | select(.status != "removed") | .path' || echo "")
           elif [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.pr_number }}" ]; then
-            # Pour workflow_dispatch avec PR number
-            FILES=$(gh pr view ${{ github.event.inputs.pr_number }} --json files --jq '.files[].path' || echo "")
+            # Pour workflow_dispatch avec PR number (exclure les fichiers supprimés)
+            FILES=$(gh pr view ${{ github.event.inputs.pr_number }} --json files --jq '.files[] | select(.status != "removed") | .path' || echo "")
           else
             # Pour les commits, comparer avec la branche de base
             BASE_SHA="${{ github.event.before }}"
@@ -93,10 +93,10 @@ jobs:
             fi
             FILES=$(git diff --name-only --diff-filter=ACMR $BASE_SHA $HEAD_SHA || echo "")
           fi
-          
+
           # Filtrer uniquement les fichiers de code (exclure docs, markdown, etc.)
           CODE_FILES=$(echo "$FILES" | grep -E '\.(py|js|ts|tsx|jsx|dart|java|kt|swift|go|rs|c|cpp|h|cs|php|rb)$' || echo "")
-          
+
           if [ -z "$CODE_FILES" ]; then
             echo "⚠️  Aucun fichier de code modifié détecté"
             echo "files=" >> $GITHUB_OUTPUT
@@ -111,7 +111,7 @@ jobs:
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Install GitHub CLI (if needed)
         if: steps.analysis_mode.outputs.mode == 'changed' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != ''))
         run: |
@@ -121,13 +121,13 @@ jobs:
           && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
           && sudo apt update \
           && sudo apt install gh -y
-      
+
       - name: Install jq (if needed)
         if: steps.analysis_mode.outputs.mode == 'changed'
         run: |
           sudo apt-get update
           sudo apt-get install -y jq
-      
+
       - name: Run code analysis
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -145,7 +145,7 @@ jobs:
             echo "🔍 Analyse complète de la codebase"
             python main.py
           fi
-      
+
       - name: Upload analysis reports as artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -156,7 +156,7 @@ jobs:
             docs/architecture_overview.md
           retention-days: 30
           if-no-files-found: warn
-      
+
       - name: Display summary
         if: always()
         run: |
@@ -173,4 +173,3 @@ jobs:
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "📦 Les rapports sont disponibles en tant qu'artifacts" >> $GITHUB_STEP_SUMMARY
-
