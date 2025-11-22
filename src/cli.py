@@ -18,7 +18,7 @@ setup_utf8_encoding()
 try:
     import google.generativeai as genai
     from pathspec import PathSpec
-    from duckduckgo_search import DDGS
+    from ddgs import DDGS
     import requests
     import yaml
 except ImportError as e:

@@ -5,7 +5,7 @@ Rechercheur de documentation en ligne pour enrichir les analyses
 import asyncio
 from typing import List
 
-from duckduckgo_search import DDGS
+from ddgs import DDGS
 
 from src.core.config import AnalysisConfig
 

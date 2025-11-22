@@ -1,11 +1,11 @@
 # Dépendances principales
-google-generativeai>=0.8.0  # API Gemini pour l'analyse de code
+google-generativeai>=0.8.5  # API Gemini pour l'analyse de code (version minimale pour support des modèles récents)
 openai>=1.0.0  # API OpenAI pour l'analyse de code
 anthropic>=0.25.0  # API Claude (Anthropic) pour l'analyse de code
 pathspec>=0.12.0  # Gestion des patterns .gitignore
 requests>=2.32.0  # Requêtes HTTP pour l'API OSV (version minimale pour corriger CVE-2024-47081 et CVE-2024-35195)
 pyyaml>=6.0  # Parsing des fichiers YAML (pubspec.yaml pour Dart/Flutter)
-duckduckgo-search>=6.0.0  # Recherche web pour enrichir les analyses
+ddgs>=1.0.0  # Recherche web pour enrichir les analyses (anciennement duckduckgo-search)
 rich>=13.0.0  # Barres de progression modernes avec couleurs et détails
 
 # Note: python-dotenv n'est pas utilisé car le code implémente sa propre fonction load_env_file
