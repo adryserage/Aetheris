@@ -13,6 +13,7 @@ Système d'analyse de code automatisé utilisant plusieurs agents coopérants po
 
 ### Version 2.0.0 - Améliorations Majeures
 
+- **🎼 Orchestrateur dédié** : Système d'orchestration séparé avec workflow à étapes, dépendances et hooks pour une meilleure maintenabilité
 - **🚀 Cache intelligent** : Réduction des coûts API de 60-80% grâce au cache basé sur git SHA
 - **⚡ Parallélisation intelligente** : Analyse des fichiers indépendants en parallèle pour des performances optimales
 - **🎯 Système de priorités** : Priorisation automatique des fichiers PR pour des reviews plus rapides
@@ -20,6 +21,16 @@ Système d'analyse de code automatisé utilisant plusieurs agents coopérants po
 - **🔄 Analyse incrémentale** : Détection automatique des fichiers dépendants avec profondeur configurable
 - **🛡️ Gestion d'erreurs robuste** : Circuit breaker et backoff exponentiel pour une meilleure résilience
 - **🔌 Système de plugins** : Hooks extensibles pour personnaliser le workflow (voir `docs/PLUGINS.md`)
+
+### Architecture du Système
+
+Le système utilise un **orchestrateur dédié** (`AnalysisOrchestrator`) qui coordonne l'exécution du workflow d'analyse avec :
+
+- **Workflow à étapes** : Chaque étape (scan, analyse, rapports) est gérée indépendamment
+- **Gestion des dépendances** : Les étapes s'exécutent dans l'ordre respectant leurs dépendances
+- **Système de hooks** : Points d'extension pour personnaliser le comportement
+- **Gestion d'erreurs** : Retry automatique et gestion des erreurs non critiques
+- **Collecte de métriques** : Suivi automatique des performances à chaque étape
 
 ### Agents d'Analyse
 
