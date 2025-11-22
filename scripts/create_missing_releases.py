@@ -179,9 +179,7 @@ def create_release(
     }
 
     # Déterminer si c'est une pre-release
-    is_prerelease = any(
-        marker in tag for marker in ["-alpha", "-beta", "-rc", "-pre"]
-    )
+    is_prerelease = any(marker in tag for marker in ["-alpha", "-beta", "-rc", "-pre"])
 
     data = {
         "tag_name": tag,
@@ -287,7 +285,9 @@ def main():
         # Extraire les notes du CHANGELOG
         notes = extract_release_notes(version)
         if not notes or notes == f"Release {version}":
-            print(f"  ⚠️  Aucune note trouvée dans le CHANGELOG, utilisation d'un message par défaut")
+            print(
+                f"  ⚠️  Aucune note trouvée dans le CHANGELOG, utilisation d'un message par défaut"
+            )
 
         # Créer la release
         if create_release(owner, repo, tag, notes, token, args.dry_run):
@@ -304,4 +304,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

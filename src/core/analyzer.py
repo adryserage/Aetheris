@@ -162,7 +162,7 @@ class CodeAnalyzer:
             config, self.doc_searcher, self.progress_manager
         )  # Agent d'assurance qualité
         self.gitignore_spec = None
-        
+
         # Initialiser l'orchestrateur et enregistrer les étapes
         self._setup_orchestrator()
 
@@ -598,42 +598,42 @@ class CodeAnalyzer:
     def _setup_orchestrator(self):
         """Configure l'orchestrateur avec les étapes du workflow"""
         self.orchestrator = AnalysisOrchestrator(self.config, self.progress_manager)
-        
+
         # Enregistrer les étapes du workflow
         self.orchestrator.register_step(
             WorkflowStage.SCAN,
             "Scan des fichiers",
             self._step_scan_files,
         )
-        
+
         self.orchestrator.register_step(
             WorkflowStage.DEPENDENCY_INIT,
             "Initialisation de l'analyseur de dépendances",
             self._step_init_dependencies,
             dependencies=[WorkflowStage.SCAN],
         )
-        
+
         self.orchestrator.register_step(
             WorkflowStage.FILE_ANALYSIS,
             "Analyse des fichiers",
             self._step_analyze_files,
             dependencies=[WorkflowStage.DEPENDENCY_INIT],
         )
-        
+
         self.orchestrator.register_step(
             WorkflowStage.DEPENDENCY_ANALYSIS,
             "Analyse des dépendances et détection des cycles",
             self._step_analyze_dependencies,
             dependencies=[WorkflowStage.FILE_ANALYSIS],
         )
-        
+
         self.orchestrator.register_step(
             WorkflowStage.ARCHITECTURE_REPORT,
             "Génération du rapport d'architecture",
             self._step_generate_architecture_report,
             dependencies=[WorkflowStage.DEPENDENCY_ANALYSIS],
         )
-        
+
         self.orchestrator.register_step(
             WorkflowStage.VULNERABILITY_ANALYSIS,
             "Analyse des vulnérabilités des dépendances",
@@ -641,7 +641,7 @@ class CodeAnalyzer:
             dependencies=[WorkflowStage.ARCHITECTURE_REPORT],
             critical=False,  # Non critique, peut échouer sans bloquer
         )
-        
+
         self.orchestrator.register_step(
             WorkflowStage.QUALITY_REPORT,
             "Génération du rapport d'assurance qualité",
@@ -652,14 +652,14 @@ class CodeAnalyzer:
     async def _step_scan_files(self, context: WorkflowContext) -> WorkflowContext:
         """Étape 1: Scanner les fichiers à analyser"""
         scan_task = self.progress_manager.add_task("🔍 Scan des fichiers...", total=100)
-        
+
         if self.files_to_analyze:
             files = []
             for file_path in self.files_to_analyze:
                 if not os.path.isabs(file_path):
                     file_path = os.path.join(self.config.root_dir, file_path)
                 file_path = os.path.normpath(file_path)
-                
+
                 if os.path.exists(file_path) and self.should_analyze(file_path):
                     files.append(file_path)
             self.progress_manager.update_task(
@@ -674,11 +674,11 @@ class CodeAnalyzer:
                 advance=100,
                 description=f"✅ {len(files)} fichiers trouvés à analyser (mode full)",
             )
-        
+
         if not files:
             self.progress_manager.print("❌ Aucun fichier à analyser")
             raise ValueError("Aucun fichier à analyser")
-        
+
         context.files = files
         self.progress_manager.complete_task(scan_task)
         return context
@@ -696,25 +696,27 @@ class CodeAnalyzer:
     async def _step_analyze_files(self, context: WorkflowContext) -> WorkflowContext:
         """Étape 3: Analyser les fichiers"""
         os.makedirs(self.config.output_dir, exist_ok=True)
-        
+
         all_analyses = []
         total_files = len(context.files)
         analysis_task = self.progress_manager.add_task(
             "📦 Analyse des fichiers...", total=total_files
         )
-        
+
         for batch_idx in range(0, len(context.files), self.config.batch_size):
             batch = context.files[batch_idx : batch_idx + self.config.batch_size]
             batch_num = (batch_idx // self.config.batch_size) + 1
-            total_batches = (len(context.files) + self.config.batch_size - 1) // self.config.batch_size
-            
+            total_batches = (
+                len(context.files) + self.config.batch_size - 1
+            ) // self.config.batch_size
+
             self.progress_manager.update_task(
                 analysis_task,
                 description=f"📦 Batch {batch_num}/{total_batches} ({len(batch)} fichiers)...",
             )
-            
+
             analyses = await self.analyze_batch(batch)
-            
+
             for analysis in analyses:
                 self.save_analysis(analysis)
                 self.progress_manager.update_task(
@@ -722,15 +724,15 @@ class CodeAnalyzer:
                     advance=1,
                     description=f"📦 Analyse: {os.path.basename(analysis.file_path)} {'✅' if analysis.success else '❌'}",
                 )
-            
+
             all_analyses.extend(analyses)
-            
+
             if batch_idx + self.config.batch_size < len(context.files):
                 await asyncio.sleep(2)
-        
+
         self.progress_manager.complete_task(analysis_task)
         self.progress_manager.print(f"\n✅ Analyse de {len(all_analyses)} fichiers terminée\n")
-        
+
         context.analyses = all_analyses
         return context
 
@@ -743,7 +745,7 @@ class CodeAnalyzer:
         for analysis in context.analyses:
             if analysis.success and analysis.dependencies:
                 dependencies_map[analysis.file_path] = analysis.dependencies
-        
+
         cycles = self.dependency_analyzer.detect_circular_dependencies(dependencies_map)
         if cycles:
             self.progress_manager.update_task(
@@ -760,7 +762,7 @@ class CodeAnalyzer:
             )
         self.progress_manager.complete_task(cycles_task)
         self.progress_manager.print()
-        
+
         context.cycles = cycles
         return context
 
@@ -772,7 +774,7 @@ class CodeAnalyzer:
         architecture_report = await self.aaa.generate_architecture_report(
             context.analyses, context.cycles
         )
-        
+
         report_with_metadata = f"""# Vue d'ensemble de l'architecture
 
 *Généré le {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*
@@ -784,40 +786,40 @@ class CodeAnalyzer:
 
 {architecture_report}
 """
-        
+
         os.makedirs(os.path.dirname(self.config.architecture_report_path), exist_ok=True)
         sanitized_report = sanitize_markdown(report_with_metadata)
         with open(self.config.architecture_report_path, "w", encoding="utf-8") as f:
             f.write(sanitized_report)
-        
+
         self.progress_manager.complete_task(arch_task)
         self.progress_manager.print(
             f"✅ Rapport d'architecture sauvegardé: {self.config.architecture_report_path}\n"
         )
-        
+
         context.architecture_report = architecture_report
         return context
 
     async def _step_analyze_vulnerabilities(self, context: WorkflowContext) -> WorkflowContext:
         """Étape 6: Analyser les vulnérabilités des dépendances"""
         dep_vulnerabilities = []
-        
+
         if self.dva:
             vuln_task = self.progress_manager.add_task(
                 "🔒 Analyse des vulnérabilités des dépendances via OSV API...", total=100
             )
             dep_vulnerabilities = await self.dva.analyze_dependencies()
-            
+
             if dep_vulnerabilities:
                 self.progress_manager.update_task(
                     vuln_task,
                     description=f"⚠️  {len(dep_vulnerabilities)} vulnérabilité(s) détectée(s)",
                 )
-                
+
                 by_severity = defaultdict(list)
                 for vuln in dep_vulnerabilities:
                     by_severity[vuln.severity].append(vuln)
-                
+
                 self.progress_manager.print("\n📊 Répartition par sévérité:")
                 for severity in ["critical", "high", "medium", "low"]:
                     if severity in by_severity:
@@ -829,14 +831,14 @@ class CodeAnalyzer:
                             "low": "🟢",
                         }.get(severity, "⚪")
                         self.progress_manager.print(f"  {emoji} {severity.upper()}: {count}")
-                
+
                 vuln_report_path = os.path.join(self.config.output_dir, "vulnerabilities_report.md")
                 vuln_report_content = "# Rapport des Vulnérabilités des Dépendances\n\n"
                 vuln_report_content += (
                     f"*Généré le {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*\n\n"
                 )
                 vuln_report_content += f"**Total:** {len(dep_vulnerabilities)} vulnérabilité(s)\n\n"
-                
+
                 for severity in ["critical", "high", "medium", "low"]:
                     if severity in by_severity:
                         vuln_report_content += (
@@ -856,18 +858,18 @@ class CodeAnalyzer:
                                     f"- **Version corrigée:** {vuln.fixed_version}\n"
                                 )
                             vuln_report_content += "\n"
-                
+
                 sanitized_vuln_report = sanitize_markdown(vuln_report_content)
                 with open(vuln_report_path, "w", encoding="utf-8") as f:
                     f.write(sanitized_vuln_report)
-                
+
                 self.progress_manager.print(f"📄 Rapport sauvegardé: {vuln_report_path}\n")
             else:
                 self.progress_manager.update_task(
                     vuln_task, description="✅ Aucune vulnérabilité détectée"
                 )
             self.progress_manager.complete_task(vuln_task)
-        
+
         context.vulnerabilities = dep_vulnerabilities
         return context
 
@@ -882,7 +884,7 @@ class CodeAnalyzer:
             context.vulnerabilities,
             context.cycles,
         )
-        
+
         quality_report_with_metadata = f"""# Rapport d'Assurance Qualité
 
 *Généré le {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*
@@ -892,20 +894,18 @@ class CodeAnalyzer:
 
 {quality_report}
 """
-        
-        quality_report_path = os.path.join(
-            self.config.output_dir, "quality_assurance_report.md"
-        )
+
+        quality_report_path = os.path.join(self.config.output_dir, "quality_assurance_report.md")
         os.makedirs(os.path.dirname(quality_report_path), exist_ok=True)
         sanitized_quality_report = sanitize_markdown(quality_report_with_metadata)
         with open(quality_report_path, "w", encoding="utf-8") as f:
             f.write(sanitized_quality_report)
-        
+
         self.progress_manager.complete_task(qa_task)
         self.progress_manager.print(
             f"✅ Rapport d'assurance qualité sauvegardé: {quality_report_path}\n"
         )
-        
+
         # Statistiques finales
         self.progress_manager.print("📊 Statistiques:")
         self.progress_manager.print(f"  - Fichiers analysés: {len(context.analyses)}")
@@ -913,16 +913,16 @@ class CodeAnalyzer:
         self.progress_manager.print(
             f"  - Échecs: {sum(1 for a in context.analyses if not a.success)}"
         )
-        
+
         languages = {}
         for analysis in context.analyses:
             lang = analysis.language
             languages[lang] = languages.get(lang, 0) + 1
-        
+
         self.progress_manager.print(f"\n  Répartition par langage:")
         for lang, count in sorted(languages.items(), key=lambda x: -x[1]):
             self.progress_manager.print(f"    - {lang}: {count}")
-        
+
         context.quality_report = quality_report
         return context
 
@@ -935,7 +935,7 @@ class CodeAnalyzer:
         with self.progress_manager.create_progress():
             # Exécuter le workflow via l'orchestrateur
             context = await self.orchestrator.execute()
-            
+
             # Vérifier les erreurs
             if context.errors:
                 log_print(f"⚠️  {len(context.errors)} erreur(s) rencontrée(s) pendant l'analyse")

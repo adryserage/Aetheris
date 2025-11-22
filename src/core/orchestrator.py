@@ -17,6 +17,7 @@ from src.models.data_models import FileAnalysis
 
 class WorkflowStage(Enum):
     """Étapes du workflow d'analyse"""
+
     INIT = "init"
     SCAN = "scan"
     DEPENDENCY_INIT = "dependency_init"
@@ -32,6 +33,7 @@ class WorkflowStage(Enum):
 @dataclass
 class WorkflowContext:
     """Contexte partagé entre les étapes du workflow"""
+
     config: AnalysisConfig
     files: List[str] = field(default_factory=list)
     analyses: List[FileAnalysis] = field(default_factory=list)
@@ -48,6 +50,7 @@ class WorkflowContext:
 @dataclass
 class WorkflowStep:
     """Étape du workflow"""
+
     stage: WorkflowStage
     name: str
     handler: Callable
@@ -127,7 +130,9 @@ class AnalysisOrchestrator:
             if not ready:
                 # Cycle détecté ou dépendance manquante
                 remaining_stages = [s.stage.value for s in remaining.values()]
-                log_print(f"⚠️  Impossible de résoudre l'ordre d'exécution. Étapes restantes: {remaining_stages}")
+                log_print(
+                    f"⚠️  Impossible de résoudre l'ordre d'exécution. Étapes restantes: {remaining_stages}"
+                )
                 # Forcer l'exécution des étapes restantes
                 ready = list(remaining.values())
 
@@ -253,4 +258,3 @@ class AnalysisOrchestrator:
             "start_time": self.context.start_time.isoformat() if self.context.start_time else None,
             "end_time": self.context.end_time.isoformat() if self.context.end_time else None,
         }
-
