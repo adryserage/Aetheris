@@ -5,6 +5,45 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.0.0] - 2025-01-16
+
+### ✨ Nouvelles fonctionnalités
+
+- **Orchestrateur dédié** : Système d'orchestration séparé pour une meilleure maintenabilité et testabilité
+- **Système de cache** : Cache basé sur git SHA + timestamp pour réduire les coûts API de 60-80%
+- **Parallélisation intelligente** : Analyse des fichiers indépendants en parallèle basée sur le graphe de dépendances
+- **Système de priorités** : Priorisation automatique des fichiers modifiés dans les PR (HIGH) et leurs dépendances (MEDIUM)
+- **Métriques et monitoring** : Collecte complète de métriques de performance avec export JSON
+- **Analyse incrémentale améliorée** : Détection automatique des fichiers dépendants avec profondeur configurable
+- **Gestion d'erreurs améliorée** : Circuit breaker et backoff exponentiel pour une meilleure résilience
+
+### 🔧 Modifications
+
+- **Architecture** : Refactorisation de `CodeAnalyzer` pour utiliser un orchestrateur interne
+- **Workflow** : Système de workflow avec étapes, dépendances et hooks
+- **Configuration** : Nouvelles options (`enable_cache`, `cache_ttl_days`, `analyze_dependent_files`, `max_dependency_depth`, `enable_metrics`, `enable_priority_analysis`)
+- **BaseAgent** : Intégration du circuit breaker pour éviter les appels répétés en cas d'erreur
+- **Orchestrateur** : Support des hooks pour extensibilité et collecte de métriques
+
+### 📦 Nouveaux modules
+
+- `src/core/orchestrator.py` : Orchestrateur principal avec système de workflow
+- `src/core/cache.py` : Système de cache avec stockage disque
+- `src/core/error_handler.py` : Gestion d'erreurs avec circuit breaker
+- `src/core/parallel_analyzer.py` : Parallélisation intelligente basée sur dépendances
+- `src/core/priority_manager.py` : Gestionnaire de priorités pour PR reviews
+- `src/core/metrics.py` : Collecteur de métriques de performance
+
+### 📝 Documentation
+
+- Documentation complète du système de plugins/hooks dans `docs/PLUGINS.md`
+- Exemples d'utilisation et guide pour créer des plugins personnalisés
+
+### 🔄 Compatibilité
+
+- **Backward compatible** : L'API publique de `CodeAnalyzer` reste inchangée
+- Les nouvelles fonctionnalités sont activées par défaut mais peuvent être désactivées via configuration
+
 ## [1.1.0] - 2025-01-15
 
 ### ✨ Nouvelles fonctionnalités
@@ -198,6 +237,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Génération de rapports détaillés en Markdown
 - Configuration flexible via variables d'environnement
 
+[2.0.0]: https://github.com/adryserage/aetheris/compare/v1.1.0...v2.0.0
 [1.1.0]: https://github.com/adryserage/aetheris/compare/v1.0.9...v1.1.0
 [1.0.9]: https://github.com/adryserage/aetheris/compare/v1.0.8...v1.0.9
 [1.0.8]: https://github.com/adryserage/aetheris/compare/v1.0.7...v1.0.8

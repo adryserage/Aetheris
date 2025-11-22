@@ -6,6 +6,7 @@ from typing import Optional
 from src.core.config import AnalysisConfig
 from src.core.ai_providers import create_ai_provider, AIProvider
 from src.core.progress import ProgressManager
+from src.core.error_handler import exponential_backoff, CircuitBreaker
 
 
 class BaseAgent:
@@ -21,10 +22,16 @@ class BaseAgent:
             timeout_seconds=config.timeout_seconds,
             max_retries=config.max_retries,
         )
+        # Circuit breaker pour éviter les appels répétés en cas d'erreur
+        self.circuit_breaker = CircuitBreaker(
+            failure_threshold=5,
+            success_threshold=2,
+            timeout_seconds=60,
+        )
 
     async def _call_ai_with_retry(self, prompt: str, timeout_multiplier: float = 1.0) -> str:
         """
-        Appelle l'API AI avec retry et gestion des timeouts
+        Appelle l'API AI avec retry, backoff exponentiel et circuit breaker
 
         Args:
             prompt: Le prompt à envoyer au modèle AI
@@ -36,7 +43,18 @@ class BaseAgent:
         Raises:
             Exception: Si toutes les tentatives échouent
         """
-        return await self.ai_provider.generate_content_with_retry(prompt, timeout_multiplier)
+
+        async def _call():
+            return await self.ai_provider.generate_content_with_retry(prompt, timeout_multiplier)
+
+        return await exponential_backoff(
+            _call,
+            max_retries=self.config.max_retries,
+            initial_delay=1.0,
+            max_delay=60.0,
+            multiplier=2.0,
+            circuit_breaker=self.circuit_breaker,
+        )
 
     async def _call_ai_with_reasoning(self, prompt: str, timeout_multiplier: float = 1.0) -> str:
         """

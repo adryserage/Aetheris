@@ -16,6 +16,10 @@ from src.core.config import AnalysisConfig
 from src.core.logger import log_print
 from src.core.progress import ProgressManager
 from src.core.orchestrator import AnalysisOrchestrator, WorkflowStage, WorkflowContext
+from src.core.cache import AnalysisCache
+from src.core.parallel_analyzer import detect_independent_files
+from src.core.priority_manager import PriorityManager, Priority
+from src.core.metrics import MetricsCollector
 from src.models.data_models import FileAnalysis
 from src.services.code_generator import CodeGenerator
 from src.services.documentation_searcher import DocumentationSearcher
@@ -162,6 +166,27 @@ class CodeAnalyzer:
             config, self.doc_searcher, self.progress_manager
         )  # Agent d'assurance qualité
         self.gitignore_spec = None
+
+        # Initialiser le cache si activé
+        self.cache = (
+            AnalysisCache(
+                root_dir=config.root_dir,
+                cache_dir=".cache/aetheris",
+                ttl_days=config.cache_ttl_days,
+            )
+            if config.enable_cache
+            else None
+        )
+
+        # Initialiser le collecteur de métriques si activé
+        self.metrics_collector = (
+            MetricsCollector(
+                output_dir=os.path.join(config.output_dir, "..", "metrics"),
+                enabled=config.enable_metrics,
+            )
+            if config.enable_metrics
+            else None
+        )
 
         # Initialiser l'orchestrateur et enregistrer les étapes
         self._setup_orchestrator()
@@ -519,6 +544,12 @@ class CodeAnalyzer:
 
     async def _analyze_file_with_all_agents(self, file_path: str) -> FileAnalysis:
         """Analyse un fichier avec tous les agents"""
+        # Vérifier le cache si activé
+        if self.cache:
+            cached_analysis = self.cache.get(file_path)
+            if cached_analysis:
+                return cached_analysis
+
         # Analyse de base avec CAE
         analysis = await self.cae.analyze_file(file_path)
 
@@ -573,6 +604,10 @@ class CodeAnalyzer:
             except Exception as e:
                 log_print(f"⚠️  Erreur analyse métriques pour {file_path}: {e}")
 
+        # Sauvegarder dans le cache si activé et analyse réussie
+        if self.cache and analysis.success:
+            self.cache.set(file_path, analysis)
+
         return analysis
 
     def save_analysis(self, analysis: FileAnalysis):
@@ -597,7 +632,9 @@ class CodeAnalyzer:
 
     def _setup_orchestrator(self):
         """Configure l'orchestrateur avec les étapes du workflow"""
-        self.orchestrator = AnalysisOrchestrator(self.config, self.progress_manager)
+        self.orchestrator = AnalysisOrchestrator(
+            self.config, self.progress_manager, self.metrics_collector
+        )
 
         # Enregistrer les étapes du workflow
         self.orchestrator.register_step(
@@ -662,11 +699,59 @@ class CodeAnalyzer:
 
                 if os.path.exists(file_path) and self.should_analyze(file_path):
                     files.append(file_path)
-            self.progress_manager.update_task(
-                scan_task,
-                advance=100,
-                description=f"✅ {len(files)} fichier(s) à analyser (mode diff)",
-            )
+
+            # Si analyse incrémentale activée, détecter les fichiers dépendants
+            if self.config.analyze_dependent_files and files:
+                self.progress_manager.update_task(
+                    scan_task,
+                    advance=50,
+                    description=f"🔍 {len(files)} fichier(s) modifié(s), détection des dépendances...",
+                )
+
+                # Initialiser un analyseur de dépendances temporaire pour détecter les dépendances
+                temp_dep_analyzer = DependencyAnalyzer(self.config.root_dir, files)
+                dependent_files = set(files)
+
+                # Trouver les fichiers dépendants jusqu'à max_dependency_depth niveaux
+                current_level = files
+                for depth in range(self.config.max_dependency_depth):
+                    next_level = set()
+                    for file_path in current_level:
+                        try:
+                            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                                content = f.read()
+                            language = self.cae.detect_language(file_path)
+                            deps = temp_dep_analyzer.extract_dependencies(
+                                file_path, content, language
+                            )
+                            for dep in deps:
+                                if dep.resolved_path and dep.exists:
+                                    # Vérifier que le fichier doit être analysé
+                                    if (
+                                        self.should_analyze(dep.resolved_path)
+                                        and dep.resolved_path not in dependent_files
+                                    ):
+                                        next_level.add(dep.resolved_path)
+                                        dependent_files.add(dep.resolved_path)
+                        except Exception:
+                            pass
+
+                    if not next_level:
+                        break
+                    current_level = list(next_level)
+
+                files = list(dependent_files)
+                self.progress_manager.update_task(
+                    scan_task,
+                    advance=50,
+                    description=f"✅ {len(files)} fichier(s) à analyser ({len(self.files_to_analyze)} modifié(s) + {len(files) - len(self.files_to_analyze)} dépendant(s))",
+                )
+            else:
+                self.progress_manager.update_task(
+                    scan_task,
+                    advance=100,
+                    description=f"✅ {len(files)} fichier(s) à analyser (mode diff)",
+                )
         else:
             files = self.scan_files()
             self.progress_manager.update_task(
@@ -698,40 +783,131 @@ class CodeAnalyzer:
         os.makedirs(self.config.output_dir, exist_ok=True)
 
         all_analyses = []
-        total_files = len(context.files)
-        analysis_task = self.progress_manager.add_task(
-            "📦 Analyse des fichiers...", total=total_files
-        )
+        cached_count = 0
 
-        for batch_idx in range(0, len(context.files), self.config.batch_size):
-            batch = context.files[batch_idx : batch_idx + self.config.batch_size]
-            batch_num = (batch_idx // self.config.batch_size) + 1
-            total_batches = (
-                len(context.files) + self.config.batch_size - 1
-            ) // self.config.batch_size
+        # Vérifier le cache pour tous les fichiers
+        if self.cache:
+            files_to_analyze = []
+            for file_path in context.files:
+                cached_analysis = self.cache.get(file_path)
+                if cached_analysis:
+                    all_analyses.append(cached_analysis)
+                    cached_count += 1
+                else:
+                    files_to_analyze.append(file_path)
+            context.files = files_to_analyze
 
-            self.progress_manager.update_task(
-                analysis_task,
-                description=f"📦 Batch {batch_num}/{total_batches} ({len(batch)} fichiers)...",
+        if cached_count > 0:
+            self.progress_manager.print(
+                f"💾 {cached_count} fichier(s) récupéré(s) depuis le cache\n"
             )
 
-            analyses = await self.analyze_batch(batch)
+        if not context.files:
+            self.progress_manager.print("✅ Tous les fichiers étaient en cache\n")
+            context.analyses = all_analyses
+            return context
 
-            for analysis in analyses:
-                self.save_analysis(analysis)
-                self.progress_manager.update_task(
-                    analysis_task,
-                    advance=1,
-                    description=f"📦 Analyse: {os.path.basename(analysis.file_path)} {'✅' if analysis.success else '❌'}",
+        analysis_task = self.progress_manager.add_task(
+            "📦 Analyse des fichiers...", total=len(context.files)
+        )
+
+        # Construire le graphe de dépendances pour parallélisation intelligente et priorités
+        dependencies_map = {}
+        if self.dependency_analyzer:
+            # Pré-analyser les dépendances pour construire le graphe
+            for file_path in context.files:
+                try:
+                    with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                        content = f.read()
+                    language = self.cae.detect_language(file_path)
+                    deps = self.dependency_analyzer.extract_dependencies(
+                        file_path, content, language
+                    )
+                    # Convertir en liste de chemins résolus
+                    resolved_deps = [
+                        dep.resolved_path for dep in deps if dep.resolved_path and dep.exists
+                    ]
+                    dependencies_map[file_path] = resolved_deps
+                except Exception:
+                    dependencies_map[file_path] = []
+
+        # Appliquer le système de priorités si activé
+        if self.config.enable_priority_analysis and self.config.changed_files:
+            priority_manager = PriorityManager(
+                pr_files=self.config.changed_files,
+                dependencies_map=dependencies_map,
+            )
+            context.files = priority_manager.sort_by_priority(context.files)
+            priority_stats = priority_manager.get_priority_stats(context.files)
+            if priority_stats["high"] > 0 or priority_stats["medium"] > 0:
+                self.progress_manager.print(
+                    f"🎯 Priorités: {priority_stats['high']} HIGH, {priority_stats['medium']} MEDIUM, {priority_stats['low']} LOW\n"
                 )
 
-            all_analyses.extend(analyses)
+        # Grouper les fichiers par niveau de dépendance
+        if dependencies_map:
+            levels = detect_independent_files(context.files, dependencies_map)
+            self.progress_manager.print(
+                f"🔄 {len(levels)} niveau(x) de dépendances détecté(s) pour parallélisation\n"
+            )
+        else:
+            # Fallback: traiter tous les fichiers comme un seul niveau
+            levels = [context.files]
 
-            if batch_idx + self.config.batch_size < len(context.files):
-                await asyncio.sleep(2)
+        # Analyser niveau par niveau (fichiers du même niveau en parallèle)
+        total_levels = len(levels)
+        for level_idx, level_files in enumerate(levels, 1):
+            self.progress_manager.update_task(
+                analysis_task,
+                description=f"📦 Niveau {level_idx}/{total_levels} ({len(level_files)} fichiers indépendants)...",
+            )
+
+            # Analyser les fichiers de ce niveau par batch
+            for batch_idx in range(0, len(level_files), self.config.batch_size):
+                batch = level_files[batch_idx : batch_idx + self.config.batch_size]
+                batch_num = (batch_idx // self.config.batch_size) + 1
+                total_batches = (
+                    len(level_files) + self.config.batch_size - 1
+                ) // self.config.batch_size
+
+                self.progress_manager.update_task(
+                    analysis_task,
+                    description=f"📦 Niveau {level_idx}/{total_levels}, Batch {batch_num}/{total_batches} ({len(batch)} fichiers)...",
+                )
+
+                analyses = await self.analyze_batch(batch)
+
+                for analysis in analyses:
+                    self.save_analysis(analysis)
+                    self.progress_manager.update_task(
+                        analysis_task,
+                        advance=1,
+                        description=f"📦 Analyse: {os.path.basename(analysis.file_path)} {'✅' if analysis.success else '❌'}",
+                    )
+
+                all_analyses.extend(analyses)
+
+                # Pause entre batches pour éviter les rate limits
+                if batch_idx + self.config.batch_size < len(level_files):
+                    await asyncio.sleep(2)
 
         self.progress_manager.complete_task(analysis_task)
-        self.progress_manager.print(f"\n✅ Analyse de {len(all_analyses)} fichiers terminée\n")
+
+        # Mettre à jour les métriques
+        if self.metrics_collector and self.metrics_collector.current_step:
+            self.metrics_collector.end_step(
+                success=True,
+                files_processed=len(all_analyses) - cached_count,
+                files_cached=cached_count,
+            )
+
+        # Afficher les statistiques de cache
+        if self.cache:
+            self.progress_manager.print(
+                f"\n✅ Analyse terminée: {len(all_analyses)} fichier(s) ({cached_count} depuis cache, {len(all_analyses) - cached_count} analysé(s))\n"
+            )
+        else:
+            self.progress_manager.print(f"\n✅ Analyse de {len(all_analyses)} fichiers terminée\n")
 
         context.analyses = all_analyses
         return context

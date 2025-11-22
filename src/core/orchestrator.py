@@ -12,6 +12,8 @@ from datetime import datetime
 from src.core.config import AnalysisConfig
 from src.core.logger import log_print
 from src.core.progress import ProgressManager
+from src.core.error_handler import exponential_backoff, classify_error, ErrorType
+from src.core.metrics import MetricsCollector
 from src.models.data_models import FileAnalysis
 
 
@@ -67,9 +69,11 @@ class AnalysisOrchestrator:
         self,
         config: AnalysisConfig,
         progress_manager: Optional[ProgressManager] = None,
+        metrics_collector: Optional[MetricsCollector] = None,
     ):
         self.config = config
         self.progress_manager = progress_manager or ProgressManager(enabled=False)
+        self.metrics_collector = metrics_collector
         self.context = WorkflowContext(config=config)
         self.steps: List[WorkflowStep] = []
         self.hooks: Dict[WorkflowStage, List[Callable]] = {}
@@ -148,6 +152,10 @@ class AnalysisOrchestrator:
         self.current_stage = step.stage
         log_print(f"🔄 Étape: {step.name} ({step.stage.value})")
 
+        # Démarrer le suivi des métriques
+        if self.metrics_collector:
+            self.metrics_collector.start_step(step.name)
+
         try:
             # Exécuter les hooks avant
             await self._execute_hooks(step.stage, self.context)
@@ -161,23 +169,46 @@ class AnalysisOrchestrator:
             # Exécuter les hooks après
             await self._execute_hooks(step.stage, self.context)
 
+            # Enregistrer le succès
+            if self.metrics_collector:
+                self.metrics_collector.end_step(success=True)
+
             return True
         except Exception as e:
             error_msg = f"Erreur dans l'étape {step.name}: {str(e)}"
             log_print(f"❌ {error_msg}")
             self.context.errors.append(error_msg)
 
+            # Enregistrer l'échec dans les métriques
+            if self.metrics_collector:
+                self.metrics_collector.end_step(success=False, error=error_msg)
+
             if step.critical:
                 if step.retryable:
-                    log_print(f"🔄 Tentative de retry pour {step.name}...")
+                    error_type = classify_error(e)
+                    log_print(
+                        f"🔄 Tentative de retry pour {step.name} (type: {error_type.value})..."
+                    )
+
                     try:
-                        if asyncio.iscoroutinefunction(step.handler):
-                            await step.handler(self.context)
-                        else:
-                            step.handler(self.context)
+                        # Utiliser backoff exponentiel pour le retry
+                        async def _retry_handler():
+                            if asyncio.iscoroutinefunction(step.handler):
+                                return await step.handler(self.context)
+                            else:
+                                return step.handler(self.context)
+
+                        await exponential_backoff(
+                            _retry_handler,
+                            max_retries=1,  # Un seul retry supplémentaire
+                            initial_delay=2.0,
+                            max_delay=30.0,
+                            multiplier=2.0,
+                        )
                         return True
                     except Exception as retry_error:
-                        log_print(f"❌ Retry échoué: {retry_error}")
+                        error_type_retry = classify_error(retry_error)
+                        log_print(f"❌ Retry échoué ({error_type_retry.value}): {retry_error}")
                         return False
                 else:
                     return False
@@ -189,7 +220,12 @@ class AnalysisOrchestrator:
     async def execute(self) -> WorkflowContext:
         """Exécute le workflow complet"""
         self.context.start_time = datetime.now()
-        self.context.metadata["workflow_id"] = f"wf_{datetime.now().timestamp()}"
+        workflow_id = f"wf_{datetime.now().timestamp()}"
+        self.context.metadata["workflow_id"] = workflow_id
+
+        # Démarrer la session de métriques
+        if self.metrics_collector:
+            self.metrics_collector.start_session(workflow_id)
 
         try:
             execution_order = self._get_execution_order()
@@ -239,6 +275,12 @@ class AnalysisOrchestrator:
                 duration = (self.context.end_time - self.context.start_time).total_seconds()
                 self.context.metadata["duration_seconds"] = duration
                 log_print(f"✅ Workflow terminé en {duration:.2f}s")
+
+            # Terminer la session de métriques
+            if self.metrics_collector:
+                metrics_file = self.metrics_collector.end_session(self.context.metadata)
+                if metrics_file:
+                    log_print(f"📊 Métriques sauvegardées: {metrics_file}")
 
         except Exception as e:
             self.current_stage = WorkflowStage.ERROR
