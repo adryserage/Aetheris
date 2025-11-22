@@ -11,9 +11,19 @@ Système d'analyse de code automatisé utilisant plusieurs agents coopérants po
 
 ## 🎯 Fonctionnalités
 
-Le système utilise **6 agents spécialisés** qui travaillent ensemble pour analyser votre code :
+### Version 2.0.0 - Améliorations Majeures
+
+- **🚀 Cache intelligent** : Réduction des coûts API de 60-80% grâce au cache basé sur git SHA
+- **⚡ Parallélisation intelligente** : Analyse des fichiers indépendants en parallèle pour des performances optimales
+- **🎯 Système de priorités** : Priorisation automatique des fichiers PR pour des reviews plus rapides
+- **📊 Métriques et monitoring** : Collecte complète de métriques de performance avec export JSON
+- **🔄 Analyse incrémentale** : Détection automatique des fichiers dépendants avec profondeur configurable
+- **🛡️ Gestion d'erreurs robuste** : Circuit breaker et backoff exponentiel pour une meilleure résilience
+- **🔌 Système de plugins** : Hooks extensibles pour personnaliser le workflow (voir `docs/PLUGINS.md`)
 
 ### Agents d'Analyse
+
+Le système utilise **6 agents spécialisés** qui travaillent ensemble pour analyser votre code :
 
 1. **Code Analysis Expert (CAE)**
    - Analyse chaque fichier individuellement
@@ -115,7 +125,14 @@ aetheris/
 │   ├── core/              # Modules principaux
 │   │   ├── config.py      # Configuration (AnalysisConfig, load_env_file)
 │   │   ├── logger.py     # Logging et encodage UTF-8
-│   │   └── analyzer.py   # Orchestrateur principal (CodeAnalyzer)
+│   │   ├── analyzer.py   # Analyseur principal (CodeAnalyzer)
+│   │   ├── orchestrator.py  # Orchestrateur avec système de workflow
+│   │   ├── cache.py      # Système de cache pour réduire les coûts API
+│   │   ├── error_handler.py  # Gestion d'erreurs avec circuit breaker
+│   │   ├── parallel_analyzer.py  # Parallélisation intelligente
+│   │   ├── priority_manager.py  # Gestionnaire de priorités
+│   │   ├── metrics.py    # Collecteur de métriques de performance
+│   │   └── progress.py    # Gestionnaire de progression
 │   ├── models/           # Modèles de données
 │   │   └── data_models.py  # Dataclasses (FileAnalysis, SecurityIssue, etc.)
 │   ├── agents/           # Agents d'analyse
@@ -130,11 +147,15 @@ aetheris/
 │       ├── code_generator.py
 │       ├── documentation_searcher.py
 │       └── dependency_analyzer.py
+├── docs/                 # Documentation
+│   └── PLUGINS.md        # Documentation du système de plugins/hooks
 ├── main.py               # Point d'entrée principal (pour développement)
 ├── src/
 │   └── cli.py           # Interface CLI avec sous-commandes
 ├── scripts/              # Scripts utilitaires
 │   ├── analyze_changes.py  # Analyse des fichiers modifiés
+│   ├── extract_release_notes.py  # Extraction des notes de release
+│   ├── create_missing_releases.py  # Création de releases GitHub
 │   └── README.md
 ├── pyproject.toml        # Configuration du package Python
 ├── requirements.txt      # Dépendances Python
@@ -143,10 +164,11 @@ aetheris/
 
 ### Architecture Modulaire
 
-- **`src/core/`** : Contient l'orchestrateur principal (`CodeAnalyzer`) et les utilitaires de configuration et logging
+- **`src/core/`** : Contient l'analyseur principal (`CodeAnalyzer`), l'orchestrateur (`AnalysisOrchestrator`), le cache, la gestion d'erreurs, la parallélisation, les priorités, les métriques et les utilitaires de configuration
 - **`src/models/`** : Définit les structures de données utilisées pour échanger des informations entre les composants
 - **`src/agents/`** : Chaque agent est un module indépendant héritant de `BaseAgent` pour la logique commune
 - **`src/services/`** : Services utilitaires réutilisables (génération de code, recherche web, analyse de dépendances)
+- **`docs/`** : Documentation du système, notamment le guide des plugins/hooks
 
 Cette structure modulaire facilite :
 
@@ -154,6 +176,7 @@ Cette structure modulaire facilite :
 - La réutilisation des composants
 - Les tests unitaires
 - La compréhension de l'architecture
+- L'extensibilité via le système de hooks/plugins
 
 ## ⚙️ Configuration
 
@@ -251,6 +274,12 @@ Vous pouvez personnaliser le comportement via des variables d'environnement ou l
 | `ENABLE_DEPENDENCY_VULNERABILITY` | Activer l'analyse des vulnérabilités                         | `true`                          |
 | `ENABLE_CODE_GENERATION`          | Permettre la génération de code d'analyse                    | `true`                          |
 | `SHOW_REASONING`                  | Afficher le processus de reasoning du modèle (si disponible) | `false`                         |
+| `ENABLE_CACHE`                    | Activer le cache des analyses (réduit les coûts API)         | `true`                          |
+| `CACHE_TTL_DAYS`                  | Durée de vie du cache en jours                               | `7`                             |
+| `ANALYZE_DEPENDENT_FILES`         | Analyser les fichiers dépendants des fichiers modifiés       | `true`                          |
+| `MAX_DEPENDENCY_DEPTH`            | Profondeur maximale pour l'analyse des dépendances            | `2`                             |
+| `ENABLE_METRICS`                  | Activer la collecte de métriques de performance              | `true`                          |
+| `ENABLE_PRIORITY_ANALYSIS`        | Activer l'analyse par priorité (PR files = HIGH)             | `true`                          |
 
 ### 💰 Coûts d'analyse
 
@@ -419,6 +448,74 @@ Vous pouvez personnaliser le workflow en modifiant `.github/workflows/code-revie
 - Ajuster les options d'analyse
 - Ajouter des notifications (email, Slack, etc.)
 
+## 🚀 Nouvelles Fonctionnalités v2.0.0
+
+### Cache Intelligent
+
+Le système de cache réduit significativement les coûts API en évitant les ré-analyses inutiles :
+
+- **Cache basé sur git SHA** : Invalidation automatique si le fichier est modifié
+- **Stockage disque** : Cache persistant dans `.cache/aetheris/`
+- **TTL configurable** : Durée de vie du cache ajustable (défaut: 7 jours)
+- **Réduction des coûts** : 60-80% de réduction des appels API
+
+```bash
+# Désactiver le cache si nécessaire
+ENABLE_CACHE=false aetheris analysis
+```
+
+### Parallélisation Intelligente
+
+Analyse optimisée basée sur le graphe de dépendances :
+
+- **Détection automatique** : Identification des fichiers indépendants
+- **Analyse parallèle** : Fichiers du même niveau analysés simultanément
+- **Respect des dépendances** : Les fichiers dépendants sont analysés après leurs dépendances
+- **Performance améliorée** : Réduction significative du temps d'analyse
+
+### Système de Priorités
+
+Optimisation des PR reviews avec priorisation automatique :
+
+- **HIGH** : Fichiers modifiés dans la PR
+- **MEDIUM** : Dépendances directes des fichiers PR
+- **LOW** : Autres fichiers
+- **Ordre d'analyse** : HIGH → MEDIUM → LOW pour des résultats plus rapides
+
+### Métriques et Monitoring
+
+Collecte complète de métriques de performance :
+
+- **Métriques par étape** : Temps d'exécution, taux de succès, fichiers traités
+- **Métriques par agent** : Appels, durées, tokens estimés
+- **Export JSON** : Métriques sauvegardées dans `docs/metrics/`
+- **Statistiques agrégées** : Cache hit rate, success rate, coûts estimés
+
+### Analyse Incrémentale Améliorée
+
+Détection automatique des fichiers impactés :
+
+- **Dépendances transitives** : Analyse jusqu'à N niveaux de profondeur
+- **Configuration flexible** : Profondeur maximale ajustable (défaut: 2)
+- **Optimisation PR** : Analyse uniquement des fichiers impactés par les changements
+
+### Gestion d'Erreurs Robuste
+
+Système de résilience amélioré :
+
+- **Circuit breaker** : Évite les appels répétés en cas d'erreur
+- **Backoff exponentiel** : Retry intelligent avec délais croissants
+- **Classification d'erreurs** : Temporaire/permanente/critique
+- **Logging structuré** : Contexte complet pour le débogage
+
+### Système de Plugins
+
+Extensibilité via hooks personnalisés :
+
+- **Hooks par étape** : Exécution de code avant/après chaque étape
+- **Contexte partagé** : Accès aux données du workflow
+- **Documentation complète** : Guide dans `docs/PLUGINS.md`
+
 ## 📊 Rapports générés
 
 ### Rapports individuels
@@ -462,6 +559,17 @@ Chaque fichier analysé génère un rapport Markdown dans `docs/analyses/` avec 
 - Répartition par sévérité (critical, high, medium, low)
 - CVE et identifiants de vulnérabilités
 - Versions corrigées disponibles
+
+### Métriques de performance
+
+`docs/metrics/metrics_YYYYMMDD_HHMMSS.json` contient :
+
+- Durée totale d'exécution
+- Métriques par étape du workflow
+- Métriques par agent (appels, succès, durées)
+- Statistiques de cache (hit rate)
+- Taux de succès global
+- Tokens estimés et coûts API
 
 ## 🔍 Langages supportés
 
@@ -616,6 +724,15 @@ Ce projet est fourni tel quel, sans garantie.
 
 Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou une pull request.
 
+## 🔌 Extensibilité
+
+Aetheris v2.0.0 inclut un système de plugins/hooks pour étendre le comportement du système. Consultez `docs/PLUGINS.md` pour :
+
+- Guide complet du système de hooks
+- Exemples d'utilisation
+- Création de plugins personnalisés
+- Liste des hooks disponibles
+
 ## 📚 Ressources
 
 - [Documentation Google Gemini](https://ai.google.dev/docs)
@@ -625,3 +742,4 @@ Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou un
 - [Documentation pathspec](https://github.com/cpburnz/python-pathspec)
 - [Repository GitHub](https://github.com/adryserage/aetheris)
 - [Package PyPI](https://pypi.org/project/adryserage-aetheris/)
+- [Documentation Plugins](docs/PLUGINS.md)
