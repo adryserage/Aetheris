@@ -80,10 +80,10 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             # Pour les PR, utiliser l'API GitHub pour obtenir les fichiers modifiés
-            FILES=$(gh pr diff ${{ github.event.pull_request.number }} --name-only --json files --jq '.files[].path' || echo "")
+            FILES=$(gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[].path' || echo "")
           elif [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.pr_number }}" ]; then
             # Pour workflow_dispatch avec PR number
-            FILES=$(gh pr diff ${{ github.event.inputs.pr_number }} --name-only --json files --jq '.files[].path' || echo "")
+            FILES=$(gh pr view ${{ github.event.inputs.pr_number }} --json files --jq '.files[].path' || echo "")
           else
             # Pour les commits, comparer avec la branche de base
             BASE_SHA="${{ github.event.before }}"
