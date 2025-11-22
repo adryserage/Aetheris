@@ -8,7 +8,7 @@ Markdown
 
 ## Objectif / Fonction principale
 
-Ce fichier sert de point d'entrée documentaire minimaliste pour le projet "code_reviewer". Ses fonctions actuelles sont :
+Ce fichier sert de point d'entrée documentaire minimaliste pour le projet "Aetheris by Allowebs". Ses fonctions actuelles sont :
 
 1.  Identifier le nom du projet via un titre principal.
 2.  Noter une contrainte technique spécifique (limite de 50 000 caractères) liée à la gestion du contexte, probablement pour un traitement par IA.
@@ -36,7 +36,7 @@ Ce fichier est un document statique et ne présente pas de dépendances logiciel
     Ajouter les sections standards pour guider l'utilisateur.
 
     ```markdown
-    # Code Reviewer
+    # Aetheris by Allowebs
 
     ## Description
 

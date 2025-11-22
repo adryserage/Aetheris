@@ -1,5 +1,5 @@
 """
-Code Reviewer - Système d'analyse de code multi-agents
+Aetheris by Allowebs - Système d'analyse de code multi-agents
 """
 
 __version__ = "1.0.0"

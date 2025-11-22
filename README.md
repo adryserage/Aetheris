@@ -1,4 +1,4 @@
-# Code Reviewer - Système d'Analyse de Code Multi-Agents
+# Aetheris by Allowebs - Système d'Analyse de Code Multi-Agents
 
 Système d'analyse de code automatisé utilisant plusieurs agents coopérants pour fournir une analyse complète de la qualité, de la sécurité et de l'architecture de votre codebase.
 
@@ -55,9 +55,41 @@ Le système utilise **6 agents spécialisés** qui travaillent ensemble pour ana
 - Python 3.8 ou supérieur
 - Clé API Google Gemini ([Obtenir une clé](https://makersuite.google.com/app/apikey))
 
-### Installation des dépendances
+### Installation depuis GitHub Packages (Recommandé)
+
+Aetheris est disponible en tant que package Python sur GitHub Packages. Pour l'installer :
+
+1. **Créer un Personal Access Token (PAT)** :
+   - Allez dans GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
+   - Créez un nouveau token avec le scope `read:packages`
+   - Copiez le token
+
+2. **Installer le package** :
 
 ```bash
+# Linux/Mac
+pip install --extra-index-url https://USERNAME:TOKEN@pypi.github.com/Allowebs/code_reviewer/simple/ aetheris
+
+# Windows (PowerShell)
+pip install --extra-index-url https://USERNAME:TOKEN@pypi.github.com/Allowebs/code_reviewer/simple/ aetheris
+```
+
+Remplacez `USERNAME` par votre nom d'utilisateur GitHub et `TOKEN` par votre Personal Access Token.
+
+**Alternative avec variable d'environnement** :
+
+```bash
+export PIP_EXTRA_INDEX_URL="https://USERNAME:TOKEN@pypi.github.com/Allowebs/code_reviewer/simple/"
+pip install aetheris
+```
+
+### Installation depuis les sources
+
+Si vous préférez installer depuis les sources :
+
+```bash
+git clone https://github.com/Allowebs/code_reviewer.git
+cd code_reviewer
 pip install -r requirements.txt
 ```
 
@@ -74,7 +106,7 @@ pip install -r requirements.txt
 Le projet est organisé en modules pour une meilleure maintenabilité :
 
 ```
-code_reviewer/
+aetheris/
 ├── src/
 │   ├── core/              # Modules principaux
 │   │   ├── config.py      # Configuration (AnalysisConfig, load_env_file)
@@ -159,13 +191,25 @@ Vous pouvez personnaliser le comportement via des variables d'environnement ou l
 
 ## 📖 Utilisation
 
+### Commande principale
+
+Une fois installé, utilisez la commande `aetheris` :
+
+```bash
+# Afficher l'aide
+aetheris --help
+
+# Afficher l'aide pour la sous-commande analysis
+aetheris analysis --help
+```
+
 ### Analyse de base
 
 ```bash
-python main.py
+aetheris analysis
 ```
 
-Le script va :
+La commande va :
 
 1. Scanner tous les fichiers du répertoire courant
 2. Analyser chaque fichier avec les agents appropriés
@@ -176,7 +220,7 @@ Le script va :
 ### Analyse d'un répertoire spécifique
 
 ```bash
-ROOT_DIR=./mon_projet python main.py
+ROOT_DIR=./mon_projet aetheris analysis
 ```
 
 ### Analyse des fichiers modifiés uniquement
@@ -185,13 +229,25 @@ Pour analyser uniquement les fichiers modifiés (utile pour les PR/commits) :
 
 ```bash
 # Avec une liste de fichiers (séparés par virgules)
-python main.py --changed-files-only --files src/file1.py,src/file2.py
+aetheris analysis --changed-files-only --files src/file1.py,src/file2.py
 
 # Avec une liste JSON (depuis GitHub Actions)
-python main.py --changed-files-only --files '["src/file1.py", "src/file2.py"]'
+aetheris analysis --changed-files-only --files '["src/file1.py", "src/file2.py"]'
 
 # Avec un numéro de PR (pour information)
-python main.py --changed-files-only --files src/file1.py --pr-number 123
+aetheris analysis --changed-files-only --files src/file1.py --pr-number 123
+```
+
+### Utilisation depuis les sources (sans installation)
+
+Si vous avez cloné le repository et installé les dépendances :
+
+```bash
+# Utiliser directement main.py
+python main.py
+
+# Ou utiliser le module CLI
+python -m src.cli analysis
 ```
 
 ## 🔄 GitHub Actions

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Système d'analyse de code avec plusieurs agents coopérants :
+Aetheris by Allowebs - Système d'analyse de code avec plusieurs agents coopérants :
 - Code Analysis Expert (CAE) : analyse chaque fichier individuellement
 - Architect Analysis Agent (AAA) : produit une vue d'ensemble de l'architecture
 - Security Analysis Agent (SSA) : détecte les vulnérabilités de sécurité
@@ -76,7 +76,8 @@ def parse_changed_files(files_input: Optional[str]) -> List[str]:
 def parse_args():
     """Parse les arguments de ligne de commande"""
     parser = argparse.ArgumentParser(
-        description='Système d\'analyse de code multi-agents',
+        description='Aetheris by Allowebs - Système d\'analyse de code multi-agents',
+        prog='python main.py',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Exemples:
@@ -122,7 +123,7 @@ async def main():
     args = parse_args()
     
     log_print("=" * 60)
-    log_print("🚀 Démarrage de l'analyse de code")
+    log_print("🚀 Aetheris by Allowebs - Démarrage de l'analyse de code")
     log_print("=" * 60)
     log_print()
     

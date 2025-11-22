@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aetheris"
+version = "1.0.0"
+description = "Aetheris by Allowebs - Système d'analyse de code multi-agents avec plusieurs agents coopérants"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Allowebs"}
+]
+keywords = ["code-analysis", "code-review", "static-analysis", "security", "quality-assurance"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Security",
+]
+
+dependencies = [
+    "google-generativeai>=0.8.0",
+    "pathspec>=0.12.0",
+    "requests>=2.32.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+web-search = [
+    "duckduckgo-search>=6.0.0",
+]
+
+[project.scripts]
+aetheris = "src.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Allowebs/code_reviewer"
+Repository = "https://github.com/Allowebs/code_reviewer"
+Issues = "https://github.com/Allowebs/code_reviewer/issues"
+
+[tool.setuptools]
+packages = ["src", "src.agents", "src.core", "src.models", "src.services"]
+
+[tool.setuptools.package-data]
+"*" = ["*.md", "*.txt", "*.yaml", "*.yml"]
+

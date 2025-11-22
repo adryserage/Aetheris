@@ -129,7 +129,7 @@ Priorité : **P0 (Critique)** > **P1 (Important)** > **P2 (Amélioration)**.
 
 ## Gouvernance du code
 
-Pour assurer la pérennité du projet "code_reviewer" :
+Pour assurer la pérennité du projet "Aetheris by Allowebs" :
 
 1.  **Standardisation :**
     - Adopter **Black** (formatage) et **Ruff** (linter rapide remplaçant Flake8/Isort).
