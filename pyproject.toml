@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "adryserage-aetheris"
-version = "1.1.0"
+version = "2.0.0"
 description = "Aetheris by Adryan - Système d'analyse de code multi-agents avec plusieurs agents coopérants"
 readme = "README.md"
 requires-python = ">=3.8"

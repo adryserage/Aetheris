@@ -87,6 +87,12 @@ class AnalysisConfig:
     changed_files: List[str] = field(default_factory=list)  # Liste des fichiers à analyser
     pr_number: Optional[int] = None  # Numéro de PR (optionnel)
     show_reasoning: bool = False  # Afficher le processus de reasoning du modèle (si disponible)
+    enable_cache: bool = True  # Activer le cache des analyses (réduit les coûts API)
+    cache_ttl_days: int = 7  # Durée de vie du cache en jours
+    analyze_dependent_files: bool = True  # Analyser les fichiers dépendants des fichiers modifiés
+    max_dependency_depth: int = 2  # Profondeur maximale pour l'analyse des dépendances
+    enable_metrics: bool = True  # Activer la collecte de métriques
+    enable_priority_analysis: bool = True  # Activer l'analyse par priorité (PR files = HIGH)
 
     def __post_init__(self):
         """Initialise les valeurs par défaut après création"""
