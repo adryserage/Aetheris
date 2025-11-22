@@ -5,6 +5,19 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.0.1] - 2025-01-16
+
+### 🔧 Corrections
+
+- **Migration de dépendance** : Remplacement de `duckduckgo-search` par `ddgs` (package renommé)
+- **Correction modèle Gemini** : Changement du modèle par défaut de `gemini-1.5-flash` vers `gemini-1.5-pro` pour compatibilité avec l'API v1beta
+- **Mise à jour dépendances** : `google-generativeai>=0.8.5` pour meilleur support des modèles récents
+
+### 📦 Dépendances
+
+- `ddgs>=1.0.0` remplace `duckduckgo-search>=6.0.0`
+- `google-generativeai>=0.8.5` (au lieu de >=0.8.0)
+
 ## [2.0.0] - 2025-01-16
 
 ### ✨ Nouvelles fonctionnalités
@@ -124,18 +137,18 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ### 🔧 Corrections et améliorations
 
-- **Dépendance obligatoire** : `duckduckgo-search` est maintenant une dépendance obligatoire au lieu d'optionnelle
-- **Simplification du code** : Suppression des vérifications conditionnelles pour `duckduckgo-search` dans tout le codebase
+- **Dépendance obligatoire** : `ddgs` (anciennement `duckduckgo-search`) est maintenant une dépendance obligatoire au lieu d'optionnelle
+- **Simplification du code** : Suppression des vérifications conditionnelles pour `ddgs` dans tout le codebase
 - **Amélioration des imports** : Simplification des imports dans `main.py` et `src/cli.py` avec gestion d'erreur unifiée
-- **Suppression des avertissements inutiles** : L'avertissement pour `duckduckgo-search` ne s'affiche plus si la recherche web est désactivée dans la configuration
+- **Suppression des avertissements inutiles** : L'avertissement pour `ddgs` ne s'affiche plus si la recherche web est désactivée dans la configuration
 
 ### 📦 Dépendances
 
-- `duckduckgo-search>=6.0.0` déplacé des dépendances optionnelles vers les dépendances principales dans `pyproject.toml` et `requirements.txt`
+- `ddgs>=1.0.0` (anciennement `duckduckgo-search>=6.0.0`) déplacé des dépendances optionnelles vers les dépendances principales dans `pyproject.toml` et `requirements.txt`
 
 ### 📝 Documentation
 
-- Mise à jour du README pour indiquer que `duckduckgo-search` est une dépendance obligatoire
+- Mise à jour du README pour indiquer que `ddgs` est une dépendance obligatoire
 
 ## [1.0.6] - 2025-11-21
 
