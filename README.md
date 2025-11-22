@@ -1,2 +1,332 @@
-# code_reviewer
+# Code Reviewer - Système d'Analyse de Code Multi-Agents
 
+Système d'analyse de code automatisé utilisant plusieurs agents coopérants pour fournir une analyse complète de la qualité, de la sécurité et de l'architecture de votre codebase.
+
+## 🎯 Fonctionnalités
+
+Le système utilise **6 agents spécialisés** qui travaillent ensemble pour analyser votre code :
+
+### Agents d'Analyse
+
+1. **Code Analysis Expert (CAE)** 
+   - Analyse chaque fichier individuellement
+   - Identifie les objectifs et fonctions principales
+   - Détecte les points forts et bonnes pratiques
+   - Signale les risques et dettes techniques
+   - Propose des suggestions d'amélioration
+   - Analyse les dépendances entre fichiers
+
+2. **Architect Analysis Agent (AAA)**
+   - Produit une vue d'ensemble de l'architecture
+   - Identifie les patterns architecturaux
+   - Évalue la cohérence inter-modules
+   - Détecte les redondances et couplages excessifs
+   - Propose un plan de refactoring
+
+3. **Security Analysis Agent (SSA)**
+   - Détecte les vulnérabilités de sécurité
+   - Identifie les injections (SQL, XSS, etc.)
+   - Signale les secrets codés en dur
+   - Vérifie la cryptographie faible
+   - Analyse les problèmes d'authentification
+
+4. **Code Metrics Agent (CMA)**
+   - Calcule les métriques de code (complexité cyclomatique, etc.)
+   - Détecte le code dupliqué
+   - Mesure la profondeur d'imbrication
+   - Calcule l'indice de maintenabilité
+
+5. **Dependency Vulnerability Agent (DVA)**
+   - Analyse les vulnérabilités des dépendances via l'API OSV
+   - Supporte npm, PyPI, Pub (Dart)
+   - Identifie les CVE et vulnérabilités connues
+   - Propose les versions corrigées
+
+6. **Quality Assurance Agent (QAA)**
+   - Synthétise toutes les analyses
+   - Génère un score de qualité global
+   - Crée un plan d'action priorisé
+   - Propose une roadmap d'amélioration
+
+## 🚀 Installation
+
+### Prérequis
+
+- Python 3.8 ou supérieur
+- Clé API Google Gemini ([Obtenir une clé](https://makersuite.google.com/app/apikey))
+
+### Installation des dépendances
+
+```bash
+pip install -r requirements.txt
+```
+
+### Dépendances
+
+- `google-generativeai` - API Gemini pour l'analyse de code
+- `pathspec` - Gestion des patterns .gitignore
+- `requests` - Requêtes HTTP pour l'API OSV (version >=2.32.0 pour corriger les vulnérabilités CVE-2024-47081 et CVE-2024-35195)
+- `pyyaml` - Parsing des fichiers YAML (pubspec.yaml pour Dart/Flutter)
+- `duckduckgo-search` - Recherche web pour enrichir les analyses (optionnel)
+
+## 🏗️ Structure du Projet
+
+Le projet est organisé en modules pour une meilleure maintenabilité :
+
+```
+code_reviewer/
+├── src/
+│   ├── core/              # Modules principaux
+│   │   ├── config.py      # Configuration (AnalysisConfig, load_env_file)
+│   │   ├── logger.py     # Logging et encodage UTF-8
+│   │   └── analyzer.py   # Orchestrateur principal (CodeAnalyzer)
+│   ├── models/           # Modèles de données
+│   │   └── data_models.py  # Dataclasses (FileAnalysis, SecurityIssue, etc.)
+│   ├── agents/           # Agents d'analyse
+│   │   ├── base_agent.py  # Classe de base pour tous les agents
+│   │   ├── code_analysis_expert.py
+│   │   ├── architect_analysis_agent.py
+│   │   ├── security_analysis_agent.py
+│   │   ├── code_metrics_agent.py
+│   │   ├── dependency_vulnerability_agent.py
+│   │   └── quality_assurance_agent.py
+│   └── services/         # Services utilitaires
+│       ├── code_generator.py
+│       ├── documentation_searcher.py
+│       └── dependency_analyzer.py
+├── main.py               # Point d'entrée principal
+├── requirements.txt      # Dépendances Python
+└── README.md            # Documentation
+```
+
+### Architecture Modulaire
+
+- **`src/core/`** : Contient l'orchestrateur principal (`CodeAnalyzer`) et les utilitaires de configuration et logging
+- **`src/models/`** : Définit les structures de données utilisées pour échanger des informations entre les composants
+- **`src/agents/`** : Chaque agent est un module indépendant héritant de `BaseAgent` pour la logique commune
+- **`src/services/`** : Services utilitaires réutilisables (génération de code, recherche web, analyse de dépendances)
+
+Cette structure modulaire facilite :
+- La maintenance et l'extension du code
+- La réutilisation des composants
+- Les tests unitaires
+- La compréhension de l'architecture
+
+## ⚙️ Configuration
+
+### Configuration de la clé API Gemini
+
+Créez un fichier `.env` à la racine du projet (vous pouvez utiliser `.env.example` comme modèle) :
+
+```env
+GEMINI_API_KEY=votre_cle_api_ici
+```
+
+Ou définissez la variable d'environnement :
+
+**Windows (PowerShell):**
+```powershell
+$env:GEMINI_API_KEY='votre_cle_api_ici'
+```
+
+**Linux/Mac:**
+```bash
+export GEMINI_API_KEY=votre_cle_api_ici
+```
+
+### Options de configuration
+
+Vous pouvez personnaliser le comportement via des variables d'environnement ou le fichier `.env` :
+
+| Variable | Description | Défaut |
+|----------|-------------|--------|
+| `GEMINI_MODEL` | Modèle Gemini à utiliser | `gemini-3-pro-preview` |
+| `BATCH_SIZE` | Nombre de fichiers analysés en parallèle | `10` |
+| `MAX_RETRIES` | Nombre de tentatives en cas d'erreur | `3` |
+| `TIMEOUT_SECONDS` | Timeout pour chaque requête (secondes) | `60` |
+| `OUTPUT_DIR` | Répertoire de sortie des analyses | `docs/analyses` |
+| `ARCHITECTURE_REPORT` | Chemin du rapport d'architecture | `docs/architecture_overview.md` |
+| `ROOT_DIR` | Répertoire racine à analyser | `.` |
+| `ENABLE_WEB_SEARCH` | Activer la recherche web | `true` |
+| `MAX_WEB_RESULTS` | Nombre max de résultats de recherche | `3` |
+| `ENABLE_SECURITY_ANALYSIS` | Activer l'analyse de sécurité | `true` |
+| `ENABLE_METRICS_ANALYSIS` | Activer l'analyse de métriques | `true` |
+| `ENABLE_DEPENDENCY_VULNERABILITY` | Activer l'analyse des vulnérabilités | `true` |
+| `ENABLE_CODE_GENERATION` | Permettre la génération de code d'analyse | `true` |
+
+## 📖 Utilisation
+
+### Analyse de base
+
+```bash
+python main.py
+```
+
+Le script va :
+1. Scanner tous les fichiers du répertoire courant
+2. Analyser chaque fichier avec les agents appropriés
+3. Générer des rapports détaillés dans `docs/analyses/`
+4. Créer un rapport d'architecture global
+5. Générer un rapport d'assurance qualité
+
+### Analyse d'un répertoire spécifique
+
+```bash
+ROOT_DIR=./mon_projet python main.py
+```
+
+## 📊 Rapports générés
+
+### Rapports individuels
+
+Chaque fichier analysé génère un rapport Markdown dans `docs/analyses/` avec :
+- Objectif et fonction principale
+- Points forts et bonnes pratiques
+- Relations et dépendances
+- Risques et dettes techniques
+- Suggestions d'amélioration
+- Problèmes de sécurité détectés
+- Métriques de code
+
+### Rapport d'architecture
+
+`docs/architecture_overview.md` contient :
+- Vue d'ensemble de l'architecture
+- Patterns identifiés
+- Cohérence inter-modules
+- Redondances et dépendances
+- Recommandations d'optimisation
+- Plan de refactoring
+- Gouvernance du code
+
+### Rapport d'assurance qualité
+
+`docs/analyses/quality_assurance_report.md` contient :
+- Score de qualité global (sur 100)
+- Analyse par dimension (Sécurité, Maintenabilité, Architecture, etc.)
+- Plan d'action priorisé
+- Roadmap d'amélioration
+
+### Rapport des vulnérabilités
+
+`docs/analyses/vulnerabilities_report.md` contient :
+- Liste des vulnérabilités détectées dans les dépendances
+- Répartition par sévérité (critical, high, medium, low)
+- CVE et identifiants de vulnérabilités
+- Versions corrigées disponibles
+
+## 🔍 Langages supportés
+
+Le système détecte automatiquement et analyse :
+- **Dart/Flutter** (`.dart`)
+- **TypeScript/JavaScript** (`.ts`, `.tsx`, `.js`, `.jsx`)
+- **Python** (`.py`)
+- **Java** (`.java`)
+- **Kotlin** (`.kt`)
+- **Swift** (`.swift`)
+- **Go** (`.go`)
+- **Rust** (`.rs`)
+- **C/C++** (`.c`, `.cpp`, `.h`)
+- **C#** (`.cs`)
+- **PHP** (`.php`)
+- **Ruby** (`.rb`)
+- Et autres langages de programmation
+
+## 🛡️ Fichiers exclus
+
+Le système exclut automatiquement :
+- Dossiers de build (`build/`, `dist/`, `node_modules/`, etc.)
+- Fichiers générés (`.g.dart`, `.d.ts`, `.pyc`, etc.)
+- Fichiers de lock (`package-lock.json`, `yarn.lock`, etc.)
+- Fichiers binaires (> 1MB)
+- Dossiers cachés (`.git/`, `.venv/`, etc.)
+
+Les règles `.gitignore` sont respectées automatiquement.
+
+## 📝 Exemple de sortie
+
+```
+============================================================
+🚀 Démarrage de l'analyse de code
+============================================================
+
+📁 Répertoire racine: .
+📂 Répertoire de sortie: docs/analyses
+🤖 Modèle Gemini: gemini-3-pro-preview
+
+🌐 Recherche web activée pour les documentations
+
+🔍 Scan des fichiers...
+✅ 25 fichiers trouvés à analyser
+
+🔗 Initialisation de l'analyseur de dépendances...
+✅ Analyseur de dépendances initialisé
+
+📦 Batch 1/3 (10 fichiers)...
+  ✅ src/main.py
+  ✅ src/utils.py
+  ...
+
+✅ Analyse de 25 fichiers terminée
+
+🔄 Analyse des dépendances et détection des cycles...
+✅ Aucun cycle de dépendances détecté
+
+🏗️  Génération du rapport d'architecture...
+✅ Rapport d'architecture sauvegardé: docs/architecture_overview.md
+
+🔒 Analyse des vulnérabilités des dépendances via OSV API...
+✅ Analyse terminée: 15 package(s) vérifié(s), 2 vulnérabilité(s) trouvée(s)
+
+📋 Génération du rapport d'assurance qualité...
+✅ Rapport d'assurance qualité sauvegardé: docs/analyses/quality_assurance_report.md
+
+📊 Statistiques:
+  - Fichiers analysés: 25
+  - Succès: 25
+  - Échecs: 0
+
+  Répartition par langage:
+    - Python: 15
+    - TypeScript: 8
+    - Markdown: 2
+
+============================================================
+✅ Analyse terminée avec succès!
+============================================================
+```
+
+## 🐛 Dépannage
+
+### Erreur: "Variable d'environnement GEMINI_API_KEY non définie"
+
+Créez un fichier `.env` avec votre clé API ou définissez la variable d'environnement.
+
+### Erreur: "ModuleNotFoundError"
+
+Installez les dépendances :
+```bash
+pip install -r requirements.txt
+```
+
+### Les logs ne s'affichent pas
+
+Le script utilise `log_print()` avec flush automatique. Si les logs ne s'affichent toujours pas, vérifiez que votre terminal supporte UTF-8.
+
+### Analyse lente
+
+Réduisez `BATCH_SIZE` ou augmentez `TIMEOUT_SECONDS` dans votre `.env`.
+
+## 📄 Licence
+
+Ce projet est fourni tel quel, sans garantie.
+
+## 🤝 Contribution
+
+Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou une pull request.
+
+## 📚 Ressources
+
+- [Documentation Google Gemini](https://ai.google.dev/docs)
+- [API OSV (Open Source Vulnerabilities)](https://osv.dev/)
+- [Documentation pathspec](https://github.com/cpburnz/python-pathspec)
