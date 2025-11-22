@@ -1,4 +1,4 @@
-# Aetheris by Allowebs - Système d'Analyse de Code Multi-Agents
+# Aetheris by Adryan - Système d'Analyse de Code Multi-Agents
 
 [![PyPI version](https://badge.fury.io/py/adryserage-aetheris.svg)](https://badge.fury.io/py/adryserage-aetheris)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
@@ -500,7 +500,7 @@ Les règles `.gitignore` sont respectées automatiquement.
 Lorsque vous exécutez Aetheris dans un terminal interactif, vous verrez des barres de progression modernes avec Rich :
 
 ```text
-🚀 Aetheris by Allowebs - Démarrage de l'analyse de code
+🚀 Aetheris by Adryan - Démarrage de l'analyse de code
 ============================================================
 
 📁 Répertoire racine: .

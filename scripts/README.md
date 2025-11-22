@@ -1,6 +1,6 @@
 # Scripts utilitaires
 
-Ce dossier contient des scripts utilitaires pour Aetheris by Allowebs.
+Ce dossier contient des scripts utilitaires pour Aetheris by Adryan.
 
 ## analyze_changes.py
 

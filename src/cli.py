@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Aetheris by Allowebs - Interface en ligne de commande
+Aetheris by Adryan - Interface en ligne de commande
 """
 
 import os
@@ -98,7 +98,7 @@ Exemples:
 async def run_analysis(args):
     """Exécute l'analyse de code"""
     log_print("=" * 60)
-    log_print("🚀 Aetheris by Allowebs - Démarrage de l'analyse de code")
+    log_print("🚀 Aetheris by Adryan - Démarrage de l'analyse de code")
     log_print("=" * 60)
     log_print()
 
@@ -218,7 +218,7 @@ def create_parser():
     """Crée le parser principal avec sous-commandes"""
     parser = argparse.ArgumentParser(
         prog="aetheris",
-        description="Aetheris by Allowebs - Système d'analyse de code multi-agents",
+        description="Aetheris by Adryan - Système d'analyse de code multi-agents",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Pour plus d'informations sur une commande spécifique:
