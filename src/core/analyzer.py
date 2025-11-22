@@ -1,5 +1,5 @@
 """
-Orchestrateur principal du système d'analyse de code.
+Analyseur de code principal utilisant un orchestrateur interne.
 """
 
 import os
@@ -15,6 +15,7 @@ from pathspec import PathSpec
 from src.core.config import AnalysisConfig
 from src.core.logger import log_print
 from src.core.progress import ProgressManager
+from src.core.orchestrator import AnalysisOrchestrator, WorkflowStage, WorkflowContext
 from src.models.data_models import FileAnalysis
 from src.services.code_generator import CodeGenerator
 from src.services.documentation_searcher import DocumentationSearcher
@@ -121,7 +122,7 @@ def sanitize_markdown(text: str) -> str:
 
 
 class CodeAnalyzer:
-    """Orchestrateur principal du système d'analyse"""
+    """Analyseur de code principal utilisant un orchestrateur interne"""
 
     def __init__(
         self,
@@ -161,6 +162,9 @@ class CodeAnalyzer:
             config, self.doc_searcher, self.progress_manager
         )  # Agent d'assurance qualité
         self.gitignore_spec = None
+        
+        # Initialiser l'orchestrateur et enregistrer les étapes
+        self._setup_orchestrator()
 
     def load_gitignore(self) -> PathSpec:
         """Charge les règles .gitignore"""
@@ -591,189 +595,248 @@ class CodeAnalyzer:
             if not analysis.success and sanitized_error:
                 f.write(f"\n\n## ⚠️ Erreur\n\n{sanitized_error}\n")
 
-    async def run(self):
-        """Exécute l'analyse complète"""
-        if self.doc_searcher and self.doc_searcher.enabled:
-            self.progress_manager.print("🌐 Recherche web activée pour les documentations\n")
+    def _setup_orchestrator(self):
+        """Configure l'orchestrateur avec les étapes du workflow"""
+        self.orchestrator = AnalysisOrchestrator(self.config, self.progress_manager)
+        
+        # Enregistrer les étapes du workflow
+        self.orchestrator.register_step(
+            WorkflowStage.SCAN,
+            "Scan des fichiers",
+            self._step_scan_files,
+        )
+        
+        self.orchestrator.register_step(
+            WorkflowStage.DEPENDENCY_INIT,
+            "Initialisation de l'analyseur de dépendances",
+            self._step_init_dependencies,
+            dependencies=[WorkflowStage.SCAN],
+        )
+        
+        self.orchestrator.register_step(
+            WorkflowStage.FILE_ANALYSIS,
+            "Analyse des fichiers",
+            self._step_analyze_files,
+            dependencies=[WorkflowStage.DEPENDENCY_INIT],
+        )
+        
+        self.orchestrator.register_step(
+            WorkflowStage.DEPENDENCY_ANALYSIS,
+            "Analyse des dépendances et détection des cycles",
+            self._step_analyze_dependencies,
+            dependencies=[WorkflowStage.FILE_ANALYSIS],
+        )
+        
+        self.orchestrator.register_step(
+            WorkflowStage.ARCHITECTURE_REPORT,
+            "Génération du rapport d'architecture",
+            self._step_generate_architecture_report,
+            dependencies=[WorkflowStage.DEPENDENCY_ANALYSIS],
+        )
+        
+        self.orchestrator.register_step(
+            WorkflowStage.VULNERABILITY_ANALYSIS,
+            "Analyse des vulnérabilités des dépendances",
+            self._step_analyze_vulnerabilities,
+            dependencies=[WorkflowStage.ARCHITECTURE_REPORT],
+            critical=False,  # Non critique, peut échouer sans bloquer
+        )
+        
+        self.orchestrator.register_step(
+            WorkflowStage.QUALITY_REPORT,
+            "Génération du rapport d'assurance qualité",
+            self._step_generate_quality_report,
+            dependencies=[WorkflowStage.VULNERABILITY_ANALYSIS],
+        )
 
-        # Utiliser ProgressManager si disponible
-        with self.progress_manager.create_progress():
-            # Scan des fichiers
-            scan_task = self.progress_manager.add_task("🔍 Scan des fichiers...", total=100)
-
-            # Si une liste de fichiers est fournie, utiliser celle-ci, sinon scanner tout
-            if self.files_to_analyze:
-                # Filtrer les fichiers pour ne garder que ceux qui doivent être analysés
-                files = []
-                for file_path in self.files_to_analyze:
-                    # Normaliser le chemin
-                    if not os.path.isabs(file_path):
-                        file_path = os.path.join(self.config.root_dir, file_path)
-                    file_path = os.path.normpath(file_path)
-
-                    # Vérifier que le fichier existe et doit être analysé
-                    if os.path.exists(file_path) and self.should_analyze(file_path):
-                        files.append(file_path)
-                self.progress_manager.update_task(
-                    scan_task,
-                    advance=100,
-                    description=f"✅ {len(files)} fichier(s) à analyser (mode diff)",
-                )
-            else:
-                files = self.scan_files()
-                self.progress_manager.update_task(
-                    scan_task,
-                    advance=100,
-                    description=f"✅ {len(files)} fichiers trouvés à analyser (mode full)",
-                )
-
-            if not files:
-                self.progress_manager.print("❌ Aucun fichier à analyser")
-                return
-
-            # Initialiser l'analyseur de dépendances
-            dep_task = self.progress_manager.add_task(
-                "🔗 Initialisation de l'analyseur de dépendances...", total=100
+    async def _step_scan_files(self, context: WorkflowContext) -> WorkflowContext:
+        """Étape 1: Scanner les fichiers à analyser"""
+        scan_task = self.progress_manager.add_task("🔍 Scan des fichiers...", total=100)
+        
+        if self.files_to_analyze:
+            files = []
+            for file_path in self.files_to_analyze:
+                if not os.path.isabs(file_path):
+                    file_path = os.path.join(self.config.root_dir, file_path)
+                file_path = os.path.normpath(file_path)
+                
+                if os.path.exists(file_path) and self.should_analyze(file_path):
+                    files.append(file_path)
+            self.progress_manager.update_task(
+                scan_task,
+                advance=100,
+                description=f"✅ {len(files)} fichier(s) à analyser (mode diff)",
             )
-            self.dependency_analyzer = DependencyAnalyzer(self.config.root_dir, files)
-            self.cae.dependency_analyzer = self.dependency_analyzer
-            self.progress_manager.complete_task(dep_task)
-
-            # Créer le dossier de sortie
-            os.makedirs(self.config.output_dir, exist_ok=True)
-
-            # Analyser par batch
-            all_analyses = []
-            total_files = len(files)
-            analysis_task = self.progress_manager.add_task(
-                "📦 Analyse des fichiers...", total=total_files
+        else:
+            files = self.scan_files()
+            self.progress_manager.update_task(
+                scan_task,
+                advance=100,
+                description=f"✅ {len(files)} fichiers trouvés à analyser (mode full)",
             )
+        
+        if not files:
+            self.progress_manager.print("❌ Aucun fichier à analyser")
+            raise ValueError("Aucun fichier à analyser")
+        
+        context.files = files
+        self.progress_manager.complete_task(scan_task)
+        return context
 
-            for batch_idx in range(0, len(files), self.config.batch_size):
-                batch = files[batch_idx : batch_idx + self.config.batch_size]
-                batch_num = (batch_idx // self.config.batch_size) + 1
-                total_batches = (len(files) + self.config.batch_size - 1) // self.config.batch_size
+    async def _step_init_dependencies(self, context: WorkflowContext) -> WorkflowContext:
+        """Étape 2: Initialiser l'analyseur de dépendances"""
+        dep_task = self.progress_manager.add_task(
+            "🔗 Initialisation de l'analyseur de dépendances...", total=100
+        )
+        self.dependency_analyzer = DependencyAnalyzer(self.config.root_dir, context.files)
+        self.cae.dependency_analyzer = self.dependency_analyzer
+        self.progress_manager.complete_task(dep_task)
+        return context
 
+    async def _step_analyze_files(self, context: WorkflowContext) -> WorkflowContext:
+        """Étape 3: Analyser les fichiers"""
+        os.makedirs(self.config.output_dir, exist_ok=True)
+        
+        all_analyses = []
+        total_files = len(context.files)
+        analysis_task = self.progress_manager.add_task(
+            "📦 Analyse des fichiers...", total=total_files
+        )
+        
+        for batch_idx in range(0, len(context.files), self.config.batch_size):
+            batch = context.files[batch_idx : batch_idx + self.config.batch_size]
+            batch_num = (batch_idx // self.config.batch_size) + 1
+            total_batches = (len(context.files) + self.config.batch_size - 1) // self.config.batch_size
+            
+            self.progress_manager.update_task(
+                analysis_task,
+                description=f"📦 Batch {batch_num}/{total_batches} ({len(batch)} fichiers)...",
+            )
+            
+            analyses = await self.analyze_batch(batch)
+            
+            for analysis in analyses:
+                self.save_analysis(analysis)
                 self.progress_manager.update_task(
                     analysis_task,
-                    description=f"📦 Batch {batch_num}/{total_batches} ({len(batch)} fichiers)...",
+                    advance=1,
+                    description=f"📦 Analyse: {os.path.basename(analysis.file_path)} {'✅' if analysis.success else '❌'}",
                 )
+            
+            all_analyses.extend(analyses)
+            
+            if batch_idx + self.config.batch_size < len(context.files):
+                await asyncio.sleep(2)
+        
+        self.progress_manager.complete_task(analysis_task)
+        self.progress_manager.print(f"\n✅ Analyse de {len(all_analyses)} fichiers terminée\n")
+        
+        context.analyses = all_analyses
+        return context
 
-                analyses = await self.analyze_batch(batch)
-
-                # Sauvegarder chaque analyse
-                for analysis in analyses:
-                    self.save_analysis(analysis)
-                    self.progress_manager.update_task(
-                        analysis_task,
-                        advance=1,
-                        description=f"📦 Analyse: {os.path.basename(analysis.file_path)} {'✅' if analysis.success else '❌'}",
-                    )
-
-                all_analyses.extend(analyses)
-
-                # Pause entre batches pour éviter les rate limits
-                if batch_idx + self.config.batch_size < len(files):
-                    await asyncio.sleep(2)
-
-            self.progress_manager.complete_task(analysis_task)
-            self.progress_manager.print(f"\n✅ Analyse de {len(all_analyses)} fichiers terminée\n")
-
-            # Construire le graphe de dépendances et détecter les cycles
-            cycles_task = self.progress_manager.add_task(
-                "🔄 Analyse des dépendances et détection des cycles...", total=100
+    async def _step_analyze_dependencies(self, context: WorkflowContext) -> WorkflowContext:
+        """Étape 4: Analyser les dépendances et détecter les cycles"""
+        cycles_task = self.progress_manager.add_task(
+            "🔄 Analyse des dépendances et détection des cycles...", total=100
+        )
+        dependencies_map = {}
+        for analysis in context.analyses:
+            if analysis.success and analysis.dependencies:
+                dependencies_map[analysis.file_path] = analysis.dependencies
+        
+        cycles = self.dependency_analyzer.detect_circular_dependencies(dependencies_map)
+        if cycles:
+            self.progress_manager.update_task(
+                cycles_task, description=f"⚠️  {len(cycles)} cycle(s) de dépendances détecté(s)"
             )
-            dependencies_map = {}
-            for analysis in all_analyses:
-                if analysis.success and analysis.dependencies:
-                    dependencies_map[analysis.file_path] = analysis.dependencies
-
-            cycles = self.dependency_analyzer.detect_circular_dependencies(dependencies_map)
-            if cycles:
-                self.progress_manager.update_task(
-                    cycles_task, description=f"⚠️  {len(cycles)} cycle(s) de dépendances détecté(s)"
-                )
-                for i, cycle in enumerate(cycles, 1):
-                    cycle_paths = [
-                        os.path.relpath(f, self.config.root_dir).replace("\\", "/") for f in cycle
-                    ]
-                    self.progress_manager.print(f"  Cycle {i}: {' → '.join(cycle_paths)}")
-            else:
-                self.progress_manager.update_task(
-                    cycles_task, description="✅ Aucun cycle de dépendances détecté"
-                )
-            self.progress_manager.complete_task(cycles_task)
-            self.progress_manager.print()
-
-            # Générer le rapport d'architecture
-            arch_task = self.progress_manager.add_task(
-                "🏗️  Génération du rapport d'architecture...", total=100
+            for i, cycle in enumerate(cycles, 1):
+                cycle_paths = [
+                    os.path.relpath(f, self.config.root_dir).replace("\\", "/") for f in cycle
+                ]
+                self.progress_manager.print(f"  Cycle {i}: {' → '.join(cycle_paths)}")
+        else:
+            self.progress_manager.update_task(
+                cycles_task, description="✅ Aucun cycle de dépendances détecté"
             )
-            architecture_report = await self.aaa.generate_architecture_report(all_analyses, cycles)
+        self.progress_manager.complete_task(cycles_task)
+        self.progress_manager.print()
+        
+        context.cycles = cycles
+        return context
 
-            # Ajouter des métadonnées
-            report_with_metadata = f"""# Vue d'ensemble de l'architecture
+    async def _step_generate_architecture_report(self, context: WorkflowContext) -> WorkflowContext:
+        """Étape 5: Générer le rapport d'architecture"""
+        arch_task = self.progress_manager.add_task(
+            "🏗️  Génération du rapport d'architecture...", total=100
+        )
+        architecture_report = await self.aaa.generate_architecture_report(
+            context.analyses, context.cycles
+        )
+        
+        report_with_metadata = f"""# Vue d'ensemble de l'architecture
 
 *Généré le {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*
-*Nombre de fichiers analysés: {len(all_analyses)}*
-*Fichiers réussis: {sum(1 for a in all_analyses if a.success)}*
-*Fichiers échoués: {sum(1 for a in all_analyses if not a.success)}*
+*Nombre de fichiers analysés: {len(context.analyses)}*
+*Fichiers réussis: {sum(1 for a in context.analyses if a.success)}*
+*Fichiers échoués: {sum(1 for a in context.analyses if not a.success)}*
 
 ---
 
 {architecture_report}
 """
+        
+        os.makedirs(os.path.dirname(self.config.architecture_report_path), exist_ok=True)
+        sanitized_report = sanitize_markdown(report_with_metadata)
+        with open(self.config.architecture_report_path, "w", encoding="utf-8") as f:
+            f.write(sanitized_report)
+        
+        self.progress_manager.complete_task(arch_task)
+        self.progress_manager.print(
+            f"✅ Rapport d'architecture sauvegardé: {self.config.architecture_report_path}\n"
+        )
+        
+        context.architecture_report = architecture_report
+        return context
 
-            # Sauvegarder le rapport (sanitisé pour prévenir XSS)
-            os.makedirs(os.path.dirname(self.config.architecture_report_path), exist_ok=True)
-            sanitized_report = sanitize_markdown(report_with_metadata)
-            with open(self.config.architecture_report_path, "w", encoding="utf-8") as f:
-                f.write(sanitized_report)
-
-            self.progress_manager.complete_task(arch_task)
-            self.progress_manager.print(
-                f"✅ Rapport d'architecture sauvegardé: {self.config.architecture_report_path}\n"
+    async def _step_analyze_vulnerabilities(self, context: WorkflowContext) -> WorkflowContext:
+        """Étape 6: Analyser les vulnérabilités des dépendances"""
+        dep_vulnerabilities = []
+        
+        if self.dva:
+            vuln_task = self.progress_manager.add_task(
+                "🔒 Analyse des vulnérabilités des dépendances via OSV API...", total=100
             )
-
-            # Analyser les vulnérabilités des dépendances
-            dep_vulnerabilities = []
-            if self.dva:
-                vuln_task = self.progress_manager.add_task(
-                    "🔒 Analyse des vulnérabilités des dépendances via OSV API...", total=100
+            dep_vulnerabilities = await self.dva.analyze_dependencies()
+            
+            if dep_vulnerabilities:
+                self.progress_manager.update_task(
+                    vuln_task,
+                    description=f"⚠️  {len(dep_vulnerabilities)} vulnérabilité(s) détectée(s)",
                 )
-                dep_vulnerabilities = await self.dva.analyze_dependencies()
-
-                if dep_vulnerabilities:
-                    self.progress_manager.update_task(
-                        vuln_task,
-                        description=f"⚠️  {len(dep_vulnerabilities)} vulnérabilité(s) détectée(s)",
-                    )
-
-                    # Grouper par sévérité
-                    by_severity = defaultdict(list)
-                    for vuln in dep_vulnerabilities:
-                        by_severity[vuln.severity].append(vuln)
-
-                    self.progress_manager.print("\n📊 Répartition par sévérité:")
-                    for severity in ["critical", "high", "medium", "low"]:
-                        if severity in by_severity:
-                            count = len(by_severity[severity])
-                            emoji = {
-                                "critical": "🔴",
-                                "high": "🟠",
-                                "medium": "🟡",
-                                "low": "🟢",
-                            }.get(severity, "⚪")
-                            self.progress_manager.print(f"  {emoji} {severity.upper()}: {count}")
-
-                # Sauvegarder un rapport des vulnérabilités (sanitisé pour prévenir XSS)
+                
+                by_severity = defaultdict(list)
+                for vuln in dep_vulnerabilities:
+                    by_severity[vuln.severity].append(vuln)
+                
+                self.progress_manager.print("\n📊 Répartition par sévérité:")
+                for severity in ["critical", "high", "medium", "low"]:
+                    if severity in by_severity:
+                        count = len(by_severity[severity])
+                        emoji = {
+                            "critical": "🔴",
+                            "high": "🟠",
+                            "medium": "🟡",
+                            "low": "🟢",
+                        }.get(severity, "⚪")
+                        self.progress_manager.print(f"  {emoji} {severity.upper()}: {count}")
+                
                 vuln_report_path = os.path.join(self.config.output_dir, "vulnerabilities_report.md")
                 vuln_report_content = "# Rapport des Vulnérabilités des Dépendances\n\n"
                 vuln_report_content += (
                     f"*Généré le {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*\n\n"
                 )
                 vuln_report_content += f"**Total:** {len(dep_vulnerabilities)} vulnérabilité(s)\n\n"
-
+                
                 for severity in ["critical", "high", "medium", "low"]:
                     if severity in by_severity:
                         vuln_report_content += (
@@ -793,30 +856,34 @@ class CodeAnalyzer:
                                     f"- **Version corrigée:** {vuln.fixed_version}\n"
                                 )
                             vuln_report_content += "\n"
-
-                    sanitized_vuln_report = sanitize_markdown(vuln_report_content)
-                    with open(vuln_report_path, "w", encoding="utf-8") as f:
-                        f.write(sanitized_vuln_report)
-
-                    self.progress_manager.print(f"📄 Rapport sauvegardé: {vuln_report_path}\n")
-                else:
-                    self.progress_manager.update_task(
-                        vuln_task, description="✅ Aucune vulnérabilité détectée"
-                    )
-                self.progress_manager.complete_task(vuln_task)
+                
+                sanitized_vuln_report = sanitize_markdown(vuln_report_content)
+                with open(vuln_report_path, "w", encoding="utf-8") as f:
+                    f.write(sanitized_vuln_report)
+                
+                self.progress_manager.print(f"📄 Rapport sauvegardé: {vuln_report_path}\n")
             else:
-                dep_vulnerabilities = []
+                self.progress_manager.update_task(
+                    vuln_task, description="✅ Aucune vulnérabilité détectée"
+                )
+            self.progress_manager.complete_task(vuln_task)
+        
+        context.vulnerabilities = dep_vulnerabilities
+        return context
 
-            # Générer le rapport d'assurance qualité (synthèse de tout)
-            qa_task = self.progress_manager.add_task(
-                "📋 Génération du rapport d'assurance qualité...", total=100
-            )
-            quality_report = await self.qaa.generate_quality_report(
-                all_analyses, architecture_report, dep_vulnerabilities, cycles
-            )
-
-            # Ajouter des métadonnées
-            quality_report_with_metadata = f"""# Rapport d'Assurance Qualité
+    async def _step_generate_quality_report(self, context: WorkflowContext) -> WorkflowContext:
+        """Étape 7: Générer le rapport d'assurance qualité"""
+        qa_task = self.progress_manager.add_task(
+            "📋 Génération du rapport d'assurance qualité...", total=100
+        )
+        quality_report = await self.qaa.generate_quality_report(
+            context.analyses,
+            context.architecture_report,
+            context.vulnerabilities,
+            context.cycles,
+        )
+        
+        quality_report_with_metadata = f"""# Rapport d'Assurance Qualité
 
 *Généré le {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*
 *Synthèse de toutes les analyses effectuées*
@@ -825,37 +892,55 @@ class CodeAnalyzer:
 
 {quality_report}
 """
+        
+        quality_report_path = os.path.join(
+            self.config.output_dir, "quality_assurance_report.md"
+        )
+        os.makedirs(os.path.dirname(quality_report_path), exist_ok=True)
+        sanitized_quality_report = sanitize_markdown(quality_report_with_metadata)
+        with open(quality_report_path, "w", encoding="utf-8") as f:
+            f.write(sanitized_quality_report)
+        
+        self.progress_manager.complete_task(qa_task)
+        self.progress_manager.print(
+            f"✅ Rapport d'assurance qualité sauvegardé: {quality_report_path}\n"
+        )
+        
+        # Statistiques finales
+        self.progress_manager.print("📊 Statistiques:")
+        self.progress_manager.print(f"  - Fichiers analysés: {len(context.analyses)}")
+        self.progress_manager.print(f"  - Succès: {sum(1 for a in context.analyses if a.success)}")
+        self.progress_manager.print(
+            f"  - Échecs: {sum(1 for a in context.analyses if not a.success)}"
+        )
+        
+        languages = {}
+        for analysis in context.analyses:
+            lang = analysis.language
+            languages[lang] = languages.get(lang, 0) + 1
+        
+        self.progress_manager.print(f"\n  Répartition par langage:")
+        for lang, count in sorted(languages.items(), key=lambda x: -x[1]):
+            self.progress_manager.print(f"    - {lang}: {count}")
+        
+        context.quality_report = quality_report
+        return context
 
-            # Sauvegarder le rapport d'assurance qualité (sanitisé pour prévenir XSS)
-            quality_report_path = os.path.join(
-                self.config.output_dir, "quality_assurance_report.md"
-            )
-            os.makedirs(os.path.dirname(quality_report_path), exist_ok=True)
-            sanitized_quality_report = sanitize_markdown(quality_report_with_metadata)
-            with open(quality_report_path, "w", encoding="utf-8") as f:
-                f.write(sanitized_quality_report)
+    async def run(self):
+        """Exécute l'analyse complète via l'orchestrateur"""
+        if self.doc_searcher and self.doc_searcher.enabled:
+            self.progress_manager.print("🌐 Recherche web activée pour les documentations\n")
 
-            self.progress_manager.complete_task(qa_task)
-            self.progress_manager.print(
-                f"✅ Rapport d'assurance qualité sauvegardé: {quality_report_path}\n"
-            )
-
-            # Statistiques finales
-            self.progress_manager.print("📊 Statistiques:")
-            self.progress_manager.print(f"  - Fichiers analysés: {len(all_analyses)}")
-            self.progress_manager.print(f"  - Succès: {sum(1 for a in all_analyses if a.success)}")
-            self.progress_manager.print(
-                f"  - Échecs: {sum(1 for a in all_analyses if not a.success)}"
-            )
-
-            languages = {}
-            for analysis in all_analyses:
-                lang = analysis.language
-                languages[lang] = languages.get(lang, 0) + 1
-
-            self.progress_manager.print(f"\n  Répartition par langage:")
-            for lang, count in sorted(languages.items(), key=lambda x: -x[1]):
-                self.progress_manager.print(f"    - {lang}: {count}")
+        # Utiliser ProgressManager si disponible
+        with self.progress_manager.create_progress():
+            # Exécuter le workflow via l'orchestrateur
+            context = await self.orchestrator.execute()
+            
+            # Vérifier les erreurs
+            if context.errors:
+                log_print(f"⚠️  {len(context.errors)} erreur(s) rencontrée(s) pendant l'analyse")
+                for error in context.errors:
+                    log_print(f"  - {error}")
 
         # Nettoyer les fichiers temporaires générés
         if self.code_generator:
