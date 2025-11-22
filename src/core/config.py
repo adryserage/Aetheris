@@ -9,7 +9,7 @@ from typing import Dict, List, Optional
 
 # Modèles par défaut par fournisseur
 DEFAULT_MODELS = {
-    "gemini": "gemini-1.5-pro",
+    "gemini": "gemini-1.5-flash",  # gemini-1.5-flash est plus largement disponible que gemini-1.5-pro
     "openai": "gpt-4o",
     "claude": "claude-3-5-sonnet-20241022",
 }
@@ -17,9 +17,11 @@ DEFAULT_MODELS = {
 # Modèles supportés par fournisseur
 SUPPORTED_MODELS = {
     "gemini": [
+        "gemini-1.5-flash",  # Modèle le plus largement disponible
+        "gemini-1.5-pro-latest",  # Version latest si disponible
+        "gemini-2.0-flash-exp",  # Version expérimentale
         "gemini-2.5-pro",
         "gemini-1.5-pro",
-        "gemini-1.5-flash",
         "gemini-3-pro-preview",
         "gemini-pro",
     ],
