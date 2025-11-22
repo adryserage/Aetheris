@@ -175,6 +175,73 @@ Le script va :
 ROOT_DIR=./mon_projet python main.py
 ```
 
+### Analyse des fichiers modifiés uniquement
+
+Pour analyser uniquement les fichiers modifiés (utile pour les PR/commits) :
+
+```bash
+# Avec une liste de fichiers (séparés par virgules)
+python main.py --changed-files-only --files src/file1.py,src/file2.py
+
+# Avec une liste JSON (depuis GitHub Actions)
+python main.py --changed-files-only --files '["src/file1.py", "src/file2.py"]'
+
+# Avec un numéro de PR (pour information)
+python main.py --changed-files-only --files src/file1.py --pr-number 123
+```
+
+## 🔄 GitHub Actions
+
+Le projet inclut un workflow GitHub Actions pour automatiser l'analyse de code directement dans votre repository.
+
+### Configuration
+
+1. **Ajouter le secret GitHub** :
+   - Allez dans votre repository → Settings → Secrets and variables → Actions
+   - Cliquez sur "New repository secret"
+   - Nom : `GEMINI_API_KEY`
+   - Valeur : Votre clé API Gemini
+   - Cliquez sur "Add secret"
+
+2. **Le workflow est déjà configuré** dans `.github/workflows/code-review.yml`
+
+### Déclencheurs disponibles
+
+Le workflow s'exécute automatiquement dans les cas suivants :
+
+- **Push vers main/master** : Analyse complète de la codebase
+- **Pull Request** : Analyse uniquement des fichiers modifiés dans la PR
+- **Exécution manuelle** : Via l'onglet Actions de GitHub avec options :
+  - Mode `full` : Analyse complète
+  - Mode `changed` : Analyse des fichiers modifiés (peut spécifier un numéro de PR)
+
+### Résultats
+
+Les rapports d'analyse sont disponibles en tant qu'**artifacts GitHub** :
+- Allez dans l'onglet Actions
+- Sélectionnez l'exécution du workflow
+- Téléchargez l'artifact "code-analysis-reports"
+- Les rapports incluent :
+  - Rapports individuels par fichier (`docs/analyses/*.md`)
+  - Rapport d'architecture (`docs/architecture_overview.md`)
+  - Rapport d'assurance qualité (`docs/analyses/quality_assurance_report.md`)
+  - Rapport de vulnérabilités (`docs/analyses/vulnerabilities_report.md`)
+
+### Exemple d'utilisation
+
+1. Créez ou modifiez une Pull Request
+2. Le workflow s'exécute automatiquement
+3. Consultez les résultats dans l'onglet Actions
+4. Téléchargez les rapports depuis les artifacts
+
+### Personnalisation
+
+Vous pouvez personnaliser le workflow en modifiant `.github/workflows/code-review.yml` :
+- Changer les branches déclencheuses
+- Modifier les chemins exclus (`paths-ignore`)
+- Ajuster les options d'analyse
+- Ajouter des notifications (email, Slack, etc.)
+
 ## 📊 Rapports générés
 
 ### Rapports individuels

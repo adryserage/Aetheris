@@ -3,8 +3,8 @@ Configuration de l'analyse
 """
 
 import os
-from dataclasses import dataclass
-from typing import Dict
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional
 
 
 @dataclass
@@ -24,6 +24,9 @@ class AnalysisConfig:
     enable_metrics_analysis: bool = True  # Activer l'analyse de métriques
     enable_dependency_vulnerability: bool = True  # Activer l'analyse de vulnérabilités des dépendances
     enable_code_generation: bool = True  # Permettre aux agents de générer du code pour l'analyse
+    analyze_changed_files_only: bool = False  # Analyser uniquement les fichiers modifiés (pour PR/commits)
+    changed_files: List[str] = field(default_factory=list)  # Liste des fichiers à analyser
+    pr_number: Optional[int] = None  # Numéro de PR (optionnel)
 
 
 def load_env_file(env_path: str = '.env') -> Dict[str, str]:

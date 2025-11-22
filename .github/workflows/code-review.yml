@@ -1,0 +1,176 @@
+name: Code Review Analysis
+
+on:
+  # Exécution manuelle avec options
+  workflow_dispatch:
+    inputs:
+      analyze_mode:
+        description: 'Mode d''analyse'
+        required: true
+        type: choice
+        options:
+          - full
+          - changed
+        default: 'full'
+      pr_number:
+        description: 'Numéro de PR (optionnel, pour mode changed)'
+        required: false
+        type: string
+        default: ''
+  
+  # Sur push vers main/master
+  push:
+    branches:
+      - main
+      - master
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'LICENSE'
+  
+  # Sur ouverture/modification de PR
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'LICENSE'
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      actions: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Nécessaire pour comparer les commits
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Determine analysis mode
+        id: analysis_mode
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            MODE="${{ github.event.inputs.analyze_mode }}"
+          elif [ "${{ github.event_name }}" == "pull_request" ]; then
+            MODE="changed"
+          else
+            MODE="full"
+          fi
+          echo "mode=$MODE" >> $GITHUB_OUTPUT
+          echo "🔍 Mode d'analyse: $MODE"
+      
+      - name: Get changed files (if needed)
+        id: changed_files
+        if: steps.analysis_mode.outputs.mode == 'changed'
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            # Pour les PR, utiliser l'API GitHub pour obtenir les fichiers modifiés
+            FILES=$(gh pr diff ${{ github.event.pull_request.number }} --name-only --json files --jq '.files[].path' || echo "")
+          elif [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.pr_number }}" ]; then
+            # Pour workflow_dispatch avec PR number
+            FILES=$(gh pr diff ${{ github.event.inputs.pr_number }} --name-only --json files --jq '.files[].path' || echo "")
+          else
+            # Pour les commits, comparer avec la branche de base
+            BASE_SHA="${{ github.event.before }}"
+            HEAD_SHA="${{ github.sha }}"
+            if [ -z "$BASE_SHA" ]; then
+              BASE_SHA="HEAD~1"
+            fi
+            FILES=$(git diff --name-only --diff-filter=ACMR $BASE_SHA $HEAD_SHA || echo "")
+          fi
+          
+          # Filtrer uniquement les fichiers de code (exclure docs, markdown, etc.)
+          CODE_FILES=$(echo "$FILES" | grep -E '\.(py|js|ts|tsx|jsx|dart|java|kt|swift|go|rs|c|cpp|h|cs|php|rb)$' || echo "")
+          
+          if [ -z "$CODE_FILES" ]; then
+            echo "⚠️  Aucun fichier de code modifié détecté"
+            echo "files=" >> $GITHUB_OUTPUT
+            echo "has_files=false" >> $GITHUB_OUTPUT
+          else
+            # Convertir en JSON array pour Python
+            JSON_FILES=$(echo "$CODE_FILES" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            echo "files=$JSON_FILES" >> $GITHUB_OUTPUT
+            echo "has_files=true" >> $GITHUB_OUTPUT
+            echo "📝 Fichiers à analyser:"
+            echo "$CODE_FILES"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Install GitHub CLI (if needed)
+        if: steps.analysis_mode.outputs.mode == 'changed' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != ''))
+        run: |
+          type -p curl >/dev/null || (apt update && apt install curl -y)
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+          && sudo apt update \
+          && sudo apt install gh -y
+      
+      - name: Install jq (if needed)
+        if: steps.analysis_mode.outputs.mode == 'changed'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+      
+      - name: Run code analysis
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          ANALYSIS_MODE: ${{ steps.analysis_mode.outputs.mode }}
+          CHANGED_FILES: ${{ steps.changed_files.outputs.files }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.inputs.pr_number || '' }}
+        run: |
+          if [ "$ANALYSIS_MODE" == "changed" ] && [ "${{ steps.changed_files.outputs.has_files }}" == "true" ]; then
+            echo "🔍 Analyse des fichiers modifiés uniquement"
+            python main.py --changed-files-only --files "$CHANGED_FILES" --pr-number "$PR_NUMBER"
+          else
+            echo "🔍 Analyse complète de la codebase"
+            python main.py
+          fi
+      
+      - name: Upload analysis reports as artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-analysis-reports
+          path: |
+            docs/analyses/**/*.md
+            docs/architecture_overview.md
+          retention-days: 30
+          if-no-files-found: warn
+      
+      - name: Display summary
+        if: always()
+        run: |
+          echo "## 📊 Résumé de l'analyse" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f "docs/analyses/quality_assurance_report.md" ]; then
+            echo "✅ Rapport d'assurance qualité généré" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -f "docs/architecture_overview.md" ]; then
+            echo "✅ Rapport d'architecture généré" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -f "docs/analyses/vulnerabilities_report.md" ]; then
+            echo "✅ Rapport de vulnérabilités généré" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📦 Les rapports sont disponibles en tant qu'artifacts" >> $GITHUB_STEP_SUMMARY
+

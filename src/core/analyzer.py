@@ -6,7 +6,7 @@ import os
 import asyncio
 import pathlib
 import re
-from typing import List, Dict
+from typing import List, Dict, Optional
 from datetime import datetime
 from collections import defaultdict
 
@@ -116,8 +116,9 @@ def sanitize_markdown(text: str) -> str:
 class CodeAnalyzer:
     """Orchestrateur principal du système d'analyse"""
     
-    def __init__(self, config: AnalysisConfig):
+    def __init__(self, config: AnalysisConfig, files_to_analyze: Optional[List[str]] = None):
         self.config = config
+        self.files_to_analyze = files_to_analyze  # Liste optionnelle de fichiers spécifiques à analyser
         self.dependency_analyzer = None  # Sera initialisé après le scan des fichiers
         self.doc_searcher = DocumentationSearcher(config) if config.enable_web_search else None
         self.code_generator = CodeGenerator(config) if config.enable_code_generation else None
@@ -287,6 +288,29 @@ class CodeAnalyzer:
     
     def scan_files(self) -> List[str]:
         """Scanne tous les fichiers à analyser"""
+        # Si on analyse uniquement les fichiers modifiés, utiliser la liste fournie
+        if self.config.analyze_changed_files_only and self.config.changed_files:
+            files = []
+            for file_path in self.config.changed_files:
+                # Normaliser le chemin
+                if not os.path.isabs(file_path):
+                    file_path = os.path.join(self.config.root_dir, file_path)
+                else:
+                    # Si c'est un chemin absolu, le convertir en relatif
+                    try:
+                        file_path = os.path.relpath(file_path, self.config.root_dir)
+                        file_path = os.path.join(self.config.root_dir, file_path)
+                    except ValueError:
+                        # Si le fichier n'est pas dans root_dir, l'ignorer
+                        continue
+                
+                # Vérifier que le fichier existe et doit être analysé
+                if os.path.exists(file_path) and self.should_analyze(file_path):
+                    files.append(file_path)
+            
+            return sorted(files)
+        
+        # Sinon, scan complet
         files = []
         
         # Dossiers à exclure complètement du scan
@@ -422,8 +446,23 @@ class CodeAnalyzer:
             log_print("⚠️  Recherche web désactivée (bibliothèque manquante). Installez 'duckduckgo-search' pour l'activer.\n")
         
         log_print("🔍 Scan des fichiers...")
-        files = self.scan_files()
-        log_print(f"✅ {len(files)} fichiers trouvés à analyser\n")
+        # Si une liste de fichiers est fournie, utiliser celle-ci, sinon scanner tout
+        if self.files_to_analyze:
+            # Filtrer les fichiers pour ne garder que ceux qui doivent être analysés
+            files = []
+            for file_path in self.files_to_analyze:
+                # Normaliser le chemin
+                if not os.path.isabs(file_path):
+                    file_path = os.path.join(self.config.root_dir, file_path)
+                file_path = os.path.normpath(file_path)
+                
+                # Vérifier que le fichier existe et doit être analysé
+                if os.path.exists(file_path) and self.should_analyze(file_path):
+                    files.append(file_path)
+            log_print(f"✅ {len(files)} fichier(s) à analyser (mode diff)\n")
+        else:
+            files = self.scan_files()
+            log_print(f"✅ {len(files)} fichiers trouvés à analyser (mode full)\n")
         
         if not files:
             log_print("❌ Aucun fichier à analyser")

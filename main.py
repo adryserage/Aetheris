@@ -14,6 +14,9 @@ Le système détecte automatiquement tous les langages présents dans le reposit
 import os
 import sys
 import asyncio
+import argparse
+import json
+from typing import List, Optional
 
 # Configuration du logging et encodage UTF-8
 from src.core.logger import setup_utf8_encoding, log_print
@@ -52,8 +55,72 @@ from src.core.config import AnalysisConfig, load_env_file
 from src.core.analyzer import CodeAnalyzer
 
 
+def parse_changed_files(files_input: Optional[str]) -> List[str]:
+    """Parse les fichiers modifiés depuis une chaîne JSON ou une liste séparée par des virgules"""
+    if not files_input:
+        return []
+    
+    try:
+        # Essayer de parser comme JSON (depuis GitHub Actions)
+        files = json.loads(files_input)
+        if isinstance(files, list):
+            return files
+    except (json.JSONDecodeError, TypeError):
+        pass
+    
+    # Sinon, traiter comme une liste séparée par des virgules
+    files = [f.strip() for f in files_input.split(',') if f.strip()]
+    return files
+
+
+def parse_args():
+    """Parse les arguments de ligne de commande"""
+    parser = argparse.ArgumentParser(
+        description='Système d\'analyse de code multi-agents',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Exemples:
+  # Analyse complète de la codebase
+  python main.py
+  
+  # Analyser uniquement les fichiers modifiés (depuis GitHub Actions)
+  python main.py --changed-files-only --files '["src/file1.py", "src/file2.py"]'
+  
+  # Analyser une liste de fichiers spécifiques
+  python main.py --files src/file1.py,src/file2.py
+  
+  # Analyser les fichiers d'une PR
+  python main.py --changed-files-only --pr-number 123
+        """
+    )
+    
+    parser.add_argument(
+        '--changed-files-only',
+        action='store_true',
+        help='Analyser uniquement les fichiers modifiés (pour PR/commits)'
+    )
+    
+    parser.add_argument(
+        '--files',
+        type=str,
+        default=None,
+        help='Liste de fichiers à analyser (JSON array ou séparés par virgules). Utilisé avec --changed-files-only'
+    )
+    
+    parser.add_argument(
+        '--pr-number',
+        type=int,
+        default=None,
+        help='Numéro de PR (optionnel, pour information)'
+    )
+    
+    return parser.parse_args()
+
+
 async def main():
     """Point d'entrée principal"""
+    args = parse_args()
+    
     log_print("=" * 60)
     log_print("🚀 Démarrage de l'analyse de code")
     log_print("=" * 60)
@@ -71,12 +138,37 @@ async def main():
         log_print("   1. Créez un fichier .env avec: GEMINI_API_KEY=votre_cle")
         log_print("   2. Ou définissez-la avec: export GEMINI_API_KEY=votre_cle (Linux/Mac)")
         log_print("   3. Ou définissez-la avec: $env:GEMINI_API_KEY='votre_cle' (PowerShell)")
+        log_print("   4. Ou configurez-la dans GitHub Secrets (pour GitHub Actions)")
         sys.exit(1)
     
     # Appliquer les variables du .env à l'environnement pour les autres configs
     for key, value in env_vars.items():
         if key not in os.environ:
             os.environ[key] = value
+    
+    # Parser les fichiers modifiés depuis les arguments ou l'environnement GitHub Actions
+    changed_files: List[str] = []
+    analyze_changed_only = args.changed_files_only
+    
+    if analyze_changed_only:
+        # Priorité: argument --files, puis variable d'environnement CHANGED_FILES
+        files_input = args.files or os.getenv('CHANGED_FILES')
+        changed_files = parse_changed_files(files_input)
+        
+        if not changed_files:
+            log_print("⚠️  Mode --changed-files-only activé mais aucun fichier spécifié")
+            log_print("   Utilisez --files ou définissez CHANGED_FILES dans l'environnement")
+            sys.exit(1)
+    
+    # Obtenir le numéro de PR depuis les arguments ou l'environnement GitHub
+    pr_number = args.pr_number
+    if not pr_number:
+        pr_number_str = os.getenv('PR_NUMBER')
+        if pr_number_str:
+            try:
+                pr_number = int(pr_number_str)
+            except ValueError:
+                pass
     
     config = AnalysisConfig(
         gemini_api_key=gemini_api_key,
@@ -92,12 +184,23 @@ async def main():
         enable_security_analysis=os.getenv('ENABLE_SECURITY_ANALYSIS', 'true').lower() == 'true',
         enable_metrics_analysis=os.getenv('ENABLE_METRICS_ANALYSIS', 'true').lower() == 'true',
         enable_dependency_vulnerability=os.getenv('ENABLE_DEPENDENCY_VULNERABILITY', 'true').lower() == 'true',
-        enable_code_generation=os.getenv('ENABLE_CODE_GENERATION', 'true').lower() == 'true'
+        enable_code_generation=os.getenv('ENABLE_CODE_GENERATION', 'true').lower() == 'true',
+        analyze_changed_files_only=analyze_changed_only,
+        changed_files=changed_files,
+        pr_number=pr_number
     )
     
     log_print(f"📁 Répertoire racine: {config.root_dir}")
     log_print(f"📂 Répertoire de sortie: {config.output_dir}")
     log_print(f"🤖 Modèle Gemini: {config.gemini_model}")
+    
+    if analyze_changed_only:
+        log_print(f"🔍 Mode: Analyse des fichiers modifiés uniquement ({len(changed_files)} fichier(s))")
+        if pr_number:
+            log_print(f"📋 PR #{pr_number}")
+    else:
+        log_print("🔍 Mode: Analyse complète de la codebase")
+    
     log_print()
     
     analyzer = CodeAnalyzer(config)
