@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - "v*.*.*" # Déclenché sur les tags de version (ex: v1.0.0)
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag de version à utiliser (ex: v1.1.0)"
+        required: true
+        type: string
 
 permissions:
   contents: write # Nécessaire pour créer des releases
@@ -26,10 +32,25 @@ jobs:
       - name: Extract version from tag
         id: tag_version
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
+          # Si déclenché manuellement, utiliser l'input tag, sinon utiliser GITHUB_REF
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+            # Enlever le préfixe 'v' si présent
+            VERSION=${TAG#v}
+            TAG_NAME=$TAG
+            # S'assurer que le tag commence par 'v'
+            if [[ ! $TAG_NAME =~ ^v ]]; then
+              TAG_NAME="v$VERSION"
+            fi
+          else
+            # Déclenché par push de tag
+            VERSION=${GITHUB_REF#refs/tags/v}
+            TAG_NAME="v$VERSION"
+          fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "tag_name=v$VERSION" >> $GITHUB_OUTPUT
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "Version extraite: $VERSION"
+          echo "Tag name: $TAG_NAME"
 
       - name: Extract release notes from CHANGELOG
         id: release_notes
@@ -41,7 +62,7 @@ jobs:
         run: |
           echo "📝 Aperçu des notes de release:"
           echo "---"
-          head -20 release_notes.md
+          head -n 20 release_notes.md 2>/dev/null || python -c "with open('release_notes.md', 'r', encoding='utf-8') as f: print(''.join(f.readlines()[:20]))"
           echo "---"
 
       - name: Create GitHub Release
