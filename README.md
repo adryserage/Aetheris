@@ -55,9 +55,19 @@ Le système utilise **6 agents spécialisés** qui travaillent ensemble pour ana
 - Python 3.8 ou supérieur
 - Clé API Google Gemini ([Obtenir une clé](https://makersuite.google.com/app/apikey))
 
-### Installation depuis GitHub Packages (Recommandé)
+### Installation depuis PyPI (Recommandé)
 
-Aetheris est disponible en tant que package Python sur GitHub Packages sous le nom `adryserage-aetheris`. Pour l'installer :
+Aetheris est disponible sur PyPI sous le nom `adryserage-aetheris`. Installation simple :
+
+```bash
+pip install adryserage-aetheris
+```
+
+C'est tout ! Le package est maintenant installé et la commande `aetheris` est disponible.
+
+### Installation depuis GitHub Packages (Alternative)
+
+Si vous préférez installer depuis GitHub Packages :
 
 1. **Créer un Personal Access Token (PAT)** :
    - Allez dans GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
@@ -68,10 +78,10 @@ Aetheris est disponible en tant que package Python sur GitHub Packages sous le n
 
 ```bash
 # Linux/Mac
-pip install --extra-index-url https://USERNAME:TOKEN@pypi.github.com/Allowebs/code_reviewer/simple/ adryserage-aetheris
+pip install --extra-index-url https://USERNAME:TOKEN@pypi.github.com/adryserage/code_reviewer/simple/ adryserage-aetheris
 
 # Windows (PowerShell)
-pip install --extra-index-url https://USERNAME:TOKEN@pypi.github.com/Allowebs/code_reviewer/simple/ adryserage-aetheris
+pip install --extra-index-url https://USERNAME:TOKEN@pypi.github.com/adryserage/code_reviewer/simple/ adryserage-aetheris
 ```
 
 Remplacez `USERNAME` par votre nom d'utilisateur GitHub et `TOKEN` par votre Personal Access Token.
@@ -79,7 +89,7 @@ Remplacez `USERNAME` par votre nom d'utilisateur GitHub et `TOKEN` par votre Per
 **Alternative avec variable d'environnement** :
 
 ```bash
-export PIP_EXTRA_INDEX_URL="https://USERNAME:TOKEN@pypi.github.com/Allowebs/code_reviewer/simple/"
+export PIP_EXTRA_INDEX_URL="https://USERNAME:TOKEN@pypi.github.com/adryserage/code_reviewer/simple/"
 pip install adryserage-aetheris
 ```
 
