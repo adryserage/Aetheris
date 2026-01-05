@@ -1,0 +1,114 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+Aetheris is a multi-agent code analysis system that uses AI (Gemini, OpenAI, or Claude) to analyze codebases for quality, security, architecture, and technical debt. It coordinates 6 specialized agents to produce comprehensive analysis reports.
+
+## Commands
+
+### Running the CLI
+```bash
+# Main command (after pip install)
+aetheris analysis
+
+# Development mode (from source)
+python main.py
+python -m src.cli analysis
+
+# Analyze specific files
+aetheris analysis --changed-files-only --files src/file1.py,src/file2.py
+
+# With JSON file list (from CI)
+aetheris analysis --changed-files-only --files '["src/file1.py", "src/file2.py"]'
+```
+
+### Development
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Install in development mode
+pip install -e .
+
+# Format code
+black src/ main.py --line-length 100
+```
+
+### Environment Configuration
+Create `.env` file:
+```env
+AI_PROVIDER=gemini  # or openai, claude
+GEMINI_API_KEY=...  # or OPENAI_API_KEY, ANTHROPIC_API_KEY
+AI_MODEL=gemini-1.5-pro  # optional, defaults per provider
+```
+
+## Architecture
+
+### Core Flow
+```
+CLI (src/cli.py) → CodeAnalyzer (src/core/analyzer.py) → AnalysisOrchestrator (src/core/orchestrator.py)
+                                                                      ↓
+                                                              WorkflowStages
+                                                    (SCAN → FILE_ANALYSIS → ARCHITECTURE_REPORT → ...)
+                                                                      ↓
+                                                              6 Specialized Agents
+```
+
+### Key Components
+
+**`src/core/`**
+- `analyzer.py` - Main `CodeAnalyzer` class that coordinates the analysis workflow
+- `orchestrator.py` - `AnalysisOrchestrator` with step-based workflow, hooks, and error handling
+- `ai_providers.py` - Abstraction layer for AI providers (Gemini, OpenAI, Claude via `AIProvider` base class)
+- `config.py` - `AnalysisConfig` dataclass with all configuration options
+- `cache.py` - Git SHA-based caching to reduce API costs
+- `parallel_analyzer.py` - Dependency graph-based parallel file analysis
+- `priority_manager.py` - Priority levels (HIGH/MEDIUM/LOW) for PR file ordering
+- `error_handler.py` - Circuit breaker and exponential backoff
+
+**`src/agents/`** - All agents inherit from `BaseAgent` (src/agents/base_agent.py)
+- `code_analysis_expert.py` - Individual file analysis
+- `architect_analysis_agent.py` - Architecture overview
+- `security_analysis_agent.py` - Vulnerability detection
+- `code_metrics_agent.py` - Complexity, duplication metrics
+- `dependency_vulnerability_agent.py` - OSV API for dependency CVEs
+- `quality_assurance_agent.py` - Final synthesis report
+
+**`src/services/`**
+- `dependency_analyzer.py` - Import/export analysis and cycle detection
+- `documentation_searcher.py` - Web search for library docs
+- `code_generator.py` - Code snippet generation for analysis
+
+**`src/models/data_models.py`** - Dataclasses: `FileAnalysis`, `SecurityIssue`, `DependencyInfo`, etc.
+
+### Adding a New Agent
+
+1. Create `src/agents/my_agent.py` inheriting from `BaseAgent`
+2. Implement analysis logic using `await self._call_ai_with_retry(prompt)` or `await self._call_ai_with_reasoning(prompt)`
+3. Register the agent in `CodeAnalyzer` and add a workflow step in `AnalysisOrchestrator`
+
+### Extending via Hooks
+
+Register hooks on `WorkflowStage` enum values:
+```python
+orchestrator.register_hook(WorkflowStage.FILE_ANALYSIS, my_hook_function)
+```
+See `docs/PLUGINS.md` for full hook documentation.
+
+## Code Patterns
+
+- **Async throughout**: All agent calls and AI interactions are async
+- **Progress reporting**: Use `ProgressManager` for terminal progress bars (Rich library)
+- **Error resilience**: `exponential_backoff()` and `CircuitBreaker` for API calls
+- **Markdown sanitization**: `sanitize_markdown()` in analyzer.py for XSS prevention in reports
+
+## Output
+
+Reports are generated in `docs/analyses/`:
+- Individual file reports: `docs/analyses/<filename>.md`
+- Architecture overview: `docs/architecture_overview.md`
+- Quality assurance report: `docs/analyses/quality_assurance_report.md`
+- Vulnerability report: `docs/analyses/vulnerabilities_report.md`
+- Performance metrics: `docs/metrics/metrics_<timestamp>.json`
