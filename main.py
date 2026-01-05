@@ -24,7 +24,7 @@ from src.core.logger import setup_utf8_encoding, log_print
 setup_utf8_encoding()
 
 try:
-    import google.generativeai as genai
+    from google import genai  # Nouveau SDK google-genai
     from pathspec import PathSpec
     from ddgs import DDGS
     import requests
@@ -194,6 +194,16 @@ async def main():
         changed_files=changed_files,
         pr_number=pr_number,
         show_reasoning=os.getenv("SHOW_REASONING", "false").lower() == "true",
+        # Gemini Advanced Features (v2.2.0)
+        enable_structured_outputs=os.getenv("ENABLE_STRUCTURED_OUTPUTS", "true").lower() == "true",
+        enable_thinking=os.getenv("ENABLE_THINKING", "false").lower() == "true",
+        thinking_budget=int(os.getenv("THINKING_BUDGET", "1024")),
+        enable_code_execution=os.getenv("ENABLE_CODE_EXECUTION", "false").lower() == "true",
+        enable_function_calling=os.getenv("ENABLE_FUNCTION_CALLING", "false").lower() == "true",
+        enable_context_caching=os.getenv("ENABLE_CONTEXT_CACHING", "true").lower() == "true",
+        cache_ttl_seconds=int(os.getenv("CONTEXT_CACHE_TTL_SECONDS", "3600")),
+        enable_batch_mode=os.getenv("ENABLE_BATCH_MODE", "false").lower() == "true",
+        enable_google_search=os.getenv("ENABLE_GOOGLE_SEARCH", "false").lower() == "true",
     )
 
     log_print(f"📁 Répertoire racine: {config.root_dir}")
