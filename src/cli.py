@@ -10,6 +10,9 @@ import argparse
 import json
 from typing import List, Optional
 
+from rich.console import Console
+from rich.prompt import Confirm
+
 # Configuration du logging et encodage UTF-8
 from src.core.logger import setup_utf8_encoding, log_print
 
@@ -214,6 +217,173 @@ async def run_analysis(args):
     log_print("=" * 60)
 
 
+def setup_fix_parser(subparsers):
+    """Configure le parser pour la sous-commande fix"""
+    fix_parser = subparsers.add_parser(
+        "fix",
+        help="Corriger les bugs détectés avec Claude Code",
+        description="Lance Claude Code pour corriger les bugs un par un",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Exemples:
+  # Corriger les bugs depuis le cache existant
+  aetheris fix
+
+  # Lancer une analyse puis corriger
+  aetheris fix --analyze-first
+
+  # Corriger uniquement les bugs critiques et high
+  aetheris fix --severity high
+
+  # Mode automatique (sans confirmations)
+  aetheris fix --auto
+        """,
+    )
+
+    fix_parser.add_argument(
+        "--analyze-first",
+        action="store_true",
+        help="Lancer une analyse avant de corriger",
+    )
+
+    fix_parser.add_argument(
+        "--severity",
+        choices=["critical", "high", "medium", "low"],
+        default="medium",
+        help="Sévérité minimale des bugs à corriger (défaut: medium)",
+    )
+
+    fix_parser.add_argument(
+        "--auto",
+        action="store_true",
+        help="Mode automatique sans confirmations entre les bugs",
+    )
+
+    return fix_parser
+
+
+async def run_fix(args):
+    """Exécute la correction de bugs avec Claude Code"""
+    console = Console()
+
+    console.print()
+    console.rule("[bold blue]🔧 Aetheris Fix - Correction de bugs avec Claude Code")
+    console.print()
+
+    # Import des modules nécessaires
+    from src.services.claude_code_integration import ClaudeCodeIntegration
+    from src.models.data_models import BugIdentifier
+
+    # Charger le fichier .env s'il existe
+    env_vars = load_env_file(".env")
+    root_dir = env_vars.get("ROOT_DIR") or os.getenv("ROOT_DIR", ".")
+    output_dir = env_vars.get("OUTPUT_DIR") or os.getenv("OUTPUT_DIR", "docs/analyses")
+
+    # Initialiser l'intégration Claude Code
+    claude = ClaudeCodeIntegration(root_dir)
+
+    # Vérifier si Claude Code est disponible
+    if not claude.is_available:
+        console.print("[red]❌ Claude Code n'est pas installé ou introuvable[/red]")
+        console.print()
+        console.print("[yellow]Pour installer Claude Code:[/yellow]")
+        console.print("  npm install -g @anthropic-ai/claude-code")
+        console.print()
+
+        if not Confirm.ask("Voulez-vous continuer avec l'analyse seule?"):
+            console.print("[yellow]Opération annulée.[/yellow]")
+            sys.exit(1)
+
+        # Continuer en mode analyse seule
+        console.print("[yellow]Mode analyse seule activé (sans correction).[/yellow]")
+        args.analyze_first = True
+
+    # Chemin du cache des bugs
+    bugs_cache_path = os.path.join(output_dir, ".bugs_cache.json")
+
+    # Si --analyze-first ou pas de cache, lancer l'analyse
+    if args.analyze_first or not os.path.exists(bugs_cache_path):
+        console.print("[cyan]🔍 Lancement de l'analyse...[/cyan]")
+        console.print()
+
+        # Créer un args mock pour l'analyse
+        class AnalysisArgs:
+            changed_files_only = False
+            files = None
+            pr_number = None
+
+        await run_analysis(AnalysisArgs())
+
+        # Vérifier si le cache a été créé
+        if not os.path.exists(bugs_cache_path):
+            console.print("[yellow]⚠️  Aucun bug détecté ou cache non créé.[/yellow]")
+            sys.exit(0)
+
+    # Charger les bugs depuis le cache
+    try:
+        with open(bugs_cache_path, "r", encoding="utf-8") as f:
+            bugs_data = json.load(f)
+    except (json.JSONDecodeError, IOError) as e:
+        console.print(f"[red]❌ Erreur lors de la lecture du cache: {e}[/red]")
+        console.print("[yellow]Lancez 'aetheris fix --analyze-first' pour régénérer le cache.[/yellow]")
+        sys.exit(1)
+
+    # Convertir les données en objets BugIdentifier
+    bugs: List[BugIdentifier] = []
+    for bug_data in bugs_data:
+        bugs.append(
+            BugIdentifier(
+                id=bug_data["id"],
+                file_path=bug_data["file_path"],
+                line_number=bug_data.get("line_number"),
+                bug_type=bug_data["bug_type"],
+                severity=bug_data["severity"],
+                description=bug_data["description"],
+                recommendation=bug_data.get("recommendation", ""),
+                impacted_files=bug_data.get("impacted_files", []),
+            )
+        )
+
+    if not bugs:
+        console.print("[green]✅ Aucun bug à corriger![/green]")
+        sys.exit(0)
+
+    # Filtrer par sévérité
+    bugs = claude.filter_bugs_by_severity(bugs, args.severity)
+
+    if not bugs:
+        console.print(
+            f"[yellow]⚠️  Aucun bug avec sévérité >= {args.severity}[/yellow]"
+        )
+        sys.exit(0)
+
+    console.print(
+        f"[cyan]🐛 {len(bugs)} bug(s) trouvé(s) avec sévérité >= {args.severity}[/cyan]"
+    )
+    console.print()
+
+    # Vérifier si Claude Code est disponible pour la correction
+    if not claude.is_available:
+        console.print("[yellow]⚠️  Mode analyse seule - Affichage des bugs sans correction[/yellow]")
+        claude.display_bugs_table(bugs)
+        sys.exit(0)
+
+    # Lancer la session de correction
+    stats = claude.run_fix_session(bugs, auto_mode=args.auto)
+
+    console.print()
+    console.rule("[bold green]🎉 Session de correction terminée")
+
+    if stats["fixed"] == stats["total"]:
+        console.print("[green]✅ Tous les bugs ont été corrigés![/green]")
+    elif stats["fixed"] > 0:
+        console.print(
+            f"[yellow]⚠️  {stats['fixed']}/{stats['total']} bug(s) corrigé(s)[/yellow]"
+        )
+    else:
+        console.print("[red]❌ Aucun bug n'a été corrigé[/red]")
+
+
 def create_parser():
     """Crée le parser principal avec sous-commandes"""
     parser = argparse.ArgumentParser(
@@ -226,7 +396,9 @@ Pour plus d'informations sur une commande spécifique:
 
 Exemples:
   aetheris analysis                    # Analyse complète
-  aetheris analysis --help             # Aide pour la commande analysis
+  aetheris fix                         # Corriger les bugs avec Claude Code
+  aetheris fix --analyze-first         # Analyser puis corriger
+  aetheris fix --severity high         # Corriger uniquement bugs critiques/high
         """,
     )
 
@@ -236,6 +408,9 @@ Exemples:
 
     # Ajouter la sous-commande analysis
     setup_analysis_parser(subparsers)
+
+    # Ajouter la sous-commande fix
+    setup_fix_parser(subparsers)
 
     return parser
 
@@ -251,6 +426,8 @@ def main():
 
     if args.command == "analysis":
         asyncio.run(run_analysis(args))
+    elif args.command == "fix":
+        asyncio.run(run_fix(args))
     else:
         parser.print_help()
         sys.exit(1)
