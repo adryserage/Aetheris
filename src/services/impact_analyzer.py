@@ -237,6 +237,9 @@ class ImpactAnalyzer:
                 "description": bug.description,
                 "recommendation": bug.recommendation,
                 "impacted_files": bug.impacted_files,
+                "fixed": bug.fixed,
+                "fixed_at": bug.fixed_at,
+                "fix_summary": bug.fix_summary,
             }
             for bug in self.bugs_registry.values()
         ]
