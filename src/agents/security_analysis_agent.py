@@ -1,5 +1,7 @@
 """
 Agent d'analyse de sécurité (SSA)
+
+Utilise les Structured Outputs de Gemini pour garantir des réponses validées.
 """
 
 import os
@@ -11,6 +13,7 @@ from typing import List, Optional
 from src.agents.base_agent import BaseAgent
 from src.core.config import AnalysisConfig
 from src.models.data_models import SecurityIssue
+from src.models.analysis_schemas import SecurityAnalysisResult, SecurityIssue as SecurityIssueSchema
 
 
 class SecurityAnalysisAgent(BaseAgent):
@@ -151,50 +154,58 @@ Identifie TOUTES les vulnérabilités de sécurité potentielles, notamment:
 - Problèmes de permissions/accès
 
 Pour chaque vulnérabilité trouvée, fournis:
-- **Sévérité**: critical, high, medium, ou low
-- **Type**: Type de vulnérabilité
-- **Description**: Description précise du problème
-- **Ligne**: Numéro de ligne si applicable
-- **Recommandation**: Comment corriger le problème
+- **type**: Type de vulnérabilité (XSS, SQLi, SSRF, etc.)
+- **severity**: critical, high, medium, low, ou info
+- **line_number**: Numéro de ligne si applicable
+- **description**: Description précise du problème
+- **recommendation**: Comment corriger le problème
+- **cwe_id**: Identifiant CWE si applicable (ex: CWE-79)
+- **owasp_category**: Catégorie OWASP si applicable (ex: A01:2021)
 
-Format de réponse (JSON):
-{{
-  "issues": [
-    {{
-      "severity": "high",
-      "type": "sql_injection",
-      "description": "...",
-      "line": 42,
-      "recommendation": "..."
-    }}
-  ]
-}}
+Inclus également un résumé global et un score de risque (0-10)."""
 
-Si aucune vulnérabilité n'est trouvée, retourne {{"issues": []}}."""
-
-                # Utiliser la méthode de BaseAgent
-                response_text = await self._call_gemini_with_retry(prompt)
-
-                # Parser la réponse JSON
-                response_text = response_text.strip()
-                # Extraire le JSON de la réponse (peut être dans un bloc de code)
-                json_match = re.search(r'\{[^{}]*"issues"[^{}]*\}', response_text, re.DOTALL)
-                if json_match:
+                # Utiliser les Structured Outputs si disponibles (Gemini)
+                if self.config.enable_structured_outputs:
                     try:
-                        result = json.loads(json_match.group(0))
-                        for issue_data in result.get("issues", []):
+                        result = await self._call_ai_structured(prompt, SecurityAnalysisResult)
+                        for issue_schema in result.issues:
                             issues.append(
                                 SecurityIssue(
-                                    severity=issue_data.get("severity", "medium"),
-                                    issue_type=issue_data.get("type", "unknown"),
-                                    description=issue_data.get("description", ""),
-                                    line_number=issue_data.get("line"),
-                                    code_snippet=None,
-                                    recommendation=issue_data.get("recommendation", ""),
+                                    severity=issue_schema.severity.value,
+                                    issue_type=issue_schema.type,
+                                    description=issue_schema.description,
+                                    line_number=issue_schema.line_number,
+                                    code_snippet=issue_schema.code_snippet,
+                                    recommendation=issue_schema.recommendation,
+                                    cwe_id=issue_schema.cwe_id,
+                                    owasp_category=issue_schema.owasp_category,
                                 )
                             )
-                    except json.JSONDecodeError:
+                    except Exception as e:
+                        # Fallback vers le parsing manuel si échec
                         pass
+                else:
+                    # Fallback: parsing JSON manuel pour OpenAI/Claude
+                    response_text = await self._call_gemini_with_retry(prompt)
+                    response_text = response_text.strip()
+                    # Extraire le JSON de la réponse (peut être dans un bloc de code)
+                    json_match = re.search(r'\{[^{}]*"issues"[^{}]*\}', response_text, re.DOTALL)
+                    if json_match:
+                        try:
+                            result = json.loads(json_match.group(0))
+                            for issue_data in result.get("issues", []):
+                                issues.append(
+                                    SecurityIssue(
+                                        severity=issue_data.get("severity", "medium"),
+                                        issue_type=issue_data.get("type", "unknown"),
+                                        description=issue_data.get("description", ""),
+                                        line_number=issue_data.get("line"),
+                                        code_snippet=None,
+                                        recommendation=issue_data.get("recommendation", ""),
+                                    )
+                                )
+                        except json.JSONDecodeError:
+                            pass
 
             except Exception as e:
                 print(f"⚠️  Erreur lors de l'analyse de sécurité pour {file_path}: {e}")
