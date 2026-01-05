@@ -235,7 +235,7 @@ OPENAI_API_KEY=votre_cle_api_ici         # Pour OpenAI
 ANTHROPIC_API_KEY=votre_cle_api_ici      # Pour Claude
 
 # Modèle à utiliser (optionnel, défaut selon provider)
-AI_MODEL=gemini-3-pro-preview
+AI_MODEL=gemini-2.5-flash
 ```
 
 Ou définissez les variables d'environnement :
@@ -268,13 +268,13 @@ export ANTHROPIC_API_KEY=votre_cle_api_ici
 
 | Fournisseur | Modèles disponibles                                                                                                                           | Modèle par défaut            | Notes                             |
 | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | --------------------------------- |
-| **Gemini**  | `gemini-3-pro-preview` ⭐, `gemini-2.5-pro`, `gemini-2.0-flash-exp`, `gemini-1.5-pro`, `gemini-1.5-flash`, `gemini-pro` | `gemini-3-pro-preview`       | Thinking disponible pour gemini-2.5+ |
+| **Gemini**  | `gemini-2.5-flash` ⭐, `gemini-2.5-pro`, `gemini-2.0-flash-exp`, `gemini-1.5-pro`, `gemini-1.5-flash`, `gemini-pro` | `gemini-2.5-flash`       | Thinking disponible pour gemini-2.5+ |
 | **OpenAI**  | `gpt-4o`, `gpt-4-turbo`, `gpt-4`, `gpt-3.5-turbo`, `gpt-4-turbo-preview`                                                                      | `gpt-4o`                     | Pas de reasoning exposé via l'API |
 | **Claude**  | `claude-3-5-sonnet-20241022`, `claude-3-opus-20240229`, `claude-3-haiku-20240307`                                                             | `claude-3-5-sonnet-20241022` | Pas de reasoning exposé via l'API |
 
 ##### Gemini 3 Pro Preview - Fonctionnalités Avancées (v2.2.0+)
 
-Le modèle `gemini-3-pro-preview` offre des capacités uniques :
+Le modèle `gemini-2.5-flash` offre des capacités uniques :
 
 | Fonctionnalité | Description | Activation |
 |----------------|-------------|------------|

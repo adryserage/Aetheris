@@ -109,19 +109,19 @@ class BatchJobInfo:
 # === Constantes pour les modèles supportant les fonctionnalités avancées ===
 
 MODELS_WITH_CODE_EXECUTION = [
-    "gemini-3-pro-preview",
+    "gemini-2.5-flash",
     "gemini-2.5-pro",
     "gemini-2.5-flash",
     "gemini-2.0-flash-exp",
 ]
 
 MODELS_WITH_THINKING = [
-    "gemini-3-pro-preview",
+    "gemini-2.5-flash",
     "gemini-2.5-pro",
 ]
 
 MODELS_WITH_CACHING = [
-    "gemini-3-pro-preview",
+    "gemini-2.5-flash",
     "gemini-2.5-pro",
     "gemini-2.5-flash",
     "gemini-1.5-pro",
@@ -129,13 +129,13 @@ MODELS_WITH_CACHING = [
 ]
 
 MODELS_WITH_BATCH = [
-    "gemini-3-pro-preview",
+    "gemini-2.5-flash",
     "gemini-2.5-pro",
     "gemini-2.5-flash",
     "gemini-2.0-flash",
 ]
 
-# Limites de tokens pour gemini-3-pro-preview
+# Limites de tokens pour gemini-2.5-flash
 GEMINI_3_PRO_LIMITS = {
     "max_input_tokens": 1_048_576,
     "max_output_tokens": 65_536,
