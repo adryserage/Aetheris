@@ -5,14 +5,13 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
-## [2.2.2] - 2025-01-05
+## [2.2.3] - 2025-01-05
 
 ### 🐛 Corrections
 
-- **Correction du nom de modèle Gemini** : Le modèle `gemini-3-pro-preview` n'existe pas
-  - Changement du modèle par défaut vers `gemini-2.5-flash` (modèle stable)
-  - Modèles valides: `gemini-2.5-flash`, `gemini-2.5-pro`, `gemini-2.0-flash`
-  - Mise à jour de tous les fichiers de configuration
+- **Restauration du modèle gemini-3-pro-preview** : Le modèle existe bien
+  - Revert de la v2.2.2 qui avait changé le modèle par erreur
+  - Le modèle `gemini-3-pro-preview` est le bon modèle par défaut
 
 ## [2.2.1] - 2025-01-05
 
@@ -44,7 +43,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
   - API plus moderne et performante
   - Support des dernières fonctionnalités Gemini
 
-- **Modèle par défaut Gemini 3 Pro Preview** : `gemini-2.5-flash`
+- **Modèle par défaut Gemini 3 Pro Preview** : `gemini-3-pro-preview`
   - Input: 1,048,576 tokens
   - Output: 65,536 tokens
   - Support de toutes les fonctionnalités avancées
