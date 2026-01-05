@@ -352,16 +352,13 @@ async def run_fix(args):
 
             # Test avec un prompt simple
             console.print("[cyan]🧪 Test d'exécution avec un prompt simple...[/cyan]")
-            success, stdout, stderr = claude.run_claude_direct(
-                "Dis juste 'OK' pour confirmer que tu fonctionnes.", timeout=30
-            )
+            exec_ok, exec_msg = claude.test_claude_code_execution(timeout=60)
 
-            if success:
+            if exec_ok:
                 console.print("[green]✅ Test réussi![/green]")
-                if stdout:
-                    console.print(f"[dim]Réponse: {stdout[:200]}...[/dim]" if len(stdout) > 200 else f"[dim]Réponse: {stdout}[/dim]")
+                console.print(f"[dim]{exec_msg}[/dim]")
             else:
-                console.print(f"[red]❌ Échec du test: {stderr or stdout}[/red]")
+                console.print(f"[red]❌ Échec du test: {exec_msg}[/red]")
                 sys.exit(1)
         else:
             console.print(f"[red]❌ {test_msg}[/red]")

@@ -107,6 +107,7 @@ class ClaudeCodeIntegration:
             return False, "Claude Code n'est pas installé"
 
         try:
+            # Test 1: Vérifier la version
             result = subprocess.run(
                 [self._claude_path or "claude", "--version"],
                 capture_output=True,
@@ -115,11 +116,50 @@ class ClaudeCodeIntegration:
             )
             if result.returncode == 0:
                 version = result.stdout.strip() or result.stderr.strip()
-                return True, f"Claude Code OK: {version}"
+                return True, f"Claude Code v{version}"
             else:
                 return False, f"Erreur: {result.stderr}"
         except subprocess.TimeoutExpired:
             return False, "Timeout lors du test"
+        except Exception as e:
+            return False, f"Erreur: {e}"
+
+    def test_claude_code_execution(self, timeout: int = 60) -> Tuple[bool, str]:
+        """
+        Teste si Claude Code peut exécuter des commandes.
+
+        Returns:
+            Tuple (success, message)
+        """
+        if not self.is_available:
+            return False, "Claude Code n'est pas installé"
+
+        try:
+            cmd = [
+                self._claude_path or "claude",
+                "--print",
+                "--dangerously-skip-permissions",
+                "--output-format", "text",
+                "--no-session-persistence",
+                "Réponds uniquement par 'OK' sans rien d'autre.",
+            ]
+
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                cwd=self.root_dir,
+                env={**os.environ, "FORCE_COLOR": "0", "NO_COLOR": "1"},
+            )
+
+            if result.returncode == 0:
+                response = result.stdout.strip()[:100]
+                return True, f"Réponse: {response}"
+            else:
+                return False, f"Erreur: {result.stderr[:200]}"
+        except subprocess.TimeoutExpired:
+            return False, f"Timeout après {timeout}s"
         except Exception as e:
             return False, f"Erreur: {e}"
 
@@ -148,11 +188,13 @@ class ClaudeCodeIntegration:
                 prompt_file = f.name
 
             try:
-                # Lire le prompt depuis le fichier
+                # Construire la commande avec tous les flags nécessaires pour le mode non-interactif
                 cmd = [
                     self._claude_path or "claude",
-                    "--dangerously-skip-permissions",
-                    "-p",
+                    "--print",  # Mode non-interactif (print et exit)
+                    "--dangerously-skip-permissions",  # Bypass permissions
+                    "--output-format", "text",  # Sortie texte simple
+                    "--no-session-persistence",  # Pas de persistance de session
                     prompt,
                 ]
 
@@ -162,7 +204,7 @@ class ClaudeCodeIntegration:
                     text=True,
                     timeout=timeout,
                     cwd=self.root_dir,
-                    env={**os.environ, "FORCE_COLOR": "0"},  # Désactiver les couleurs ANSI
+                    env={**os.environ, "FORCE_COLOR": "0", "NO_COLOR": "1"},  # Désactiver les couleurs
                 )
 
                 return result.returncode == 0, result.stdout, result.stderr

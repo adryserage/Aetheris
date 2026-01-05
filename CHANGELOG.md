@@ -5,6 +5,20 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.2.8] - 2025-01-05
+
+### 🐛 Corrections
+
+- **Correction du mode direct Claude Code** : Ajout des flags manquants pour le mode non-interactif
+  - Ajout de `--print` pour le mode non-interactif
+  - Ajout de `--output-format text` pour la sortie texte
+  - Ajout de `--no-session-persistence` pour éviter les problèmes de session
+  - Résout le timeout de 300s qui se produisait en mode arrière-plan
+
+- **Nouvelle méthode `test_claude_code_execution()`** : Test complet de l'exécution
+  - Teste que Claude Code peut réellement exécuter des prompts
+  - Utilisé par `aetheris fix --test`
+
 ## [2.2.7] - 2025-01-05
 
 ### ✨ Nouvelles fonctionnalités
