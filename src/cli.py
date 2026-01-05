@@ -257,17 +257,23 @@ def setup_fix_parser(subparsers):
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Exemples:
-  # Corriger les bugs depuis le cache existant
+  # Tester la connexion à Claude Code
+  aetheris fix --test
+
+  # Corriger les bugs depuis le cache existant (mode arrière-plan)
   aetheris fix
 
-  # Lancer une analyse puis corriger
-  aetheris fix --analyze-first
+  # Mode automatique (sans confirmations)
+  aetheris fix --auto
+
+  # Ouvrir Claude Code dans une fenêtre terminal
+  aetheris fix --terminal
 
   # Corriger uniquement les bugs critiques et high
   aetheris fix --severity high
 
-  # Mode automatique (sans confirmations)
-  aetheris fix --auto
+  # Lancer une analyse puis corriger
+  aetheris fix --analyze-first
         """,
     )
 
@@ -288,6 +294,18 @@ Exemples:
         "--auto",
         action="store_true",
         help="Mode automatique sans confirmations entre les bugs",
+    )
+
+    fix_parser.add_argument(
+        "--terminal",
+        action="store_true",
+        help="Ouvrir Claude Code dans une nouvelle fenêtre terminal (au lieu du mode arrière-plan)",
+    )
+
+    fix_parser.add_argument(
+        "--test",
+        action="store_true",
+        help="Tester la connexion à Claude Code sans corriger de bugs",
     )
 
     return fix_parser
@@ -312,6 +330,44 @@ async def run_fix(args):
 
     # Initialiser l'intégration Claude Code
     claude = ClaudeCodeIntegration(root_dir)
+
+    # Mode test: vérifier la connexion à Claude Code
+    if getattr(args, "test", False):
+        console.print("[cyan]🔍 Test de Claude Code...[/cyan]")
+        console.print()
+
+        if not claude.is_available:
+            console.print("[red]❌ Claude Code n'est pas installé ou introuvable[/red]")
+            console.print()
+            console.print("[yellow]Pour installer Claude Code:[/yellow]")
+            console.print("  npm install -g @anthropic-ai/claude-code")
+            sys.exit(1)
+
+        console.print(f"[green]✅ Claude Code trouvé: {claude.claude_path}[/green]")
+
+        test_ok, test_msg = claude.test_claude_code()
+        if test_ok:
+            console.print(f"[green]✅ {test_msg}[/green]")
+            console.print()
+
+            # Test avec un prompt simple
+            console.print("[cyan]🧪 Test d'exécution avec un prompt simple...[/cyan]")
+            success, stdout, stderr = claude.run_claude_direct(
+                "Dis juste 'OK' pour confirmer que tu fonctionnes.", timeout=30
+            )
+
+            if success:
+                console.print("[green]✅ Test réussi![/green]")
+                if stdout:
+                    console.print(f"[dim]Réponse: {stdout[:200]}...[/dim]" if len(stdout) > 200 else f"[dim]Réponse: {stdout}[/dim]")
+            else:
+                console.print(f"[red]❌ Échec du test: {stderr or stdout}[/red]")
+                sys.exit(1)
+        else:
+            console.print(f"[red]❌ {test_msg}[/red]")
+            sys.exit(1)
+
+        sys.exit(0)
 
     # Vérifier si Claude Code est disponible
     if not claude.is_available:
@@ -400,7 +456,9 @@ async def run_fix(args):
         sys.exit(0)
 
     # Lancer la session de correction
-    stats = claude.run_fix_session(bugs, auto_mode=args.auto)
+    # Par défaut mode direct (arrière-plan), --terminal pour ouvrir une fenêtre
+    direct_mode = not getattr(args, "terminal", False)
+    stats = claude.run_fix_session(bugs, auto_mode=args.auto, direct_mode=direct_mode)
 
     console.print()
     console.rule("[bold green]🎉 Session de correction terminée")

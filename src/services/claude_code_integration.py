@@ -1,18 +1,20 @@
 """
 Claude Code Integration - Intégration avec Claude Code CLI pour la correction de bugs
-Lance Claude Code dans une fenêtre séparée pour corriger les bugs un par un
+Exécute Claude Code directement en arrière-plan pour corriger les bugs
 """
 
 import os
 import platform
 import shutil
 import subprocess
-from typing import Optional, List
+import tempfile
+from typing import Optional, List, Tuple
 
 from rich.console import Console
 from rich.prompt import Confirm
 from rich.panel import Panel
 from rich.table import Table
+from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from src.models.data_models import BugIdentifier
 
@@ -93,6 +95,117 @@ class ClaudeCodeIntegration:
                 return True
 
         return False
+
+    def test_claude_code(self) -> Tuple[bool, str]:
+        """
+        Teste si Claude Code fonctionne correctement.
+
+        Returns:
+            Tuple (success, message)
+        """
+        if not self.is_available:
+            return False, "Claude Code n'est pas installé"
+
+        try:
+            result = subprocess.run(
+                [self._claude_path or "claude", "--version"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0:
+                version = result.stdout.strip() or result.stderr.strip()
+                return True, f"Claude Code OK: {version}"
+            else:
+                return False, f"Erreur: {result.stderr}"
+        except subprocess.TimeoutExpired:
+            return False, "Timeout lors du test"
+        except Exception as e:
+            return False, f"Erreur: {e}"
+
+    def run_claude_direct(
+        self, prompt: str, timeout: int = 300
+    ) -> Tuple[bool, str, str]:
+        """
+        Exécute Claude Code directement en arrière-plan (sans terminal).
+
+        Args:
+            prompt: Le prompt à envoyer
+            timeout: Timeout en secondes (défaut: 5 minutes)
+
+        Returns:
+            Tuple (success, stdout, stderr)
+        """
+        if not self.is_available:
+            return False, "", "Claude Code n'est pas installé"
+
+        try:
+            # Écrire le prompt dans un fichier temporaire pour éviter les problèmes d'échappement
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".txt", delete=False, encoding="utf-8"
+            ) as f:
+                f.write(prompt)
+                prompt_file = f.name
+
+            try:
+                # Lire le prompt depuis le fichier
+                cmd = [
+                    self._claude_path or "claude",
+                    "--dangerously-skip-permissions",
+                    "-p",
+                    prompt,
+                ]
+
+                result = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout,
+                    cwd=self.root_dir,
+                    env={**os.environ, "FORCE_COLOR": "0"},  # Désactiver les couleurs ANSI
+                )
+
+                return result.returncode == 0, result.stdout, result.stderr
+
+            finally:
+                # Nettoyer le fichier temporaire
+                try:
+                    os.unlink(prompt_file)
+                except:
+                    pass
+
+        except subprocess.TimeoutExpired:
+            return False, "", f"Timeout après {timeout}s"
+        except Exception as e:
+            return False, "", f"Erreur: {e}"
+
+    def fix_bug_direct(self, bug: BugIdentifier, timeout: int = 300) -> Tuple[bool, str]:
+        """
+        Corrige un bug directement via Claude Code (sans fenêtre terminal).
+
+        Args:
+            bug: Le bug à corriger
+            timeout: Timeout en secondes
+
+        Returns:
+            Tuple (success, output)
+        """
+        prompt = self._generate_fix_prompt(bug)
+
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=self.console,
+        ) as progress:
+            task = progress.add_task(
+                f"🔧 Correction de {bug.id}...", total=None
+            )
+            success, stdout, stderr = self.run_claude_direct(prompt, timeout)
+
+        if success:
+            return True, stdout
+        else:
+            return False, stderr or stdout
 
     def _escape_prompt_for_shell(self, prompt: str) -> str:
         """
@@ -384,6 +497,7 @@ class ClaudeCodeIntegration:
         self,
         bugs: List[BugIdentifier],
         auto_mode: bool = False,
+        direct_mode: bool = True,
     ) -> dict:
         """
         Exécute une session de correction de bugs.
@@ -391,6 +505,7 @@ class ClaudeCodeIntegration:
         Args:
             bugs: Liste des bugs à corriger
             auto_mode: Si True, ne demande pas de confirmation entre les bugs
+            direct_mode: Si True, exécute Claude Code en arrière-plan (sans fenêtre terminal)
 
         Returns:
             Statistiques de la session (fixed, skipped, failed)
@@ -401,8 +516,21 @@ class ClaudeCodeIntegration:
             self.console.print("[yellow]Aucun bug à corriger.[/yellow]")
             return stats
 
+        # Tester Claude Code avant de commencer
+        self.console.print("[cyan]🔍 Vérification de Claude Code...[/cyan]")
+        test_ok, test_msg = self.test_claude_code()
+        if not test_ok:
+            self.console.print(f"[red]❌ {test_msg}[/red]")
+            return stats
+        self.console.print(f"[green]✅ {test_msg}[/green]")
+        self.console.print()
+
         # Afficher le tableau récapitulatif
         self.display_bugs_table(bugs)
+        self.console.print()
+
+        mode_msg = "en arrière-plan" if direct_mode else "dans une nouvelle fenêtre"
+        self.console.print(f"[dim]Mode: Claude Code sera exécuté {mode_msg}[/dim]")
         self.console.print()
 
         if not auto_mode:
@@ -418,27 +546,57 @@ class ClaudeCodeIntegration:
         for i, bug in enumerate(bugs, 1):
             self.console.print()
             self.console.rule(f"[bold blue]Bug {i}/{len(bugs)}")
+            self._display_bug_details(bug)
 
-            fixed = self.fix_bug_interactive(bug)
-
-            if fixed:
-                stats["fixed"] += 1
-                self.console.print(f"[green]✅ {bug.id} marqué comme corrigé[/green]")
-            else:
-                # Demander si on veut continuer
-                if not auto_mode and i < len(bugs):
-                    skip = Confirm.ask("Passer au bug suivant?", default=True)
-                    if skip:
-                        stats["skipped"] += 1
-                        self.console.print(
-                            f"[yellow]⏭️  {bug.id} passé, continuation...[/yellow]"
-                        )
-                    else:
-                        stats["failed"] += len(bugs) - i
-                        self.console.print("[yellow]Session de correction interrompue.[/yellow]")
-                        break
+            if direct_mode:
+                # Mode direct: exécuter en arrière-plan
+                success, output = self.fix_bug_direct(bug)
+                if success:
+                    stats["fixed"] += 1
+                    self.console.print(f"[green]✅ {bug.id} corrigé[/green]")
+                    if output:
+                        # Afficher un résumé de la sortie
+                        lines = output.strip().split("\n")
+                        if len(lines) > 10:
+                            self.console.print("[dim]Résumé de la correction:[/dim]")
+                            for line in lines[-10:]:
+                                self.console.print(f"  [dim]{line}[/dim]")
+                        else:
+                            for line in lines:
+                                self.console.print(f"  [dim]{line}[/dim]")
                 else:
-                    stats["skipped"] += 1
+                    stats["failed"] += 1
+                    self.console.print(f"[red]❌ Échec de la correction de {bug.id}[/red]")
+                    if output:
+                        self.console.print(f"[red]{output[:500]}[/red]")
+
+                    if not auto_mode and i < len(bugs):
+                        skip = Confirm.ask("Continuer avec le bug suivant?", default=True)
+                        if not skip:
+                            stats["failed"] += len(bugs) - i - 1
+                            self.console.print("[yellow]Session interrompue.[/yellow]")
+                            break
+            else:
+                # Mode terminal: ouvrir une fenêtre
+                fixed = self.fix_bug_interactive(bug)
+
+                if fixed:
+                    stats["fixed"] += 1
+                    self.console.print(f"[green]✅ {bug.id} marqué comme corrigé[/green]")
+                else:
+                    if not auto_mode and i < len(bugs):
+                        skip = Confirm.ask("Passer au bug suivant?", default=True)
+                        if skip:
+                            stats["skipped"] += 1
+                            self.console.print(
+                                f"[yellow]⏭️  {bug.id} passé, continuation...[/yellow]"
+                            )
+                        else:
+                            stats["failed"] += len(bugs) - i
+                            self.console.print("[yellow]Session interrompue.[/yellow]")
+                            break
+                    else:
+                        stats["skipped"] += 1
 
         # Afficher le résumé
         self.console.print()
