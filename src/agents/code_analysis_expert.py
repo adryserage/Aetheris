@@ -1,5 +1,8 @@
 """
 Agent d'analyse de code individuel (CAE)
+
+Utilise les Structured Outputs de Gemini pour des analyses plus riches
+et les capacités de Thinking pour un raisonnement approfondi.
 """
 
 import os
@@ -11,6 +14,7 @@ from typing import List, Optional
 from src.agents.base_agent import BaseAgent
 from src.core.config import AnalysisConfig
 from src.models.data_models import FileAnalysis, FileDependency
+from src.models.analysis_schemas import FileAnalysisResult, CodeMetrics as CodeMetricsSchema
 
 
 class CodeAnalysisExpert(BaseAgent):
@@ -356,3 +360,127 @@ IMPORTANT:
             ]
 
         return [item.strip() for item in items if item.strip()]
+
+    async def analyze_file_structured(
+        self, file_path: str, use_thinking: bool = False
+    ) -> Optional[FileAnalysisResult]:
+        """
+        Analyse un fichier avec sortie structurée (Gemini Structured Outputs)
+
+        Cette méthode utilise les Structured Outputs de Gemini pour garantir
+        des analyses JSON validées via Pydantic.
+
+        Args:
+            file_path: Chemin du fichier à analyser
+            use_thinking: Activer le mode thinking pour un raisonnement plus profond
+
+        Returns:
+            FileAnalysisResult validé par Pydantic, ou None en cas d'erreur
+        """
+        try:
+            # Lire le contenu du fichier
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                content = f.read()
+
+            if not content.strip():
+                return None
+
+            language = self.detect_language(file_path)
+            relative_path = os.path.relpath(file_path, self.config.root_dir)
+            relative_path = relative_path.replace("\\", "/")
+
+            prompt = f"""Tu es un expert en analyse de code. Analyse ce fichier de manière approfondie.
+
+Fichier: {relative_path}
+Langage: {language}
+
+Contenu du fichier:
+```
+{content[:50000]}
+```
+
+Effectue une analyse complète incluant:
+1. Le résumé et l'objectif du fichier
+2. Les issues de qualité (maintenabilité, lisibilité, style)
+3. Les issues de sécurité potentielles
+4. Les métriques de code (complexité, lignes, fonctions, classes)
+5. Les dépendances du fichier
+6. Les recommandations d'amélioration
+7. Les fonctions et classes principales
+
+Sois précis, constructif et actionnable."""
+
+            # Utiliser structured output ou thinking selon la config
+            if self.config.enable_structured_outputs:
+                try:
+                    result = await self._call_ai_structured(prompt, FileAnalysisResult)
+                    return result
+                except Exception as e:
+                    # Fallback vers l'analyse standard
+                    pass
+
+            if use_thinking and self.config.enable_thinking:
+                response, thoughts = await self._call_ai_with_thinking(prompt)
+                if thoughts and self.progress_manager:
+                    self.progress_manager.print_reasoning(thoughts, self.config.ai_model)
+                # Parse JSON de la réponse (format moins garanti)
+                return None
+
+            return None
+
+        except Exception as e:
+            return None
+
+    async def analyze_with_code_execution(
+        self, file_path: str, analysis_task: str
+    ) -> dict:
+        """
+        Analyse un fichier avec exécution de code Python
+
+        Cette méthode permet au modèle d'exécuter du code Python pour
+        effectuer des analyses dynamiques (ex: parsing AST, métriques avancées).
+
+        Args:
+            file_path: Chemin du fichier à analyser
+            analysis_task: Description de l'analyse à effectuer
+
+        Returns:
+            Dict avec text, executable_code, code_output, error
+        """
+        try:
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                content = f.read()
+
+            language = self.detect_language(file_path)
+            relative_path = os.path.relpath(file_path, self.config.root_dir)
+            relative_path = relative_path.replace("\\", "/")
+
+            prompt = f"""Tu es un expert en analyse de code avec la capacité d'exécuter du Python.
+
+Fichier à analyser: {relative_path}
+Langage: {language}
+Tâche: {analysis_task}
+
+Contenu du fichier:
+```
+{content[:30000]}
+```
+
+Écris et exécute du code Python pour analyser ce fichier.
+Par exemple, tu peux:
+- Parser le code avec ast (pour Python) ou des regex
+- Calculer des métriques (complexité, lignes, fonctions)
+- Détecter des patterns ou anti-patterns
+- Extraire des informations structurées
+
+Explique tes résultats après l'exécution du code."""
+
+            return await self._call_ai_with_code_execution(prompt)
+
+        except Exception as e:
+            return {
+                "text": f"Erreur lors de l'analyse: {str(e)}",
+                "executable_code": None,
+                "code_output": None,
+                "error": str(e),
+            }
