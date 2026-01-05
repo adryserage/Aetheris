@@ -2,14 +2,16 @@
 Classe de base pour tous les agents d'analyse
 """
 
-from typing import Optional, Tuple, Type, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, Tuple, Type
+
+from src.core.ai_providers import AIProvider, GeminiProvider, create_ai_provider
 from src.core.config import AnalysisConfig
-from src.core.ai_providers import create_ai_provider, AIProvider, GeminiProvider
 
 if TYPE_CHECKING:
     from pydantic import BaseModel
+
+from src.core.error_handler import CircuitBreaker, exponential_backoff
 from src.core.progress import ProgressManager
-from src.core.error_handler import exponential_backoff, CircuitBreaker
 
 
 class BaseAgent:
@@ -92,9 +94,7 @@ class BaseAgent:
         """
         return await self._call_ai_with_retry(prompt, timeout_multiplier)
 
-    async def _call_ai_structured(
-        self, prompt: str, schema: Type["BaseModel"]
-    ) -> "BaseModel":
+    async def _call_ai_structured(self, prompt: str, schema: Type["BaseModel"]) -> "BaseModel":
         """
         Appelle l'API AI avec sortie structurée (Pydantic)
 

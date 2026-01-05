@@ -12,10 +12,11 @@ Gemini utilise le nouveau SDK google-genai avec support pour :
 
 import asyncio
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Type
 
 if TYPE_CHECKING:
     from pydantic import BaseModel
+
     from src.core.gemini_config import GeminiFeatureConfig
 
 
@@ -42,7 +43,6 @@ class AIProvider(ABC):
         Raises:
             Exception: Si la génération échoue
         """
-        pass
 
     async def generate_content_with_reasoning(self, prompt: str) -> Tuple[str, Optional[str]]:
         """
@@ -88,7 +88,7 @@ class AIProvider(ABC):
                 if attempt == self.max_retries - 1:
                     raise
                 await asyncio.sleep(2**attempt)
-            except Exception as e:
+            except Exception:
                 if attempt == self.max_retries - 1:
                     raise
                 await asyncio.sleep(2**attempt)
@@ -124,9 +124,7 @@ class GeminiProvider(AIProvider):
         )
         return response.text
 
-    async def generate_with_config(
-        self, prompt: str, feature_config: "GeminiFeatureConfig"
-    ) -> str:
+    async def generate_with_config(self, prompt: str, feature_config: "GeminiFeatureConfig") -> str:
         """
         Génère du contenu avec une configuration de fonctionnalités
 
@@ -146,9 +144,7 @@ class GeminiProvider(AIProvider):
         )
         return response.text
 
-    async def generate_structured(
-        self, prompt: str, schema: Type["BaseModel"]
-    ) -> "BaseModel":
+    async def generate_structured(self, prompt: str, schema: Type["BaseModel"]) -> "BaseModel":
         """
         Génère du contenu avec sortie structurée Pydantic
 
@@ -185,6 +181,7 @@ class GeminiProvider(AIProvider):
             Dict avec 'text', 'executable_code', 'code_output', 'error'
         """
         from google.genai import types
+
         from src.core.gemini_config import CodeExecutionResult
 
         response = await asyncio.to_thread(
@@ -285,9 +282,7 @@ class GeminiProvider(AIProvider):
 
         return response.text, thoughts
 
-    async def generate_content_with_reasoning(
-        self, prompt: str
-    ) -> Tuple[str, Optional[str]]:
+    async def generate_content_with_reasoning(self, prompt: str) -> Tuple[str, Optional[str]]:
         """
         Implémentation de la méthode abstraite avec thinking
 
@@ -326,7 +321,9 @@ class GeminiProvider(AIProvider):
             self._client.caches.create,
             model=self.model,
             config=types.CreateCachedContentConfig(
-                contents=[types.Content(role="user", parts=[types.Part.from_text(c) for c in contents])],
+                contents=[
+                    types.Content(role="user", parts=[types.Part.from_text(c) for c in contents])
+                ],
                 system_instruction=system_instruction,
                 display_name=display_name,
                 ttl=f"{ttl_seconds}s",
@@ -391,13 +388,15 @@ class GeminiProvider(AIProvider):
         """
         batch_requests = []
         for req in requests:
-            batch_requests.append({
-                "key": req.get("key", f"request_{len(batch_requests)}"),
-                "request": {
-                    "contents": [{"parts": [{"text": req["contents"]}], "role": "user"}],
-                    "generation_config": req.get("config", {"response_modalities": ["TEXT"]}),
-                },
-            })
+            batch_requests.append(
+                {
+                    "key": req.get("key", f"request_{len(batch_requests)}"),
+                    "request": {
+                        "contents": [{"parts": [{"text": req["contents"]}], "role": "user"}],
+                        "generation_config": req.get("config", {"response_modalities": ["TEXT"]}),
+                    },
+                }
+            )
 
         job = await asyncio.to_thread(
             self._client.batches.create,

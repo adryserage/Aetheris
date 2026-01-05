@@ -4,7 +4,7 @@ Analyseur de dépendances entre fichiers
 
 import os
 import re
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
 
 from src.models.data_models import FileDependency, ReverseDependency
 
@@ -37,7 +37,7 @@ class DependencyAnalyzer:
         self, file_path: str, import_path: str, language: str
     ) -> Optional[str]:
         """Résout un chemin d'import relatif vers un chemin de fichier absolu"""
-        file_dir = os.path.dirname(file_path)
+        os.path.dirname(file_path)
         rel_file_path = os.path.relpath(file_path, self.root_dir).replace("\\", "/")
         rel_file_dir = os.path.dirname(rel_file_path) if os.path.dirname(rel_file_path) else "."
 

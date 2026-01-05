@@ -48,7 +48,9 @@ class UserStoryParser:
 
         # Détecter les patterns de user story
         # Pattern "As a... I want... So that..."
-        as_a_pattern = r"[Aa]s\s+(?:a|an)\s+(\w+)[,\s]+I\s+want\s+(?:to\s+)?(.+?)(?:\s+[Ss]o\s+that\s+(.+))?$"
+        as_a_pattern = (
+            r"[Aa]s\s+(?:a|an)\s+(\w+)[,\s]+I\s+want\s+(?:to\s+)?(.+?)(?:\s+[Ss]o\s+that\s+(.+))?$"
+        )
         match = re.search(as_a_pattern, text, re.IGNORECASE | re.DOTALL)
 
         if match:
@@ -87,9 +89,24 @@ class UserStoryParser:
             # Extraire l'action principale
             action = text
             action_verbs = [
-                "clique", "click", "soumet", "submit", "navigue", "navigate",
-                "tape", "type", "sélectionne", "select", "ouvre", "open",
-                "ferme", "close", "charge", "load", "envoie", "send"
+                "clique",
+                "click",
+                "soumet",
+                "submit",
+                "navigue",
+                "navigate",
+                "tape",
+                "type",
+                "sélectionne",
+                "select",
+                "ouvre",
+                "open",
+                "ferme",
+                "close",
+                "charge",
+                "load",
+                "envoie",
+                "send",
             ]
             for verb in action_verbs:
                 if verb in text.lower():
@@ -255,9 +272,7 @@ class UserStoryParser:
 
         return stories
 
-    def detect_entry_point(
-        self, user_story: UserStory
-    ) -> Optional[str]:
+    def detect_entry_point(self, user_story: UserStory) -> Optional[str]:
         """
         Détecte le point d'entrée code pour une user story
 
@@ -271,11 +286,37 @@ class UserStoryParser:
 
         # Extraire les mots-clés de l'action
         action_keywords = [
-            "login", "logout", "signin", "signout", "signup", "register",
-            "submit", "form", "button", "modal", "dialog", "menu",
-            "nav", "header", "footer", "sidebar", "dashboard", "profile",
-            "settings", "cart", "checkout", "payment", "order", "product",
-            "search", "filter", "sort", "list", "table", "grid", "card"
+            "login",
+            "logout",
+            "signin",
+            "signout",
+            "signup",
+            "register",
+            "submit",
+            "form",
+            "button",
+            "modal",
+            "dialog",
+            "menu",
+            "nav",
+            "header",
+            "footer",
+            "sidebar",
+            "dashboard",
+            "profile",
+            "settings",
+            "cart",
+            "checkout",
+            "payment",
+            "order",
+            "product",
+            "search",
+            "filter",
+            "sort",
+            "list",
+            "table",
+            "grid",
+            "card",
         ]
 
         for keyword in action_keywords:
@@ -289,15 +330,11 @@ class UserStoryParser:
             file_lower = file_path.lower()
 
             # Ignorer les fichiers non-UI
-            if not any(ext in file_path for ext in [
-                ".tsx", ".jsx", ".vue", ".svelte", ".dart"
-            ]):
+            if not any(ext in file_path for ext in [".tsx", ".jsx", ".vue", ".svelte", ".dart"]):
                 continue
 
             # Ignorer les fichiers de test
-            if any(test in file_lower for test in [
-                ".test.", ".spec.", "__tests__", "_test."
-            ]):
+            if any(test in file_lower for test in [".test.", ".spec.", "__tests__", "_test."]):
                 continue
 
             # Compter les correspondances
@@ -344,9 +381,7 @@ class UserStoryParser:
                 continue
 
             # Ignorer les tests
-            if any(test in file_path.lower() for test in [
-                ".test.", ".spec.", "__tests__"
-            ]):
+            if any(test in file_path.lower() for test in [".test.", ".spec.", "__tests__"]):
                 continue
 
             # Lire le fichier

@@ -6,7 +6,6 @@ import os
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
-
 # Modèles par défaut par fournisseur
 DEFAULT_MODELS = {
     "gemini": "gemini-3-pro-preview",  # Nouveau modèle avec toutes les fonctionnalités

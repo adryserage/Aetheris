@@ -5,13 +5,13 @@ Génère des diagrammes visuels (Mermaid, PlantUML) à partir des flux analysés
 """
 
 import os
-from typing import List, Optional
+from typing import List
 
 from ..models.user_story_models import (
-    UserStoryFlow,
-    UserStoryAnalysisResult,
     FlowStep,
     FlowStepType,
+    UserStoryAnalysisResult,
+    UserStoryFlow,
 )
 
 
@@ -221,7 +221,9 @@ class DiagramGenerator:
                     p_type = "database"
                 elif "service" in participant.lower():
                     p_type = "entity"
-                participants.append(f'{p_type} "{participant}" as {self._sanitize_name(participant)}')
+                participants.append(
+                    f'{p_type} "{participant}" as {self._sanitize_name(participant)}'
+                )
                 seen.add(participant)
 
         lines.extend(participants)
@@ -295,7 +297,7 @@ class DiagramGenerator:
 
         # Créer les nœuds de données
         for i, data in enumerate(data_nodes):
-            sanitized = self._sanitize_name(data)
+            self._sanitize_name(data)
             lines.append(f"    D{i}[({data[:20]})]")
 
         lines.append("")
@@ -381,9 +383,7 @@ class DiagramGenerator:
         lines.append("")
         lines.append("    %% Color by issues")
         for i, flow in enumerate(result.flows):
-            has_critical = any(
-                issue.severity == "critical" for issue in flow.issues
-            )
+            has_critical = any(issue.severity == "critical" for issue in flow.issues)
             has_high = any(issue.severity == "high" for issue in flow.issues)
 
             if has_critical:

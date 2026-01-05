@@ -92,12 +92,8 @@ class FlowStepSchema(BaseModel):
     file_hint: Optional[str] = Field(
         None, description="Indice sur le fichier concerné (composant, service)"
     )
-    inputs: List[str] = Field(
-        default_factory=list, description="Données en entrée de cette étape"
-    )
-    outputs: List[str] = Field(
-        default_factory=list, description="Données en sortie de cette étape"
-    )
+    inputs: List[str] = Field(default_factory=list, description="Données en entrée de cette étape")
+    outputs: List[str] = Field(default_factory=list, description="Données en sortie de cette étape")
 
 
 class FlowIssueSchema(BaseModel):
@@ -111,12 +107,8 @@ class FlowIssueSchema(BaseModel):
         default_factory=list, description="Indices des étapes affectées"
     )
     recommendation: str = Field(description="Comment corriger ce problème")
-    code_example: Optional[str] = Field(
-        None, description="Exemple de code pour corriger"
-    )
-    auto_fixable: bool = Field(
-        False, description="Peut être corrigé automatiquement"
-    )
+    code_example: Optional[str] = Field(None, description="Exemple de code pour corriger")
+    auto_fixable: bool = Field(False, description="Peut être corrigé automatiquement")
 
 
 class DataTransformationSchema(BaseModel):
@@ -128,9 +120,7 @@ class DataTransformationSchema(BaseModel):
         description="Type de transformation (mapping, serialization, validation)"
     )
     is_complete: bool = Field(True, description="Tous les champs sont mappés")
-    missing_fields: List[str] = Field(
-        default_factory=list, description="Champs non mappés"
-    )
+    missing_fields: List[str] = Field(default_factory=list, description="Champs non mappés")
     type_mismatches: List[str] = Field(
         default_factory=list, description="Incompatibilités de types"
     )
@@ -146,12 +136,8 @@ class UserStorySchema(BaseModel):
     actor: str = Field("user", description="Acteur (user, admin, system)")
     action: str = Field(description="Action principale à effectuer")
     expected_outcome: str = Field(description="Résultat attendu")
-    preconditions: List[str] = Field(
-        default_factory=list, description="Préconditions nécessaires"
-    )
-    entry_component: Optional[str] = Field(
-        None, description="Composant de départ suggéré"
-    )
+    preconditions: List[str] = Field(default_factory=list, description="Préconditions nécessaires")
+    entry_component: Optional[str] = Field(None, description="Composant de départ suggéré")
 
 
 class UserStoryParseResult(BaseModel):
@@ -160,12 +146,8 @@ class UserStoryParseResult(BaseModel):
     stories: List[UserStorySchema] = Field(
         default_factory=list, description="User stories identifiées"
     )
-    ambiguities: List[str] = Field(
-        default_factory=list, description="Points ambigus à clarifier"
-    )
-    suggested_flows: List[str] = Field(
-        default_factory=list, description="Flux suggérés à analyser"
-    )
+    ambiguities: List[str] = Field(default_factory=list, description="Points ambigus à clarifier")
+    suggested_flows: List[str] = Field(default_factory=list, description="Flux suggérés à analyser")
 
 
 # === Schémas pour l'analyse complète ===
@@ -175,15 +157,9 @@ class FlowAnalysisSchema(BaseModel):
     """Analyse complète d'un flux par l'IA"""
 
     title: str = Field(description="Titre du flux analysé")
-    steps: List[FlowStepSchema] = Field(
-        default_factory=list, description="Étapes du flux"
-    )
-    issues: List[FlowIssueSchema] = Field(
-        default_factory=list, description="Problèmes détectés"
-    )
-    is_complete: bool = Field(
-        True, description="Le flux atteint-il son objectif?"
-    )
+    steps: List[FlowStepSchema] = Field(default_factory=list, description="Étapes du flux")
+    issues: List[FlowIssueSchema] = Field(default_factory=list, description="Problèmes détectés")
+    is_complete: bool = Field(True, description="Le flux atteint-il son objectif?")
     missing_steps: List[str] = Field(
         default_factory=list, description="Étapes manquantes pour compléter le flux"
     )
@@ -217,9 +193,7 @@ class ConsistencyCheckSchema(BaseModel):
 class UserStoryAnalysisSchema(BaseModel):
     """Résultat complet d'analyse pour structured output"""
 
-    flows: List[FlowAnalysisSchema] = Field(
-        default_factory=list, description="Analyses de flux"
-    )
+    flows: List[FlowAnalysisSchema] = Field(default_factory=list, description="Analyses de flux")
     orphan_endpoints: List[APIEndpointSchema] = Field(
         default_factory=list, description="Endpoints jamais appelés"
     )
@@ -233,6 +207,4 @@ class UserStoryAnalysisSchema(BaseModel):
     recommendations: List[str] = Field(
         default_factory=list, description="Recommandations prioritaires"
     )
-    score: float = Field(
-        ge=0.0, le=10.0, description="Score de qualité du flux (0-10)"
-    )
+    score: float = Field(ge=0.0, le=10.0, description="Score de qualité du flux (0-10)")

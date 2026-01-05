@@ -3,8 +3,8 @@ Module de parallélisation intelligente pour l'analyse de fichiers
 Analyse les fichiers indépendants en parallèle en utilisant le graphe de dépendances
 """
 
-from typing import List, Dict, Set, Tuple
-from collections import defaultdict, deque
+from collections import deque
+from typing import Dict, List, Set, Tuple
 
 
 def build_dependency_graph(

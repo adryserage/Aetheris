@@ -6,15 +6,14 @@ et les capacités de Thinking pour un raisonnement approfondi.
 """
 
 import os
-import re
 import pathlib
-import asyncio
+import re
 from typing import List, Optional
 
 from src.agents.base_agent import BaseAgent
 from src.core.config import AnalysisConfig
-from src.models.data_models import FileAnalysis, FileDependency
-from src.models.analysis_schemas import FileAnalysisResult, CodeMetrics as CodeMetricsSchema
+from src.models.analysis_schemas import FileAnalysisResult
+from src.models.data_models import FileAnalysis
 
 
 class CodeAnalysisExpert(BaseAgent):
@@ -415,7 +414,7 @@ Sois précis, constructif et actionnable."""
                 try:
                     result = await self._call_ai_structured(prompt, FileAnalysisResult)
                     return result
-                except Exception as e:
+                except Exception:
                     # Fallback vers l'analyse standard
                     pass
 
@@ -428,12 +427,10 @@ Sois précis, constructif et actionnable."""
 
             return None
 
-        except Exception as e:
+        except Exception:
             return None
 
-    async def analyze_with_code_execution(
-        self, file_path: str, analysis_task: str
-    ) -> dict:
+    async def analyze_with_code_execution(self, file_path: str, analysis_task: str) -> dict:
         """
         Analyse un fichier avec exécution de code Python
 

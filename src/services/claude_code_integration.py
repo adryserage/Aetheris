@@ -9,13 +9,13 @@ import shutil
 import subprocess
 import tempfile
 from datetime import datetime
-from typing import Optional, List, Tuple, Callable
+from typing import Callable, List, Optional, Tuple
 
 from rich.console import Console
-from rich.prompt import Confirm
 from rich.panel import Panel
-from rich.table import Table
 from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.prompt import Confirm
+from rich.table import Table
 
 from src.models.data_models import BugIdentifier
 
@@ -140,7 +140,8 @@ class ClaudeCodeIntegration:
                 self._claude_path or "claude",
                 "--print",
                 "--dangerously-skip-permissions",
-                "--output-format", "text",
+                "--output-format",
+                "text",
                 "--no-session-persistence",
                 "Réponds uniquement par 'OK' sans rien d'autre.",
             ]
@@ -164,9 +165,7 @@ class ClaudeCodeIntegration:
         except Exception as e:
             return False, f"Erreur: {e}"
 
-    def run_claude_direct(
-        self, prompt: str, timeout: int = 300
-    ) -> Tuple[bool, str, str]:
+    def run_claude_direct(self, prompt: str, timeout: int = 300) -> Tuple[bool, str, str]:
         """
         Exécute Claude Code directement en arrière-plan (sans terminal).
 
@@ -194,7 +193,8 @@ class ClaudeCodeIntegration:
                     self._claude_path or "claude",
                     "--print",  # Mode non-interactif (print et exit)
                     "--dangerously-skip-permissions",  # Bypass permissions
-                    "--output-format", "text",  # Sortie texte simple
+                    "--output-format",
+                    "text",  # Sortie texte simple
                     "--no-session-persistence",  # Pas de persistance de session
                     prompt,
                 ]
@@ -205,7 +205,11 @@ class ClaudeCodeIntegration:
                     text=True,
                     timeout=timeout,
                     cwd=self.root_dir,
-                    env={**os.environ, "FORCE_COLOR": "0", "NO_COLOR": "1"},  # Désactiver les couleurs
+                    env={
+                        **os.environ,
+                        "FORCE_COLOR": "0",
+                        "NO_COLOR": "1",
+                    },  # Désactiver les couleurs
                 )
 
                 return result.returncode == 0, result.stdout, result.stderr
@@ -214,7 +218,7 @@ class ClaudeCodeIntegration:
                 # Nettoyer le fichier temporaire
                 try:
                     os.unlink(prompt_file)
-                except:
+                except Exception:
                     pass
 
         except subprocess.TimeoutExpired:
@@ -240,9 +244,7 @@ class ClaudeCodeIntegration:
             TextColumn("[progress.description]{task.description}"),
             console=self.console,
         ) as progress:
-            task = progress.add_task(
-                f"🔧 Correction de {bug.id}...", total=None
-            )
+            progress.add_task(f"🔧 Correction de {bug.id}...", total=None)
             success, stdout, stderr = self.run_claude_direct(prompt, timeout)
 
         if success:
@@ -341,22 +343,52 @@ class ClaudeCodeIntegration:
 
         elif system == "Darwin":  # macOS
             # macOS: utiliser osascript pour ouvrir Terminal
-            applescript = f'''
+            applescript = f"""
             tell application "Terminal"
                 activate
                 do script "{claude_cmd} --dangerously-skip-permissions -p \\"{escaped_prompt}\\""
             end tell
-            '''
+            """
             return ["osascript", "-e", applescript]
 
         else:  # Linux
             # Linux: détecter le terminal disponible
             terminals = [
-                ("gnome-terminal", ["gnome-terminal", "--", claude_cmd, "--dangerously-skip-permissions", "-p", prompt]),
-                ("konsole", ["konsole", "-e", claude_cmd, "--dangerously-skip-permissions", "-p", prompt]),
-                ("xfce4-terminal", ["xfce4-terminal", "-e", f'{claude_cmd} --dangerously-skip-permissions -p "{escaped_prompt}"']),
-                ("xterm", ["xterm", "-e", claude_cmd, "--dangerously-skip-permissions", "-p", prompt]),
-                ("terminator", ["terminator", "-e", f'{claude_cmd} --dangerously-skip-permissions -p "{escaped_prompt}"']),
+                (
+                    "gnome-terminal",
+                    [
+                        "gnome-terminal",
+                        "--",
+                        claude_cmd,
+                        "--dangerously-skip-permissions",
+                        "-p",
+                        prompt,
+                    ],
+                ),
+                (
+                    "konsole",
+                    ["konsole", "-e", claude_cmd, "--dangerously-skip-permissions", "-p", prompt],
+                ),
+                (
+                    "xfce4-terminal",
+                    [
+                        "xfce4-terminal",
+                        "-e",
+                        f'{claude_cmd} --dangerously-skip-permissions -p "{escaped_prompt}"',
+                    ],
+                ),
+                (
+                    "xterm",
+                    ["xterm", "-e", claude_cmd, "--dangerously-skip-permissions", "-p", prompt],
+                ),
+                (
+                    "terminator",
+                    [
+                        "terminator",
+                        "-e",
+                        f'{claude_cmd} --dangerously-skip-permissions -p "{escaped_prompt}"',
+                    ],
+                ),
             ]
 
             for term_name, term_cmd in terminals:
@@ -391,9 +423,7 @@ class ClaudeCodeIntegration:
         terminal_cmd = self._get_terminal_command(prompt)
 
         if not terminal_cmd:
-            self.console.print(
-                "[red]❌ Impossible de détecter un terminal compatible[/red]"
-            )
+            self.console.print("[red]❌ Impossible de détecter un terminal compatible[/red]")
             return False
 
         try:
@@ -429,12 +459,8 @@ class ClaudeCodeIntegration:
             return False
 
         self.console.print()
-        self.console.print(
-            "[cyan]💡 Claude Code a été lancé dans une nouvelle fenêtre.[/cyan]"
-        )
-        self.console.print(
-            "[cyan]   Corrigez le bug, puis revenez ici pour confirmer.[/cyan]"
-        )
+        self.console.print("[cyan]💡 Claude Code a été lancé dans une nouvelle fenêtre.[/cyan]")
+        self.console.print("[cyan]   Corrigez le bug, puis revenez ici pour confirmer.[/cyan]")
         self.console.print()
 
         # Attendre la confirmation de l'utilisateur
@@ -605,7 +631,7 @@ class ClaudeCodeIntegration:
                     bug.fixed_at = datetime.now().isoformat()
                     # Extraire un résumé de la correction (dernières lignes utiles)
                     if output:
-                        lines = [l for l in output.strip().split("\n") if l.strip()]
+                        lines = [line for line in output.strip().split("\n") if line.strip()]
                         bug.fix_summary = "\n".join(lines[-5:]) if lines else "Corrigé"
                     else:
                         bug.fix_summary = "Corrigé sans détails"
@@ -693,8 +719,4 @@ class ClaudeCodeIntegration:
         severity_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
         min_level = severity_order.get(min_severity, 2)
 
-        return [
-            bug
-            for bug in bugs
-            if severity_order.get(bug.severity, 3) <= min_level
-        ]
+        return [bug for bug in bugs if severity_order.get(bug.severity, 3) <= min_level]

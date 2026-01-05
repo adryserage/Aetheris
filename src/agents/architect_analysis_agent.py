@@ -2,11 +2,9 @@
 Agent d'analyse architecturale (AAA)
 """
 
-import os
 import json
-import asyncio
-from typing import List, Optional
-from collections import defaultdict
+import os
+from typing import List
 
 from src.agents.base_agent import BaseAgent
 from src.core.config import AnalysisConfig

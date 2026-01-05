@@ -2,9 +2,9 @@
 Configuration du logging et utilitaires d'affichage
 """
 
+import io
 import os
 import sys
-import io
 
 
 def setup_utf8_encoding():

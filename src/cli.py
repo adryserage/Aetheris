@@ -3,37 +3,33 @@
 Aetheris by Adryan - Interface en ligne de commande
 """
 
+import argparse
+import asyncio
+import json
 import os
 import sys
-import asyncio
-import argparse
-import json
 from typing import List, Optional
 
 from rich.console import Console
 from rich.prompt import Confirm
 
 # Configuration du logging et encodage UTF-8
-from src.core.logger import setup_utf8_encoding, log_print
+from src.core.logger import log_print, setup_utf8_encoding
 
 setup_utf8_encoding()
 
 try:
-    from google import genai  # Nouveau SDK google-genai
-    from pathspec import PathSpec
-    from ddgs import DDGS
-    import requests
-    import yaml
+    import google.genai as _genai  # noqa: F401 - Vérifie la disponibilité du SDK
 except ImportError as e:
     print(f"❌ Dépendances manquantes: {e}")
     print("   Installez avec: pip install -r requirements.txt")
     sys.exit(1)
 
-# Import de la configuration depuis le module dédié
-from src.core.config import AnalysisConfig, load_env_file
-
 # Import de CodeAnalyzer depuis le module dédié
 from src.core.analyzer import CodeAnalyzer
+
+# Import de la configuration depuis le module dédié
+from src.core.config import AnalysisConfig, load_env_file
 from src.core.progress import ProgressManager
 
 
@@ -66,13 +62,13 @@ def setup_analysis_parser(subparsers):
 Exemples:
   # Analyse complète de la codebase
   aetheris analysis
-  
+
   # Analyser uniquement les fichiers modifiés (depuis GitHub Actions)
   aetheris analysis --changed-files-only --files '["src/file1.py", "src/file2.py"]'
-  
+
   # Analyser une liste de fichiers spécifiques
   aetheris analysis --files src/file1.py,src/file2.py
-  
+
   # Analyser les fichiers d'une PR
   aetheris analysis --changed-files-only --pr-number 123
         """,
@@ -140,16 +136,18 @@ async def run_analysis(args):
         log_print("🔄 Validation de la clé API Gemini...")
         try:
             from google import genai
+
             test_client = genai.Client(api_key=ai_api_key)
             # Test avec un modèle simple
             test_response = test_client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents="Say 'OK' if you can hear me."
+                model="gemini-2.0-flash", contents="Say 'OK' if you can hear me."
             )
             log_print(f"✅ Clé API validée: {test_response.text[:50]}...")
         except Exception as e:
             log_print(f"❌ Erreur de validation de la clé API: {e}")
-            log_print("   Vérifiez que votre clé API est valide sur: https://aistudio.google.com/apikey")
+            log_print(
+                "   Vérifiez que votre clé API est valide sur: https://aistudio.google.com/apikey"
+            )
             sys.exit(1)
 
     # Récupérer le modèle (défaut selon provider)
@@ -320,8 +318,8 @@ async def run_fix(args):
     console.print()
 
     # Import des modules nécessaires
-    from src.services.claude_code_integration import ClaudeCodeIntegration
     from src.models.data_models import BugIdentifier
+    from src.services.claude_code_integration import ClaudeCodeIntegration
 
     # Charger le fichier .env s'il existe
     env_vars = load_env_file(".env")
@@ -409,7 +407,9 @@ async def run_fix(args):
             bugs_data = json.load(f)
     except (json.JSONDecodeError, IOError) as e:
         console.print(f"[red]❌ Erreur lors de la lecture du cache: {e}[/red]")
-        console.print("[yellow]Lancez 'aetheris fix --analyze-first' pour régénérer le cache.[/yellow]")
+        console.print(
+            "[yellow]Lancez 'aetheris fix --analyze-first' pour régénérer le cache.[/yellow]"
+        )
         sys.exit(1)
 
     # Convertir les données en objets BugIdentifier
@@ -447,14 +447,10 @@ async def run_fix(args):
     bugs = claude.filter_bugs_by_severity(bugs, args.severity)
 
     if not bugs:
-        console.print(
-            f"[yellow]⚠️  Aucun bug avec sévérité >= {args.severity}[/yellow]"
-        )
+        console.print(f"[yellow]⚠️  Aucun bug avec sévérité >= {args.severity}[/yellow]")
         sys.exit(0)
 
-    console.print(
-        f"[cyan]🐛 {len(bugs)} bug(s) trouvé(s) avec sévérité >= {args.severity}[/cyan]"
-    )
+    console.print(f"[cyan]🐛 {len(bugs)} bug(s) trouvé(s) avec sévérité >= {args.severity}[/cyan]")
     console.print()
 
     # Vérifier si Claude Code est disponible pour la correction
@@ -509,9 +505,7 @@ async def run_fix(args):
     if stats["fixed"] == stats["total"]:
         console.print("[green]✅ Tous les bugs ont été corrigés![/green]")
     elif stats["fixed"] > 0:
-        console.print(
-            f"[yellow]⚠️  {stats['fixed']}/{stats['total']} bug(s) corrigé(s)[/yellow]"
-        )
+        console.print(f"[yellow]⚠️  {stats['fixed']}/{stats['total']} bug(s) corrigé(s)[/yellow]")
     else:
         console.print("[red]❌ Aucun bug n'a été corrigé[/red]")
 
@@ -652,7 +646,11 @@ async def run_user_story(args):
         input_mode = "text"
         input_value = args.text
         console.print(f"[cyan]📝 Mode: Description textuelle[/cyan]")
-        console.print(f"[dim]{args.text[:100]}...[/dim]" if len(args.text) > 100 else f"[dim]{args.text}[/dim]")
+        console.print(
+            f"[dim]{args.text[:100]}...[/dim]"
+            if len(args.text) > 100
+            else f"[dim]{args.text}[/dim]"
+        )
     elif args.file:
         input_mode = "file"
         input_value = args.file
@@ -685,8 +683,10 @@ async def run_user_story(args):
     for dirpath, dirnames, filenames in os.walk(root_dir):
         # Filtrer les dossiers
         dirnames[:] = [
-            d for d in dirnames
-            if not d.startswith(".") and d not in ["node_modules", "__pycache__", "dist", "build", ".git"]
+            d
+            for d in dirnames
+            if not d.startswith(".")
+            and d not in ["node_modules", "__pycache__", "dist", "build", ".git"]
         ]
 
         for filename in filenames:
@@ -745,7 +745,9 @@ async def run_user_story(args):
 
     if result.orphan_endpoints:
         console.print()
-        console.print(f"[yellow]⚠️  {len(result.orphan_endpoints)} endpoint(s) orphelin(s) détecté(s)[/yellow]")
+        console.print(
+            f"[yellow]⚠️  {len(result.orphan_endpoints)} endpoint(s) orphelin(s) détecté(s)[/yellow]"
+        )
         for ep in result.orphan_endpoints[:5]:
             console.print(f"  • {ep.method} {ep.path} ({ep.file_path})")
         if len(result.orphan_endpoints) > 5:
@@ -828,9 +830,10 @@ def get_version():
     """Retourne la version depuis pyproject.toml"""
     try:
         import importlib.metadata
+
         return importlib.metadata.version("adryserage-aetheris")
     except Exception:
-        return "2.3.3"  # Fallback
+        return "2.3.4"  # Fallback
 
 
 def create_parser():
@@ -852,11 +855,7 @@ Exemples:
         """,
     )
 
-    parser.add_argument(
-        "-v", "--version",
-        action="version",
-        version=f"%(prog)s {get_version()}"
-    )
+    parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {get_version()}")
 
     subparsers = parser.add_subparsers(
         dest="command", help="Commandes disponibles", metavar="COMMANDE"

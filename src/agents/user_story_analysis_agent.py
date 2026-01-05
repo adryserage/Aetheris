@@ -8,30 +8,26 @@ Trace les flux frontend ↔ backend et détecte les incohérences logiques.
 import os
 import uuid
 from datetime import datetime
-from typing import List, Optional, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional
 
-from .base_agent import BaseAgent
 from ..core.config import AnalysisConfig
 from ..core.progress import ProgressManager
 from ..models.user_story_models import (
-    UserStory,
-    UserStoryFlow,
-    UserStoryAnalysisResult,
-    FlowStep,
-    FlowIssue,
     APICall,
     APIEndpoint,
+    FlowIssue,
+    FlowStep,
+    FlowStepType,
     IssueSeverity,
     IssueType,
-    FlowStepType,
+    UserStory,
+    UserStoryAnalysisResult,
+    UserStoryFlow,
 )
-from ..models.user_story_schemas import (
-    FlowAnalysisSchema,
-    ConsistencyCheckSchema,
-    UserStoryAnalysisSchema,
-)
-from ..services.flow_tracer import FlowTracer, FlowTracerResult
+from ..models.user_story_schemas import ConsistencyCheckSchema, FlowAnalysisSchema
+from ..services.flow_tracer import FlowTracer
 from ..services.user_story_parser import UserStoryParser
+from .base_agent import BaseAgent
 
 if TYPE_CHECKING:
     from ..models.data_models import FileAnalysis
@@ -172,7 +168,9 @@ class UserStoryAnalysisAgent(BaseAgent):
         if flow.entry_point:
             content = self._read_file(flow.entry_point)
             if content:
-                context_parts.append(f"## Entry Point: {flow.entry_point}\n```\n{content[:2000]}\n```")
+                context_parts.append(
+                    f"## Entry Point: {flow.entry_point}\n```\n{content[:2000]}\n```"
+                )
 
         # Ajouter les infos sur les appels API
         if flow.api_calls:
@@ -241,7 +239,11 @@ Réponds en JSON valide selon ce schéma:
             for i, step_schema in enumerate(result.steps):
                 step = FlowStep(
                     order=step_schema.order,
-                    step_type=step_schema.step_type.value if hasattr(step_schema.step_type, 'value') else step_schema.step_type,
+                    step_type=(
+                        step_schema.step_type.value
+                        if hasattr(step_schema.step_type, "value")
+                        else step_schema.step_type
+                    ),
                     file_path=step_schema.file_hint or flow.entry_point or "",
                     line_number=0,
                     description=step_schema.description,
@@ -254,8 +256,16 @@ Réponds en JSON valide selon ce schéma:
             for issue_schema in result.issues:
                 issue = FlowIssue(
                     id=f"US-ISSUE-{uuid.uuid4().hex[:8].upper()}",
-                    severity=issue_schema.severity.value if hasattr(issue_schema.severity, 'value') else issue_schema.severity,
-                    issue_type=issue_schema.issue_type.value if hasattr(issue_schema.issue_type, 'value') else issue_schema.issue_type,
+                    severity=(
+                        issue_schema.severity.value
+                        if hasattr(issue_schema.severity, "value")
+                        else issue_schema.severity
+                    ),
+                    issue_type=(
+                        issue_schema.issue_type.value
+                        if hasattr(issue_schema.issue_type, "value")
+                        else issue_schema.issue_type
+                    ),
                     title=issue_schema.title,
                     description=issue_schema.description,
                     affected_steps=issue_schema.affected_steps,
@@ -268,25 +278,29 @@ Réponds en JSON valide selon ce schéma:
             flow.is_complete = result.is_complete
             flow.missing_steps = result.missing_steps
 
-        except Exception as e:
+        except Exception:
             # Fallback: créer des étapes basiques
             if flow.entry_point:
-                flow.steps.append(FlowStep(
-                    order=0,
-                    step_type=FlowStepType.UI_EVENT.value,
-                    file_path=flow.entry_point,
-                    line_number=0,
-                    description=f"User initiates: {flow.story.action}",
-                ))
+                flow.steps.append(
+                    FlowStep(
+                        order=0,
+                        step_type=FlowStepType.UI_EVENT.value,
+                        file_path=flow.entry_point,
+                        line_number=0,
+                        description=f"User initiates: {flow.story.action}",
+                    )
+                )
 
             for i, call in enumerate(flow.api_calls):
-                flow.steps.append(FlowStep(
-                    order=i + 1,
-                    step_type=FlowStepType.API_CALL.value,
-                    file_path=call.file_path,
-                    line_number=call.line_number,
-                    description=f"{call.method} {call.url_pattern}",
-                ))
+                flow.steps.append(
+                    FlowStep(
+                        order=i + 1,
+                        step_type=FlowStepType.API_CALL.value,
+                        file_path=call.file_path,
+                        line_number=call.line_number,
+                        description=f"{call.method} {call.url_pattern}",
+                    )
+                )
 
         return flow
 
@@ -356,9 +370,18 @@ Réponds en JSON valide selon ce schéma:
         """Détermine si un endpoint devrait être protégé"""
         # Endpoints qui devraient être protégés
         sensitive_patterns = [
-            "/user", "/profile", "/account", "/settings",
-            "/admin", "/dashboard", "/order", "/payment",
-            "/cart", "/checkout", "/private", "/api/me"
+            "/user",
+            "/profile",
+            "/account",
+            "/settings",
+            "/admin",
+            "/dashboard",
+            "/order",
+            "/payment",
+            "/cart",
+            "/checkout",
+            "/private",
+            "/api/me",
         ]
 
         # Méthodes sensibles
@@ -492,34 +515,40 @@ Réponds en JSON:
 
             # Créer des issues pour chaque problème
             for issue_text in result.logical_issues:
-                issues.append(FlowIssue(
-                    id=f"US-ISSUE-{uuid.uuid4().hex[:8].upper()}",
-                    severity=IssueSeverity.HIGH.value,
-                    issue_type="logical_inconsistency",
-                    title="Logical inconsistency",
-                    description=issue_text,
-                    recommendation="Review the flow logic",
-                ))
+                issues.append(
+                    FlowIssue(
+                        id=f"US-ISSUE-{uuid.uuid4().hex[:8].upper()}",
+                        severity=IssueSeverity.HIGH.value,
+                        issue_type="logical_inconsistency",
+                        title="Logical inconsistency",
+                        description=issue_text,
+                        recommendation="Review the flow logic",
+                    )
+                )
 
             for issue_text in result.race_condition_risks:
-                issues.append(FlowIssue(
-                    id=f"US-ISSUE-{uuid.uuid4().hex[:8].upper()}",
-                    severity=IssueSeverity.MEDIUM.value,
-                    issue_type=IssueType.RACE_CONDITION.value,
-                    title="Race condition risk",
-                    description=issue_text,
-                    recommendation="Add proper synchronization or sequencing",
-                ))
+                issues.append(
+                    FlowIssue(
+                        id=f"US-ISSUE-{uuid.uuid4().hex[:8].upper()}",
+                        severity=IssueSeverity.MEDIUM.value,
+                        issue_type=IssueType.RACE_CONDITION.value,
+                        title="Race condition risk",
+                        description=issue_text,
+                        recommendation="Add proper synchronization or sequencing",
+                    )
+                )
 
             for issue_text in result.security_gaps:
-                issues.append(FlowIssue(
-                    id=f"US-ISSUE-{uuid.uuid4().hex[:8].upper()}",
-                    severity=IssueSeverity.CRITICAL.value,
-                    issue_type=IssueType.MISSING_AUTH.value,
-                    title="Security gap",
-                    description=issue_text,
-                    recommendation="Address the security concern",
-                ))
+                issues.append(
+                    FlowIssue(
+                        id=f"US-ISSUE-{uuid.uuid4().hex[:8].upper()}",
+                        severity=IssueSeverity.CRITICAL.value,
+                        issue_type=IssueType.MISSING_AUTH.value,
+                        title="Security gap",
+                        description=issue_text,
+                        recommendation="Address the security concern",
+                    )
+                )
 
         except Exception:
             pass  # L'IA n'a pas pu analyser, continuer sans

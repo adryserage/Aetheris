@@ -2,8 +2,8 @@
 Modèles de données pour le système d'analyse de code
 """
 
-from typing import List, Optional, Tuple
 from dataclasses import dataclass, field
+from typing import List, Optional, Tuple
 
 
 @dataclass

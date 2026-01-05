@@ -3,13 +3,12 @@ Système de cache pour les analyses de code
 Réduit les coûts API en évitant les ré-analyses inutiles
 """
 
-import os
-import json
 import hashlib
+import json
+import os
 import subprocess
-from typing import Optional, Dict, Any
 from datetime import datetime, timedelta
-from pathlib import Path
+from typing import Any, Dict, Optional
 
 from src.models.data_models import FileAnalysis
 
@@ -154,7 +153,7 @@ class AnalysisCache:
                 error=analysis_data.get("error"),
             )
 
-        except Exception as e:
+        except Exception:
             # En cas d'erreur, ignorer le cache
             return None
 

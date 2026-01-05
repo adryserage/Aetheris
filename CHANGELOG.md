@@ -5,6 +5,18 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.3.4] - 2025-01-05
+
+### 🧹 Qualité de code
+
+- **Lint & Formatting** : Nettoyage complet du codebase
+  - Formatage Black appliqué sur tous les fichiers
+  - Imports triés avec isort
+  - Suppression des imports inutilisés (autoflake)
+  - Correction des `bare except` → `except Exception`
+  - Variables inutilisées supprimées
+  - Renommage des variables ambiguës (`l` → `line`)
+
 ## [2.3.3] - 2025-01-05
 
 ### 🐛 Corrections

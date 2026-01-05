@@ -3,12 +3,11 @@ Collecteur de métriques pour le système d'analyse
 Collecte les performances, taux de succès, coûts API, etc.
 """
 
-import os
 import json
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, field, asdict
+import os
+from dataclasses import dataclass, field
 from datetime import datetime
-from collections import defaultdict
+from typing import Any, Dict, List, Optional
 
 
 @dataclass

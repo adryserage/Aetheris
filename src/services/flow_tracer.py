@@ -5,13 +5,12 @@ Détecte les appels API et endpoints dans le code source de manière agnostique.
 Supporte JavaScript/TypeScript, Dart/Flutter, Python et plusieurs frameworks.
 """
 
-import re
 import os
-from typing import Dict, List, Optional, Tuple, Set
+import re
 from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Set
 
-from ..models.user_story_models import APIEndpoint, APICall
-
+from ..models.user_story_models import APICall, APIEndpoint
 
 # === Patterns de détection par langage ===
 
@@ -304,8 +303,6 @@ class FlowTracer:
         else:
             return []
 
-        lines = content.split("\n")
-
         for pattern_name, pattern in patterns.items():
             for match in re.finditer(pattern, content, re.MULTILINE):
                 # Trouver le numéro de ligne
@@ -419,9 +416,7 @@ class FlowTracer:
 
         return endpoints
 
-    def _detect_nextjs_endpoints(
-        self, file_path: str, content: str
-    ) -> List[APIEndpoint]:
+    def _detect_nextjs_endpoints(self, file_path: str, content: str) -> List[APIEndpoint]:
         """Détecte les endpoints Next.js (route handlers)"""
         endpoints: List[APIEndpoint] = []
 
@@ -440,7 +435,9 @@ class FlowTracer:
                 api_path = "/api/" + path_part
 
         # Détecter les handlers exportés (GET, POST, etc.)
-        handler_pattern = r"export\s+(?:async\s+)?function\s+(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s*\("
+        handler_pattern = (
+            r"export\s+(?:async\s+)?function\s+(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s*\("
+        )
         for match in re.finditer(handler_pattern, content):
             line_number = content[: match.start()].count("\n") + 1
             method = match.group(1)
@@ -457,9 +454,7 @@ class FlowTracer:
 
         return endpoints
 
-    def _detect_nestjs_endpoints(
-        self, file_path: str, content: str
-    ) -> List[APIEndpoint]:
+    def _detect_nestjs_endpoints(self, file_path: str, content: str) -> List[APIEndpoint]:
         """Détecte les endpoints NestJS"""
         endpoints: List[APIEndpoint] = []
 
@@ -550,9 +545,7 @@ class FlowTracer:
 
         return result
 
-    def match_calls_to_endpoints(
-        self, result: FlowTracerResult
-    ) -> FlowTracerResult:
+    def match_calls_to_endpoints(self, result: FlowTracerResult) -> FlowTracerResult:
         """Fait correspondre les appels API aux endpoints"""
         matched_endpoints: Set[str] = set()
 
@@ -570,12 +563,10 @@ class FlowTracer:
                 if self._urls_match(url_normalized, endpoint_normalized):
                     if call.method == endpoint.method or call.method == "GET":
                         call.matched_endpoint = endpoint.path
-                        result.call_to_endpoint_map[
-                            f"{call.file_path}:{call.line_number}"
-                        ] = endpoint.path
-                        matched_endpoints.add(
-                            f"{endpoint.file_path}:{endpoint.line_number}"
+                        result.call_to_endpoint_map[f"{call.file_path}:{call.line_number}"] = (
+                            endpoint.path
                         )
+                        matched_endpoints.add(f"{endpoint.file_path}:{endpoint.line_number}")
                         matched = True
                         break
 

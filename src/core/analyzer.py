@@ -2,34 +2,34 @@
 Analyseur de code principal utilisant un orchestrateur interne.
 """
 
-import os
 import asyncio
+import os
 import pathlib
 import re
-from typing import List, Dict, Optional
-from datetime import datetime
 from collections import defaultdict
+from datetime import datetime
+from typing import List, Optional
 
 from pathspec import PathSpec
 
-from src.core.config import AnalysisConfig
-from src.core.logger import log_print
-from src.core.progress import ProgressManager
-from src.core.orchestrator import AnalysisOrchestrator, WorkflowStage, WorkflowContext
-from src.core.cache import AnalysisCache
-from src.core.parallel_analyzer import detect_independent_files
-from src.core.priority_manager import PriorityManager, Priority
-from src.core.metrics import MetricsCollector
-from src.models.data_models import FileAnalysis
-from src.services.code_generator import CodeGenerator
-from src.services.documentation_searcher import DocumentationSearcher
-from src.services.dependency_analyzer import DependencyAnalyzer
-from src.agents.code_analysis_expert import CodeAnalysisExpert
 from src.agents.architect_analysis_agent import ArchitectAnalysisAgent
-from src.agents.security_analysis_agent import SecurityAnalysisAgent
+from src.agents.code_analysis_expert import CodeAnalysisExpert
 from src.agents.code_metrics_agent import CodeMetricsAgent
 from src.agents.dependency_vulnerability_agent import DependencyVulnerabilityAgent
 from src.agents.quality_assurance_agent import QualityAssuranceAgent
+from src.agents.security_analysis_agent import SecurityAnalysisAgent
+from src.core.cache import AnalysisCache
+from src.core.config import AnalysisConfig
+from src.core.logger import log_print
+from src.core.metrics import MetricsCollector
+from src.core.orchestrator import AnalysisOrchestrator, WorkflowContext, WorkflowStage
+from src.core.parallel_analyzer import detect_independent_files
+from src.core.priority_manager import PriorityManager
+from src.core.progress import ProgressManager
+from src.models.data_models import FileAnalysis
+from src.services.code_generator import CodeGenerator
+from src.services.dependency_analyzer import DependencyAnalyzer
+from src.services.documentation_searcher import DocumentationSearcher
 
 
 def sanitize_markdown(text: str) -> str:
@@ -395,7 +395,7 @@ class CodeAnalyzer:
             size = os.path.getsize(file_path)
             if size > 1_000_000:  # > 1MB
                 return False
-        except:
+        except Exception:
             return False
 
         # Inclure seulement les fichiers de code source pertinents
@@ -564,7 +564,7 @@ class CodeAnalyzer:
         try:
             with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
                 content = f.read()
-        except:
+        except Exception:
             return analysis
 
         # Analyse de sécurité
@@ -1036,12 +1036,11 @@ class CodeAnalyzer:
 
     async def _step_analyze_impact(self, context: WorkflowContext) -> WorkflowContext:
         """Étape: Analyser l'impact des bugs sur le codebase"""
-        from src.services.impact_analyzer import ImpactAnalyzer
         import json
 
-        impact_task = self.progress_manager.add_task(
-            "🎯 Analyse d'impact des bugs...", total=100
-        )
+        from src.services.impact_analyzer import ImpactAnalyzer
+
+        impact_task = self.progress_manager.add_task("🎯 Analyse d'impact des bugs...", total=100)
 
         impact_analyzer = ImpactAnalyzer(
             self.dependency_analyzer, max_impact_depth=self.config.max_dependency_depth
@@ -1117,9 +1116,11 @@ class CodeAnalyzer:
                         if bug.line_number:
                             report += f"- **Ligne**: {bug.line_number}\n"
                         report += f"- **Type**: {bug.bug_type}\n"
-                        report += f"- **Description**: {bug.description[:200]}...\n" if len(
-                            bug.description
-                        ) > 200 else f"- **Description**: {bug.description}\n"
+                        report += (
+                            f"- **Description**: {bug.description[:200]}...\n"
+                            if len(bug.description) > 200
+                            else f"- **Description**: {bug.description}\n"
+                        )
                         if impact.directly_impacted:
                             report += f"- **Fichiers directement impactés**: {len(impact.directly_impacted)}\n"
                             for f in impact.directly_impacted[:3]:
@@ -1136,9 +1137,7 @@ class CodeAnalyzer:
         with open(impact_report_path, "w", encoding="utf-8") as f:
             f.write(sanitized_report)
 
-        self.progress_manager.print(
-            f"✅ Rapport d'impact sauvegardé: {impact_report_path}\n"
-        )
+        self.progress_manager.print(f"✅ Rapport d'impact sauvegardé: {impact_report_path}\n")
 
     async def _step_generate_architecture_report(self, context: WorkflowContext) -> WorkflowContext:
         """Étape 5: Générer le rapport d'architecture"""

@@ -4,16 +4,15 @@ Agent d'analyse de sécurité (SSA)
 Utilise les Structured Outputs de Gemini pour garantir des réponses validées.
 """
 
+import json
 import os
 import re
-import json
-import asyncio
-from typing import List, Optional
+from typing import List
 
 from src.agents.base_agent import BaseAgent
 from src.core.config import AnalysisConfig
+from src.models.analysis_schemas import SecurityAnalysisResult
 from src.models.data_models import SecurityIssue
-from src.models.analysis_schemas import SecurityAnalysisResult, SecurityIssue as SecurityIssueSchema
 
 
 class SecurityAnalysisAgent(BaseAgent):
@@ -127,7 +126,7 @@ class SecurityAnalysisAgent(BaseAgent):
                         web_docs = await self.doc_searcher.search_documentation(
                             language, file_path, f"security best practices {language}"
                         )
-                    except:
+                    except Exception:
                         pass
 
                 prompt = f"""Tu es un expert en sécurité applicative. Analyse ce code pour détecter les vulnérabilités de sécurité.
@@ -181,7 +180,7 @@ Inclus également un résumé global et un score de risque (0-10)."""
                                     owasp_category=issue_schema.owasp_category,
                                 )
                             )
-                    except Exception as e:
+                    except Exception:
                         # Fallback vers le parsing manuel si échec
                         pass
                 else:

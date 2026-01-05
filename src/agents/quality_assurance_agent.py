@@ -2,14 +2,14 @@
 Agent d'Assurance Qualité - Synthétise toutes les informations d'analyse (QAA)
 """
 
-import os
 import json
-from typing import List, Optional
+import os
 from collections import defaultdict
+from typing import List
 
 from src.agents.base_agent import BaseAgent
 from src.core.config import AnalysisConfig
-from src.models.data_models import FileAnalysis, DependencyVulnerability
+from src.models.data_models import DependencyVulnerability, FileAnalysis
 
 
 class QualityAssuranceAgent(BaseAgent):
@@ -116,7 +116,7 @@ class QualityAssuranceAgent(BaseAgent):
                         "quality_report",
                         "software quality assurance best practices",
                     )
-                except:
+                except Exception:
                     pass
 
             # Construire le prompt

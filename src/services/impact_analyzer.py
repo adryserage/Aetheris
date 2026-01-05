@@ -3,13 +3,9 @@ Impact Analyzer - Analyse l'impact des bugs à travers le codebase via le graphe
 """
 
 import hashlib
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
 
-from src.models.data_models import (
-    BugIdentifier,
-    ImpactAnalysis,
-    FileAnalysis,
-)
+from src.models.data_models import BugIdentifier, FileAnalysis, ImpactAnalysis
 from src.services.dependency_analyzer import DependencyAnalyzer
 
 
@@ -135,9 +131,7 @@ class ImpactAnalyzer:
         Returns:
             Analyse d'impact avec fichiers directement et transitivement impactés
         """
-        dependents = self.dependency_analyzer.get_dependents(
-            bug.file_path, self.max_impact_depth
-        )
+        dependents = self.dependency_analyzer.get_dependents(bug.file_path, self.max_impact_depth)
 
         directly_impacted = dependents.get(1, [])
         transitively_impacted = []

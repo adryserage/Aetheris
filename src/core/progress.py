@@ -4,22 +4,21 @@ Gestionnaire de progression avec Rich pour afficher des barres de progression mo
 
 import os
 import sys
-from typing import Optional, List
 from contextlib import contextmanager
+from typing import Optional
 
 try:
+    from rich.console import Console
+    from rich.panel import Panel
     from rich.progress import (
+        BarColumn,
         Progress,
         SpinnerColumn,
-        BarColumn,
+        TaskID,
         TextColumn,
         TimeElapsedColumn,
         TimeRemainingColumn,
-        TaskID,
     )
-    from rich.console import Console
-    from rich.panel import Panel
-    from rich.text import Text
 
     RICH_AVAILABLE = True
 except ImportError:

@@ -3,13 +3,14 @@ Modèles de données pour l'analyse de User Stories
 Trace les flux frontend ↔ backend et détecte les incohérences
 """
 
-from typing import List, Optional, Dict, Any
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 class HTTPMethod(str, Enum):
     """Méthodes HTTP supportées"""
+
     GET = "GET"
     POST = "POST"
     PUT = "PUT"
@@ -21,6 +22,7 @@ class HTTPMethod(str, Enum):
 
 class FlowStepType(str, Enum):
     """Types d'étapes dans un flux"""
+
     UI_EVENT = "ui_event"  # Clic, soumission de formulaire
     STATE_UPDATE = "state_update"  # Mise à jour d'état (Redux, useState)
     API_CALL = "api_call"  # Appel HTTP vers le backend
@@ -34,6 +36,7 @@ class FlowStepType(str, Enum):
 
 class IssueType(str, Enum):
     """Types de problèmes détectés dans les flux"""
+
     ORPHAN_ENDPOINT = "orphan_endpoint"  # Endpoint jamais appelé
     MISSING_HANDLER = "missing_handler"  # Appel API sans endpoint
     MISSING_ERROR_HANDLING = "missing_error_handling"  # Pas de try/catch
@@ -49,6 +52,7 @@ class IssueType(str, Enum):
 
 class IssueSeverity(str, Enum):
     """Sévérité des problèmes"""
+
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
@@ -212,12 +216,8 @@ class UserStoryAnalysisResult:
         self.critical_count = sum(
             1 for i in self.all_issues if i.severity == IssueSeverity.CRITICAL.value
         )
-        self.high_count = sum(
-            1 for i in self.all_issues if i.severity == IssueSeverity.HIGH.value
-        )
+        self.high_count = sum(1 for i in self.all_issues if i.severity == IssueSeverity.HIGH.value)
         self.medium_count = sum(
             1 for i in self.all_issues if i.severity == IssueSeverity.MEDIUM.value
         )
-        self.low_count = sum(
-            1 for i in self.all_issues if i.severity == IssueSeverity.LOW.value
-        )
+        self.low_count = sum(1 for i in self.all_issues if i.severity == IssueSeverity.LOW.value)

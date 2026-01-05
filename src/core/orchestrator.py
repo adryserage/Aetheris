@@ -4,16 +4,16 @@ Sépare la logique d'orchestration de la logique métier
 """
 
 import asyncio
-from enum import Enum
-from typing import List, Dict, Optional, Callable, Any
 from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
 
 from src.core.config import AnalysisConfig
+from src.core.error_handler import classify_error, exponential_backoff
 from src.core.logger import log_print
-from src.core.progress import ProgressManager
-from src.core.error_handler import exponential_backoff, classify_error, ErrorType
 from src.core.metrics import MetricsCollector
+from src.core.progress import ProgressManager
 from src.models.data_models import FileAnalysis
 
 
@@ -167,9 +167,9 @@ class AnalysisOrchestrator:
 
             # Exécuter l'étape
             if asyncio.iscoroutinefunction(step.handler):
-                result = await step.handler(self.context)
+                await step.handler(self.context)
             else:
-                result = step.handler(self.context)
+                step.handler(self.context)
 
             # Exécuter les hooks après
             await self._execute_hooks(step.stage, self.context)

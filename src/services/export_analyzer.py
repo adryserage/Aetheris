@@ -121,7 +121,9 @@ class ExportAnalyzer:
                 continue
 
             # export * from '...' (re-export tout)
-            reexport_all_match = re.match(r"^export\s*\*\s*from\s*['\"]([^'\"]+)['\"]", line_stripped)
+            reexport_all_match = re.match(
+                r"^export\s*\*\s*from\s*['\"]([^'\"]+)['\"]", line_stripped
+            )
             if reexport_all_match:
                 source = reexport_all_match.group(1)
                 exports.append(

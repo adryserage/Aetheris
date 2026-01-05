@@ -5,8 +5,8 @@ Générateur de code pour les agents - permet de créer du code temporaire pour 
 import os
 from typing import Optional
 
-from src.core.config import AnalysisConfig
 from src.core.ai_providers import create_ai_provider
+from src.core.config import AnalysisConfig
 
 
 class CodeGenerator:
@@ -47,7 +47,7 @@ Génère du code d'analyse qui:
 4. Détecte les problèmes potentiels de logique
 5. Vérifie la cohérence des types et interfaces
 
-IMPORTANT: 
+IMPORTANT:
 - Génère UNIQUEMENT du code d'analyse, pas d'exemples d'utilisation
 - Pas de conseils de code à utiliser
 - Focus sur la compréhension et l'analyse, pas sur l'implémentation
@@ -72,7 +72,6 @@ Retourne UNIQUEMENT le code d'analyse généré, sans explications supplémentai
     def save_temp_file(self, content: str, extension: str, prefix: str = "temp") -> Optional[str]:
         """Sauvegarde un fichier temporaire et retourne son chemin"""
         try:
-            import tempfile
             import uuid
 
             filename = f"{prefix}_{uuid.uuid4().hex[:8]}.{extension}"

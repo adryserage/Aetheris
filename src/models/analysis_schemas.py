@@ -51,7 +51,9 @@ class SecurityIssue(BaseModel):
 class SecurityAnalysisResult(BaseModel):
     """Résultat complet d'une analyse de sécurité"""
 
-    issues: List[SecurityIssue] = Field(default_factory=list, description="Liste des issues trouvées")
+    issues: List[SecurityIssue] = Field(
+        default_factory=list, description="Liste des issues trouvées"
+    )
     risk_score: float = Field(0.0, ge=0.0, le=10.0, description="Score de risque global (0-10)")
     summary: str = Field("", description="Résumé de l'analyse")
 
@@ -76,7 +78,9 @@ class CodeMetrics(BaseModel):
     functions_count: int = Field(0, ge=0, description="Nombre de fonctions/méthodes")
     classes_count: int = Field(0, ge=0, description="Nombre de classes")
     max_function_length: int = Field(0, ge=0, description="Longueur max d'une fonction")
-    average_function_length: float = Field(0.0, ge=0.0, description="Longueur moyenne des fonctions")
+    average_function_length: float = Field(
+        0.0, ge=0.0, description="Longueur moyenne des fonctions"
+    )
 
 
 # === Schémas pour l'analyse de code ===
@@ -118,7 +122,9 @@ class FileAnalysisResult(BaseModel):
     dependencies: List[Dependency] = Field(
         default_factory=list, description="Dépendances du fichier"
     )
-    recommendations: List[str] = Field(default_factory=list, description="Recommandations générales")
+    recommendations: List[str] = Field(
+        default_factory=list, description="Recommandations générales"
+    )
     key_functions: List[str] = Field(
         default_factory=list, description="Fonctions/méthodes principales"
     )
@@ -189,9 +195,7 @@ class QualityAssuranceResult(BaseModel):
         0.0, ge=0.0, description="Estimation dette technique (heures)"
     )
     summary: str = Field("", description="Résumé de la qualité")
-    top_priorities: List[str] = Field(
-        default_factory=list, description="Priorités d'amélioration"
-    )
+    top_priorities: List[str] = Field(default_factory=list, description="Priorités d'amélioration")
 
 
 # === Schémas pour les vulnérabilités de dépendances ===

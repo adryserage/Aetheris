@@ -3,11 +3,10 @@ Gestion d'erreurs améliorée avec circuit breaker et backoff exponentiel
 """
 
 import asyncio
-import time
-from enum import Enum
-from typing import Optional, Callable, Any
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
+from enum import Enum
+from typing import Any, Callable, Optional
 
 
 class ErrorType(Enum):
@@ -97,7 +96,7 @@ def classify_error(error: Exception) -> ErrorType:
         Le type d'erreur
     """
     error_str = str(error).lower()
-    error_type = type(error).__name__
+    type(error).__name__
 
     # Erreurs temporaires
     if any(
