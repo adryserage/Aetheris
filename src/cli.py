@@ -413,20 +413,31 @@ async def run_fix(args):
         sys.exit(1)
 
     # Convertir les données en objets BugIdentifier
-    bugs: List[BugIdentifier] = []
+    all_bugs: List[BugIdentifier] = []
+    fixed_count = 0
     for bug_data in bugs_data:
-        bugs.append(
-            BugIdentifier(
-                id=bug_data["id"],
-                file_path=bug_data["file_path"],
-                line_number=bug_data.get("line_number"),
-                bug_type=bug_data["bug_type"],
-                severity=bug_data["severity"],
-                description=bug_data["description"],
-                recommendation=bug_data.get("recommendation", ""),
-                impacted_files=bug_data.get("impacted_files", []),
-            )
+        bug = BugIdentifier(
+            id=bug_data["id"],
+            file_path=bug_data["file_path"],
+            line_number=bug_data.get("line_number"),
+            bug_type=bug_data["bug_type"],
+            severity=bug_data["severity"],
+            description=bug_data["description"],
+            recommendation=bug_data.get("recommendation", ""),
+            impacted_files=bug_data.get("impacted_files", []),
+            fixed=bug_data.get("fixed", False),
+            fixed_at=bug_data.get("fixed_at"),
+            fix_summary=bug_data.get("fix_summary"),
         )
+        all_bugs.append(bug)
+        if bug.fixed:
+            fixed_count += 1
+
+    # Filtrer les bugs déjà corrigés
+    bugs = [b for b in all_bugs if not b.fixed]
+
+    if fixed_count > 0:
+        console.print(f"[dim]ℹ️  {fixed_count} bug(s) déjà corrigé(s) (ignorés)[/dim]")
 
     if not bugs:
         console.print("[green]✅ Aucun bug à corriger![/green]")
@@ -452,10 +463,45 @@ async def run_fix(args):
         claude.display_bugs_table(bugs)
         sys.exit(0)
 
+    # Callback pour sauvegarder le cache après chaque correction
+    def save_bugs_cache(fixed_bug: BugIdentifier):
+        """Sauvegarde le cache des bugs avec le statut mis à jour"""
+        # Mettre à jour le bug dans all_bugs
+        for i, b in enumerate(all_bugs):
+            if b.id == fixed_bug.id:
+                all_bugs[i] = fixed_bug
+                break
+
+        # Sauvegarder tout le cache
+        cache_data = []
+        for b in all_bugs:
+            bug_dict = {
+                "id": b.id,
+                "file_path": b.file_path,
+                "line_number": b.line_number,
+                "bug_type": b.bug_type,
+                "severity": b.severity,
+                "description": b.description,
+                "recommendation": b.recommendation,
+                "impacted_files": b.impacted_files,
+                "fixed": b.fixed,
+                "fixed_at": b.fixed_at,
+                "fix_summary": b.fix_summary,
+            }
+            cache_data.append(bug_dict)
+
+        with open(bugs_cache_path, "w", encoding="utf-8") as f:
+            json.dump(cache_data, f, indent=2, ensure_ascii=False)
+
     # Lancer la session de correction
     # Par défaut mode direct (arrière-plan), --terminal pour ouvrir une fenêtre
     direct_mode = not getattr(args, "terminal", False)
-    stats = claude.run_fix_session(bugs, auto_mode=args.auto, direct_mode=direct_mode)
+    stats = claude.run_fix_session(
+        bugs,
+        auto_mode=args.auto,
+        direct_mode=direct_mode,
+        on_bug_fixed=save_bugs_cache,
+    )
 
     console.print()
     console.rule("[bold green]🎉 Session de correction terminée")
@@ -784,7 +830,7 @@ def get_version():
         import importlib.metadata
         return importlib.metadata.version("adryserage-aetheris")
     except Exception:
-        return "2.3.0"  # Fallback
+        return "2.3.1"  # Fallback
 
 
 def create_parser():

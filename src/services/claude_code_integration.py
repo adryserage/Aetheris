@@ -8,7 +8,8 @@ import platform
 import shutil
 import subprocess
 import tempfile
-from typing import Optional, List, Tuple
+from datetime import datetime
+from typing import Optional, List, Tuple, Callable
 
 from rich.console import Console
 from rich.prompt import Confirm
@@ -540,6 +541,7 @@ class ClaudeCodeIntegration:
         bugs: List[BugIdentifier],
         auto_mode: bool = False,
         direct_mode: bool = True,
+        on_bug_fixed: Optional[Callable[[BugIdentifier], None]] = None,
     ) -> dict:
         """
         Exécute une session de correction de bugs.
@@ -548,6 +550,7 @@ class ClaudeCodeIntegration:
             bugs: Liste des bugs à corriger
             auto_mode: Si True, ne demande pas de confirmation entre les bugs
             direct_mode: Si True, exécute Claude Code en arrière-plan (sans fenêtre terminal)
+            on_bug_fixed: Callback appelé après chaque bug corrigé pour sauvegarder l'état
 
         Returns:
             Statistiques de la session (fixed, skipped, failed)
@@ -596,6 +599,21 @@ class ClaudeCodeIntegration:
                 if success:
                     stats["fixed"] += 1
                     self.console.print(f"[green]✅ {bug.id} corrigé[/green]")
+
+                    # Marquer le bug comme corrigé
+                    bug.fixed = True
+                    bug.fixed_at = datetime.now().isoformat()
+                    # Extraire un résumé de la correction (dernières lignes utiles)
+                    if output:
+                        lines = [l for l in output.strip().split("\n") if l.strip()]
+                        bug.fix_summary = "\n".join(lines[-5:]) if lines else "Corrigé"
+                    else:
+                        bug.fix_summary = "Corrigé sans détails"
+
+                    # Sauvegarder l'état via callback
+                    if on_bug_fixed:
+                        on_bug_fixed(bug)
+
                     if output:
                         # Afficher un résumé de la sortie
                         lines = output.strip().split("\n")
@@ -625,6 +643,15 @@ class ClaudeCodeIntegration:
                 if fixed:
                     stats["fixed"] += 1
                     self.console.print(f"[green]✅ {bug.id} marqué comme corrigé[/green]")
+
+                    # Marquer le bug comme corrigé
+                    bug.fixed = True
+                    bug.fixed_at = datetime.now().isoformat()
+                    bug.fix_summary = "Corrigé via mode terminal interactif"
+
+                    # Sauvegarder l'état via callback
+                    if on_bug_fixed:
+                        on_bug_fixed(bug)
                 else:
                     if not auto_mode and i < len(bugs):
                         skip = Confirm.ask("Passer au bug suivant?", default=True)

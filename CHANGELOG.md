@@ -5,6 +5,18 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.3.1] - 2025-01-05
+
+### ✨ Améliorations
+
+- **Suivi des bugs corrigés** : Les bugs corrigés sont maintenant marqués dans le cache
+  - Nouveau champ `fixed: boolean` dans `BugIdentifier`
+  - Champ `fixed_at` avec timestamp de la correction
+  - Champ `fix_summary` avec résumé de la correction appliquée
+  - Les bugs déjà corrigés sont automatiquement ignorés lors des prochaines sessions
+  - Le cache `.bugs_cache.json` est mis à jour après chaque correction réussie
+  - Message d'info indiquant le nombre de bugs déjà corrigés
+
 ## [2.3.0] - 2025-01-05
 
 ### ✨ Nouvelles fonctionnalités

@@ -95,6 +95,9 @@ class BugIdentifier:
     description: str
     recommendation: str
     impacted_files: List[str] = field(default_factory=list)  # Fichiers affectés via dépendances
+    fixed: bool = False  # Si le bug a été corrigé
+    fixed_at: Optional[str] = None  # Timestamp de la correction (ISO format)
+    fix_summary: Optional[str] = None  # Résumé de la correction appliquée
 
 
 @dataclass
