@@ -30,6 +30,18 @@ Système d'analyse de code automatisé utilisant plusieurs agents coopérants po
 - **💥 Analyse d'impact** : Calcul automatique des fichiers impactés par chaque bug
 - **🔢 IDs de bugs uniques** : Chaque bug détecté a un ID unique (ex: `BUG-A1B2C3D4`)
 
+### Version 2.2.0 - Gemini 3 Pro Preview & Fonctionnalités Avancées
+
+- **🧠 Structured Outputs** : Réponses JSON garanties validées via Pydantic pour une analyse plus fiable
+- **💭 Thinking/Reasoning** : Affichage du processus de raisonnement du modèle pour les analyses complexes
+- **⚡ Code Execution** : Exécution de code Python en sandbox pour des analyses dynamiques (métriques AST, etc.)
+- **🔧 Function Calling** : Appel automatique de fonctions Python par le modèle
+- **📦 Context Caching** : Réduction des coûts API de ~50% via le cache de contexte Gemini
+- **📊 Batch API** : Traitement en lot à -50% du prix pour les analyses volumineuses
+- **🔍 Google Search** : Recherche web intégrée (grounding) pour des analyses enrichies
+- **🛡️ Sécurité améliorée** : Identifiants CWE et catégories OWASP dans les rapports de sécurité
+- **📈 Modèle Gemini 3 Pro Preview** : Support du nouveau modèle avec 1M tokens en entrée et 65K en sortie
+
 ### Architecture du Système
 
 Le système utilise un **orchestrateur dédié** (`AnalysisOrchestrator`) qui coordonne l'exécution du workflow d'analyse avec :
@@ -126,7 +138,8 @@ pip install -e .
 
 ### Dépendances
 
-- `google-generativeai` - API Gemini pour l'analyse de code
+- `google-genai` - Nouveau SDK Gemini avec Structured Outputs, Thinking, Code Execution (v2.2.0+)
+- `pydantic` - Validation des schémas JSON pour les Structured Outputs (v2.2.0+)
 - `openai` - API OpenAI pour l'analyse de code
 - `anthropic` - API Claude (Anthropic) pour l'analyse de code
 - `pathspec` - Gestion des patterns .gitignore
@@ -146,6 +159,8 @@ aetheris/
 │   │   ├── logger.py     # Logging et encodage UTF-8
 │   │   ├── analyzer.py   # Analyseur principal (CodeAnalyzer)
 │   │   ├── orchestrator.py  # Orchestrateur avec système de workflow
+│   │   ├── ai_providers.py  # Providers AI (Gemini, OpenAI, Claude) avec fonctionnalités avancées
+│   │   ├── gemini_config.py  # Configuration des fonctionnalités avancées Gemini (v2.2.0+)
 │   │   ├── cache.py      # Système de cache pour réduire les coûts API
 │   │   ├── error_handler.py  # Gestion d'erreurs avec circuit breaker
 │   │   ├── parallel_analyzer.py  # Parallélisation intelligente
@@ -153,7 +168,8 @@ aetheris/
 │   │   ├── metrics.py    # Collecteur de métriques de performance
 │   │   └── progress.py    # Gestionnaire de progression
 │   ├── models/           # Modèles de données
-│   │   └── data_models.py  # Dataclasses (FileAnalysis, SecurityIssue, etc.)
+│   │   ├── data_models.py  # Dataclasses (FileAnalysis, SecurityIssue, etc.)
+│   │   └── analysis_schemas.py  # Schémas Pydantic pour Structured Outputs (v2.2.0+)
 │   ├── agents/           # Agents d'analyse
 │   │   ├── base_agent.py  # Classe de base pour tous les agents
 │   │   ├── code_analysis_expert.py
@@ -252,9 +268,25 @@ export ANTHROPIC_API_KEY=votre_cle_api_ici
 
 | Fournisseur | Modèles disponibles                                                                                                                           | Modèle par défaut            | Notes                             |
 | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | --------------------------------- |
-| **Gemini**  | `gemini-1.5-flash`, `gemini-1.5-pro-latest`, `gemini-2.0-flash-exp`, `gemini-2.5-pro`, `gemini-1.5-pro`, `gemini-3-pro-preview`, `gemini-pro` | `gemini-1.5-flash`           | Pas de reasoning exposé via l'API |
+| **Gemini**  | `gemini-3-pro-preview` ⭐, `gemini-2.5-pro`, `gemini-2.0-flash-exp`, `gemini-1.5-pro`, `gemini-1.5-flash`, `gemini-pro` | `gemini-3-pro-preview`       | Thinking disponible pour gemini-2.5+ |
 | **OpenAI**  | `gpt-4o`, `gpt-4-turbo`, `gpt-4`, `gpt-3.5-turbo`, `gpt-4-turbo-preview`                                                                      | `gpt-4o`                     | Pas de reasoning exposé via l'API |
 | **Claude**  | `claude-3-5-sonnet-20241022`, `claude-3-opus-20240229`, `claude-3-haiku-20240307`                                                             | `claude-3-5-sonnet-20241022` | Pas de reasoning exposé via l'API |
+
+##### Gemini 3 Pro Preview - Fonctionnalités Avancées (v2.2.0+)
+
+Le modèle `gemini-3-pro-preview` offre des capacités uniques :
+
+| Fonctionnalité | Description | Activation |
+|----------------|-------------|------------|
+| **Structured Outputs** | Réponses JSON validées via Pydantic | `ENABLE_STRUCTURED_OUTPUTS=true` |
+| **Thinking** | Affichage du processus de raisonnement | `ENABLE_THINKING=true` |
+| **Code Execution** | Exécution Python en sandbox | `ENABLE_CODE_EXECUTION=true` |
+| **Context Caching** | Cache de contexte (-50% coût) | `ENABLE_CONTEXT_CACHING=true` |
+| **Batch API** | Traitement en lot (-50% coût) | `ENABLE_BATCH_MODE=true` |
+
+**Limites du modèle :**
+- Input : 1 048 576 tokens (1M)
+- Output : 65 536 tokens (65K)
 
 > **Note** : Pour utiliser le mode reasoning avec les modèles OpenAI `o1-preview` ou `o1-mini`, définissez `AI_MODEL=o1-preview` (ou `o1-mini`) et `SHOW_REASONING=true`. Le reasoning s'affichera dans un panneau dédié pendant l'analyse.
 
@@ -305,6 +337,14 @@ Vous pouvez personnaliser le comportement via des variables d'environnement ou l
 | `MAX_IMPACT_DEPTH`                | Profondeur maximale pour l'analyse d'impact                  | `3`                             |
 | `ENABLE_CLAUDE_CODE_FIX`          | Activer l'intégration Claude Code pour la correction         | `true`                          |
 | `FIX_SEVERITY_THRESHOLD`          | Seuil de sévérité minimale pour les corrections              | `medium`                        |
+| `ENABLE_STRUCTURED_OUTPUTS`       | Activer les Structured Outputs Gemini (JSON validé Pydantic) | `true`                          |
+| `ENABLE_THINKING`                 | Activer le mode Thinking/Reasoning de Gemini                 | `false`                         |
+| `THINKING_BUDGET`                 | Budget de tokens pour le Thinking (min 128)                  | `1024`                          |
+| `ENABLE_CODE_EXECUTION`           | Activer l'exécution de code Python en sandbox                | `false`                         |
+| `ENABLE_FUNCTION_CALLING`         | Activer l'appel automatique de fonctions                     | `false`                         |
+| `ENABLE_CONTEXT_CACHING`          | Activer le cache de contexte Gemini (-50% coût)              | `true`                          |
+| `CONTEXT_CACHE_TTL_SECONDS`       | Durée de vie du cache de contexte (secondes)                 | `3600`                          |
+| `ENABLE_BATCH_MODE`               | Activer le mode Batch API (-50% coût)                        | `false`                         |
 
 ### 💰 Coûts d'analyse
 
@@ -331,6 +371,7 @@ _Note : Les coûts sont approximatifs et peuvent varier selon la complexité du 
 
 | Fournisseur | Modèle        | Input (par M tokens) | Output (par M tokens) |
 | ----------- | ------------- | -------------------- | --------------------- |
+| **Gemini**  | 3 Pro Preview | ~$3.50               | ~$10.50               |
 | **Gemini**  | 2.5 Pro       | ~$3.50               | ~$10.50               |
 | **Gemini**  | 1.5 Pro       | $3.50                | $10.50                |
 | **Gemini**  | 1.5 Flash     | $0.35                | $1.05                 |
@@ -597,6 +638,93 @@ Extensibilité via hooks personnalisés :
 - **Hooks par étape** : Exécution de code avant/après chaque étape
 - **Contexte partagé** : Accès aux données du workflow
 - **Documentation complète** : Guide dans `docs/PLUGINS.md`
+
+## 🧠 Nouvelles Fonctionnalités v2.2.0
+
+### Structured Outputs (Gemini)
+
+Les Structured Outputs garantissent des réponses JSON validées via Pydantic :
+
+```python
+# Exemple d'utilisation interne
+from src.models.analysis_schemas import SecurityAnalysisResult
+
+result = await agent._call_ai_structured(prompt, SecurityAnalysisResult)
+# result est un objet Pydantic validé avec des types stricts
+```
+
+**Avantages :**
+- Réponses JSON garanties (pas de parsing manuel)
+- Validation automatique des types
+- Schémas Pydantic réutilisables
+- Meilleure fiabilité des analyses
+
+### Thinking/Reasoning Mode (Gemini 2.5+)
+
+Le mode Thinking affiche le processus de raisonnement du modèle :
+
+```bash
+# Activer le mode Thinking
+ENABLE_THINKING=true THINKING_BUDGET=2048 aetheris analysis
+```
+
+**Utilisation :**
+- Déboguer les analyses complexes
+- Comprendre les décisions du modèle
+- Améliorer la transparence
+- Budget minimum : 128 tokens
+
+### Code Execution (Gemini)
+
+Exécution de code Python en sandbox pour des analyses dynamiques :
+
+```bash
+# Activer l'exécution de code
+ENABLE_CODE_EXECUTION=true aetheris analysis
+```
+
+**Cas d'usage :**
+- Parsing AST pour métriques avancées
+- Calculs de complexité
+- Détection de patterns via code
+- Analyse dynamique du code source
+
+### Context Caching (Gemini)
+
+Réduction des coûts API de ~50% via le cache de contexte :
+
+```bash
+# Activer le cache de contexte (1 heure)
+ENABLE_CONTEXT_CACHING=true CONTEXT_CACHE_TTL_SECONDS=3600 aetheris analysis
+```
+
+**Avantages :**
+- Réduction des coûts de 50%
+- Réutilisation du contexte entre requêtes
+- TTL configurable
+- Idéal pour les analyses volumineuses
+
+### Batch API (Gemini)
+
+Traitement en lot à -50% du prix :
+
+```bash
+# Activer le mode batch
+ENABLE_BATCH_MODE=true aetheris analysis
+```
+
+**Cas d'usage :**
+- Analyses de gros projets
+- Traitement non-urgent
+- Optimisation des coûts
+
+### Sécurité Améliorée
+
+Les rapports de sécurité incluent maintenant :
+
+- **CWE ID** : Identifiants Common Weakness Enumeration (ex: CWE-79 pour XSS)
+- **Catégories OWASP** : Classification OWASP Top 10 (ex: A01:2021)
+- **Recommandations détaillées** : Corrections spécifiques par vulnérabilité
 
 ## 📊 Rapports générés
 
