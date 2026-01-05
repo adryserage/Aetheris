@@ -170,6 +170,11 @@ def load_env_file(env_path: str = ".env") -> Dict[str, str]:
                             value.startswith("'") and value.endswith("'")
                         ):
                             value = value[1:-1]
+                        else:
+                            # Supprimer les commentaires inline (sauf si entre guillemets)
+                            # Ex: API_KEY=abc123  # commentaire -> API_KEY=abc123
+                            if "#" in value:
+                                value = value.split("#")[0].strip()
                         env_vars[key] = value
         except Exception as e:
             print(f"⚠️  Erreur lors de la lecture de {env_path}: {e}")

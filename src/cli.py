@@ -131,6 +131,27 @@ async def run_analysis(args):
         log_print("   4. Ou configurez-la dans GitHub Secrets (pour GitHub Actions)")
         sys.exit(1)
 
+    # Afficher la clé API masquée pour debug
+    masked_key = ai_api_key[:8] + "..." + ai_api_key[-4:] if len(ai_api_key) > 12 else "***"
+    log_print(f"🔑 Clé API: {masked_key} (longueur: {len(ai_api_key)})")
+
+    # Valider la clé API avec un test simple
+    if ai_provider == "gemini":
+        log_print("🔄 Validation de la clé API Gemini...")
+        try:
+            from google import genai
+            test_client = genai.Client(api_key=ai_api_key)
+            # Test avec un modèle simple
+            test_response = test_client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents="Say 'OK' if you can hear me."
+            )
+            log_print(f"✅ Clé API validée: {test_response.text[:50]}...")
+        except Exception as e:
+            log_print(f"❌ Erreur de validation de la clé API: {e}")
+            log_print("   Vérifiez que votre clé API est valide sur: https://aistudio.google.com/apikey")
+            sys.exit(1)
+
     # Récupérer le modèle (défaut selon provider)
     from src.core.config import get_default_model
 
