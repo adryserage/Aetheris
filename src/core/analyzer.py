@@ -383,6 +383,13 @@ class CodeAnalyzer:
             pass  # Autoriser les fichiers de config
         # Sinon, on continue - on accepte tous les fichiers de code source
 
+        # Exclure les fichiers cachés (commençant par .)
+        # Sauf les fichiers de config explicitement autorisés
+        if filename.startswith(".") and filename not in {".gitignore", ".github"}:
+            # Vérifier si ce n'est pas un fichier de config autorisé
+            if filename not in allowed_config_patterns:
+                return False
+
         # Exclure les fichiers binaires et trop volumineux
         try:
             size = os.path.getsize(file_path)

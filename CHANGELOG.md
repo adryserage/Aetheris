@@ -5,6 +5,27 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.2.1] - 2025-01-05
+
+### 🐛 Corrections
+
+- **Correction du SDK google-genai** : Mise à jour des imports dans CLI et main.py
+  - Changement de `import google.generativeai` vers `from google import genai`
+  - Alignement avec le nouveau SDK google-genai>=1.0.0
+
+- **Options de configuration v2.2.0** : Les nouvelles options Gemini sont maintenant passées à AnalysisConfig
+  - `ENABLE_STRUCTURED_OUTPUTS`, `ENABLE_THINKING`, `ENABLE_CODE_EXECUTION`, etc.
+  - Documentation des incompatibilités dans `.env.example`
+
+- **Exclusion des fichiers cachés** : Les fichiers commençant par `.` sont maintenant exclus de l'analyse
+  - Respect des règles `.gitignore`
+  - Meilleure performance et pertinence des analyses
+
+### 📚 Documentation
+
+- Mise à jour de `.env.example` avec les incompatibilités entre fonctionnalités Gemini
+- Ajout de `ENABLE_GOOGLE_SEARCH` comme option de configuration
+
 ## [2.2.0] - 2025-01-05
 
 ### ✨ Nouvelles fonctionnalités
