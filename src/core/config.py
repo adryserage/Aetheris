@@ -9,7 +9,7 @@ from typing import Dict, List, Optional
 
 # Modèles par défaut par fournisseur
 DEFAULT_MODELS = {
-    "gemini": "gemini-1.5-pro",  # gemini-1.5-pro est mieux supporté par l'API v1beta
+    "gemini": "gemini-3-pro-preview",  # Nouveau modèle avec toutes les fonctionnalités
     "openai": "gpt-4o",
     "claude": "claude-3-5-sonnet-20241022",
 }
@@ -17,12 +17,15 @@ DEFAULT_MODELS = {
 # Modèles supportés par fournisseur
 SUPPORTED_MODELS = {
     "gemini": [
-        "gemini-1.5-flash",  # Modèle le plus largement disponible
-        "gemini-1.5-pro-latest",  # Version latest si disponible
-        "gemini-2.0-flash-exp",  # Version expérimentale
-        "gemini-2.5-pro",
-        "gemini-1.5-pro",
+        # Dernière génération (fonctionnalités complètes)
         "gemini-3-pro-preview",
+        "gemini-2.5-pro",
+        "gemini-2.5-flash",
+        # Génération précédente
+        "gemini-2.0-flash-exp",
+        "gemini-1.5-pro",
+        "gemini-1.5-pro-latest",
+        "gemini-1.5-flash",
         "gemini-pro",
     ],
     "openai": [
@@ -93,6 +96,43 @@ class AnalysisConfig:
     max_dependency_depth: int = 2  # Profondeur maximale pour l'analyse des dépendances
     enable_metrics: bool = True  # Activer la collecte de métriques
     enable_priority_analysis: bool = True  # Activer l'analyse par priorité (PR files = HIGH)
+
+    # Options d'analyse des exports et dépendances inverses
+    enable_export_analysis: bool = True  # Activer l'extraction des exports
+    enable_reverse_dependency: bool = True  # Activer le graphe de dépendances inverses
+    enable_impact_analysis: bool = True  # Activer l'analyse d'impact des bugs
+    max_impact_depth: int = 3  # Profondeur maximale pour l'analyse d'impact
+
+    # Options Claude Code
+    enable_claude_code_fix: bool = True  # Activer l'intégration Claude Code pour la correction
+    fix_severity_threshold: str = "medium"  # Seuil de sévérité minimale pour les corrections
+    bugs_cache_file: str = ".bugs_cache.json"  # Fichier cache des bugs
+
+    # === Gemini Advanced Features (google-genai SDK) ===
+    # Ces options ne s'appliquent qu'au provider Gemini
+
+    # Code Execution : permet au modèle d'exécuter du code Python en sandbox
+    enable_code_execution: bool = False
+
+    # Structured Outputs : utilise des schémas Pydantic pour des réponses JSON garanties
+    enable_structured_outputs: bool = True
+
+    # Function Calling : permet au modèle d'appeler des fonctions Python
+    enable_function_calling: bool = False
+
+    # Thinking/Reasoning : affiche le processus de raisonnement du modèle
+    enable_thinking: bool = False
+    thinking_budget: int = 1024  # Budget de tokens pour le raisonnement (min 128)
+
+    # Context Caching : cache API pour réduire les coûts (~50%)
+    enable_context_caching: bool = True
+    cache_ttl_seconds: int = 3600  # Durée de vie du cache en secondes (1h par défaut)
+
+    # Batch API : traitement en lot à coût réduit (-50%)
+    enable_batch_mode: bool = False
+
+    # Google Search : recherche web intégrée pour grounding
+    enable_google_search: bool = False
 
     def __post_init__(self):
         """Initialise les valeurs par défaut après création"""
