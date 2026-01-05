@@ -416,7 +416,7 @@ Réponds en JSON valide selon ce schéma:
         # Analyser chaque user story
         for story in user_stories:
             if self.progress_manager:
-                self.progress_manager.update_current_file(f"Analyzing: {story.title[:50]}")
+                self.progress_manager.print(f"[dim]📖 Analyzing: {story.title[:50]}[/dim]")
 
             flow = await self.analyze_user_story(story, file_analyses)
             result.flows.append(flow)

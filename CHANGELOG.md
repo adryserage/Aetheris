@@ -5,6 +5,13 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.3.3] - 2025-01-05
+
+### 🐛 Corrections
+
+- **User Story Agent** : Corrige `AttributeError: 'ProgressManager' object has no attribute 'update_current_file'`
+  - Remplace l'appel à `update_current_file` par `print` existant
+
 ## [2.3.2] - 2025-01-05
 
 ### 🐛 Corrections

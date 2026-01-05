@@ -830,7 +830,7 @@ def get_version():
         import importlib.metadata
         return importlib.metadata.version("adryserage-aetheris")
     except Exception:
-        return "2.3.2"  # Fallback
+        return "2.3.3"  # Fallback
 
 
 def create_parser():
