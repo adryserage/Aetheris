@@ -188,6 +188,7 @@ class ImpactAnalyzer:
             "high": [],
             "medium": [],
             "low": [],
+            "info": [],
         }
 
         for bug in all_bugs:

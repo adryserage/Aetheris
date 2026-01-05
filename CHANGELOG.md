@@ -5,6 +5,14 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.2.5] - 2025-01-05
+
+### 🐛 Corrections
+
+- **Correction severity 'info' dans impact analyzer** : Ajout de la clé 'info' manquante
+  - Résout l'erreur `KeyError: 'info'` dans l'analyse d'impact
+  - Les issues de sécurité de niveau 'info' sont maintenant correctement traitées
+
 ## [2.2.4] - 2025-01-05
 
 ### 🐛 Corrections
