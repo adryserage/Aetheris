@@ -30,6 +30,16 @@ Système d'analyse de code automatisé utilisant plusieurs agents coopérants po
 - **💥 Analyse d'impact** : Calcul automatique des fichiers impactés par chaque bug
 - **🔢 IDs de bugs uniques** : Chaque bug détecté a un ID unique (ex: `BUG-A1B2C3D4`)
 
+### Version 2.3.0 - User Story Analysis
+
+- **📖 Commande `aetheris user-story`** : Analyse complète des flux utilisateur
+- **🔄 Traçage frontend ↔ backend** : Détection bidirectionnelle des appels API
+- **🔍 Détection d'endpoints orphelins** : Identifie les endpoints définis mais jamais appelés
+- **⚠️ Détection d'appels sans handler** : Identifie les appels API sans endpoint correspondant
+- **📊 Diagrammes Mermaid/PlantUML** : Génération automatique de diagrammes de séquence et flowcharts
+- **🎯 Multi-framework** : Support Express, Next.js, FastAPI, Flask, Django, NestJS, fetch, axios, dio, etc.
+- **📝 Multi-input** : Description textuelle, fichier markdown, point d'entrée code, ou auto-détection
+
 ### Version 2.2.0 - Gemini 3 Pro Preview & Fonctionnalités Avancées
 
 - **🧠 Structured Outputs** : Réponses JSON garanties validées via Pydantic pour une analyse plus fiable
@@ -538,6 +548,60 @@ La commande détecte automatiquement le système d'exploitation et lance Claude 
 | **Windows** | `cmd` avec `start` |
 | **macOS** | Terminal.app via AppleScript |
 | **Linux** | `gnome-terminal`, `konsole`, `xfce4-terminal`, `xterm`, ou `x-terminal-emulator` |
+
+### Analyse de User Stories (v2.3.0+)
+
+La commande `aetheris user-story` permet d'analyser les flux utilisateur et de tracer les appels frontend ↔ backend.
+
+#### Usage
+
+```bash
+# Depuis une description textuelle
+aetheris user-story --text "Quand l'utilisateur clique sur Login, il est redirigé vers le dashboard"
+
+# Depuis un fichier markdown avec des user stories
+aetheris user-story --file docs/user-stories.md
+
+# Depuis un point d'entrée code (composant UI)
+aetheris user-story --entry src/components/LoginButton.tsx
+
+# Auto-détection de tous les flux utilisateur
+aetheris user-story --auto
+```
+
+#### Options de sortie
+
+```bash
+# Format de sortie (défaut: both)
+aetheris user-story --auto --output-format markdown
+aetheris user-story --auto --output-format json
+aetheris user-story --auto --output-format both
+
+# Format de diagramme (défaut: mermaid)
+aetheris user-story --auto --diagram mermaid
+aetheris user-story --auto --diagram plantuml
+aetheris user-story --auto --diagram none
+
+# Filtrer par sévérité minimale
+aetheris user-story --auto --severity high
+```
+
+#### Problèmes détectés
+
+| Type | Description |
+|------|-------------|
+| `orphan_endpoint` | Endpoint défini mais jamais appelé |
+| `missing_handler` | Appel API sans endpoint correspondant |
+| `missing_error_handling` | Appel API sans try/catch ou .catch() |
+| `race_condition` | Appels concurrents sur même state |
+| `missing_auth` | Endpoint sensible sans authentification |
+| `dead_code` | Code jamais exécuté dans le flux |
+
+#### Frameworks supportés
+
+**Frontend** : fetch, axios, SWR, React Query, dio (Dart), requests, httpx
+
+**Backend** : Express.js, Next.js API Routes, FastAPI, Flask, Django, NestJS
 
 ## 🔄 GitHub Actions
 

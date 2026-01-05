@@ -470,13 +470,321 @@ async def run_fix(args):
         console.print("[red]❌ Aucun bug n'a été corrigé[/red]")
 
 
+def setup_user_story_parser(subparsers):
+    """Configure le parser pour la sous-commande user-story"""
+    us_parser = subparsers.add_parser(
+        "user-story",
+        help="Analyser les flux de user stories",
+        description="Analyse les flux frontend ↔ backend et détecte les incohérences",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Exemples:
+  # Analyser depuis une description textuelle
+  aetheris user-story --text "Quand l'utilisateur clique sur Login..."
+
+  # Analyser depuis un fichier markdown
+  aetheris user-story --file user-stories.md
+
+  # Analyser depuis un point d'entrée code
+  aetheris user-story --entry src/components/LoginButton.tsx
+
+  # Auto-détecter tous les flux
+  aetheris user-story --auto
+
+  # Options de sortie
+  aetheris user-story --auto --output-format json
+  aetheris user-story --auto --diagram mermaid
+        """,
+    )
+
+    # Mode d'entrée (mutuellement exclusif)
+    input_group = us_parser.add_mutually_exclusive_group(required=True)
+    input_group.add_argument(
+        "--text",
+        type=str,
+        help="User story en description textuelle",
+    )
+    input_group.add_argument(
+        "--file",
+        type=str,
+        help="Chemin vers un fichier markdown avec les user stories",
+    )
+    input_group.add_argument(
+        "--entry",
+        type=str,
+        help="Fichier de code comme point d'entrée (ex: LoginButton.tsx)",
+    )
+    input_group.add_argument(
+        "--auto",
+        action="store_true",
+        help="Auto-détecter tous les flux utilisateur",
+    )
+
+    # Options de sortie
+    us_parser.add_argument(
+        "--output-format",
+        choices=["markdown", "json", "both"],
+        default="both",
+        help="Format de sortie (défaut: both)",
+    )
+    us_parser.add_argument(
+        "--diagram",
+        choices=["mermaid", "plantuml", "both", "none"],
+        default="mermaid",
+        help="Format de diagramme (défaut: mermaid)",
+    )
+    us_parser.add_argument(
+        "--output-file",
+        type=str,
+        help="Fichier de sortie (défaut: docs/user-stories/analysis.md)",
+    )
+    us_parser.add_argument(
+        "--severity",
+        choices=["critical", "high", "medium", "low", "info"],
+        default="low",
+        help="Sévérité minimale pour les issues (défaut: low = tout afficher)",
+    )
+
+    return us_parser
+
+
+async def run_user_story(args):
+    """Exécute l'analyse de user stories"""
+    console = Console()
+
+    console.print()
+    console.rule("[bold blue]📖 Aetheris User Story Analysis")
+    console.print()
+
+    # Charger le fichier .env
+    env_vars = load_env_file(".env")
+
+    # Déterminer le provider AI
+    ai_provider = (env_vars.get("AI_PROVIDER") or os.getenv("AI_PROVIDER", "gemini")).lower()
+
+    # Récupérer la clé API
+    api_key_env_vars = {
+        "gemini": "GEMINI_API_KEY",
+        "openai": "OPENAI_API_KEY",
+        "claude": "ANTHROPIC_API_KEY",
+    }
+    api_key_name = api_key_env_vars.get(ai_provider, "GEMINI_API_KEY")
+    ai_api_key = env_vars.get(api_key_name) or os.getenv(api_key_name)
+
+    if not ai_api_key:
+        console.print(f"[red]❌ Variable d'environnement {api_key_name} non définie[/red]")
+        sys.exit(1)
+
+    # Configuration
+    from src.core.config import get_default_model
+
+    default_model = get_default_model(ai_provider)
+    ai_model = env_vars.get("AI_MODEL") or os.getenv("AI_MODEL", default_model)
+
+    root_dir = env_vars.get("ROOT_DIR") or os.getenv("ROOT_DIR", ".")
+    output_dir = env_vars.get("USER_STORY_OUTPUT_DIR") or os.getenv(
+        "USER_STORY_OUTPUT_DIR", "docs/user-stories"
+    )
+
+    config = AnalysisConfig(
+        ai_provider=ai_provider,
+        ai_api_key=ai_api_key,
+        ai_model=ai_model,
+        root_dir=root_dir,
+        user_story_output_dir=output_dir,
+        user_story_min_severity=args.severity,
+        user_story_diagram_format=args.diagram if args.diagram != "none" else "mermaid",
+        enable_structured_outputs=True,
+    )
+
+    console.print(f"[cyan]🤖 Provider: {ai_provider.upper()} ({ai_model})[/cyan]")
+    console.print(f"[cyan]📁 Répertoire: {root_dir}[/cyan]")
+    console.print()
+
+    # Déterminer le mode d'entrée
+    if args.text:
+        input_mode = "text"
+        input_value = args.text
+        console.print(f"[cyan]📝 Mode: Description textuelle[/cyan]")
+        console.print(f"[dim]{args.text[:100]}...[/dim]" if len(args.text) > 100 else f"[dim]{args.text}[/dim]")
+    elif args.file:
+        input_mode = "file"
+        input_value = args.file
+        console.print(f"[cyan]📄 Mode: Fichier markdown ({args.file})[/cyan]")
+    elif args.entry:
+        input_mode = "entry"
+        input_value = args.entry
+        console.print(f"[cyan]🎯 Mode: Point d'entrée code ({args.entry})[/cyan]")
+    else:
+        input_mode = "auto"
+        input_value = ""
+        console.print("[cyan]🔍 Mode: Auto-détection des flux[/cyan]")
+
+    console.print()
+
+    # Lister les fichiers du projet
+    from pathspec import PathSpec
+
+    all_files: List[str] = []
+    gitignore_path = os.path.join(root_dir, ".gitignore")
+    gitignore_spec = None
+
+    if os.path.exists(gitignore_path):
+        try:
+            with open(gitignore_path, "r", encoding="utf-8") as f:
+                gitignore_spec = PathSpec.from_lines("gitwildmatch", f)
+        except Exception:
+            pass
+
+    for dirpath, dirnames, filenames in os.walk(root_dir):
+        # Filtrer les dossiers
+        dirnames[:] = [
+            d for d in dirnames
+            if not d.startswith(".") and d not in ["node_modules", "__pycache__", "dist", "build", ".git"]
+        ]
+
+        for filename in filenames:
+            filepath = os.path.relpath(os.path.join(dirpath, filename), root_dir)
+
+            # Appliquer gitignore
+            if gitignore_spec and gitignore_spec.match_file(filepath):
+                continue
+
+            all_files.append(filepath)
+
+    console.print(f"[dim]📊 {len(all_files)} fichiers dans le projet[/dim]")
+    console.print()
+
+    # Créer le ProgressManager
+    progress_manager = ProgressManager(enabled=True)
+
+    # Importer et créer l'agent
+    from src.agents.user_story_analysis_agent import UserStoryAnalysisAgent
+    from src.services.diagram_generator import DiagramGenerator
+
+    agent = UserStoryAnalysisAgent(
+        config=config,
+        root_dir=root_dir,
+        all_files=all_files,
+        progress_manager=progress_manager,
+    )
+
+    # Lancer l'analyse
+    console.print("[cyan]🔄 Analyse en cours...[/cyan]")
+    console.print()
+
+    result = await agent.analyze_all_flows(input_mode, input_value)
+
+    # Afficher les résultats
+    console.print()
+    console.rule("[bold green]📊 Résultats de l'analyse")
+    console.print()
+
+    console.print(f"[bold]📈 Statistiques:[/bold]")
+    console.print(f"  • Flux analysés: {result.total_flows}")
+    console.print(f"  • Étapes totales: {result.total_steps}")
+    console.print(f"  • Appels API: {result.total_api_calls}")
+    console.print(f"  • Endpoints: {result.total_endpoints}")
+    console.print()
+
+    console.print(f"[bold]🐛 Issues par sévérité:[/bold]")
+    if result.critical_count > 0:
+        console.print(f"  • [red]Critical: {result.critical_count}[/red]")
+    if result.high_count > 0:
+        console.print(f"  • [yellow]High: {result.high_count}[/yellow]")
+    if result.medium_count > 0:
+        console.print(f"  • [blue]Medium: {result.medium_count}[/blue]")
+    if result.low_count > 0:
+        console.print(f"  • [dim]Low: {result.low_count}[/dim]")
+
+    if result.orphan_endpoints:
+        console.print()
+        console.print(f"[yellow]⚠️  {len(result.orphan_endpoints)} endpoint(s) orphelin(s) détecté(s)[/yellow]")
+        for ep in result.orphan_endpoints[:5]:
+            console.print(f"  • {ep.method} {ep.path} ({ep.file_path})")
+        if len(result.orphan_endpoints) > 5:
+            console.print(f"  ... et {len(result.orphan_endpoints) - 5} autres")
+
+    if result.missing_handlers:
+        console.print()
+        console.print(f"[red]❌ {len(result.missing_handlers)} appel(s) API sans handler[/red]")
+        for call in result.missing_handlers[:5]:
+            console.print(f"  • {call.method} {call.url_pattern} ({call.file_path})")
+
+    # Générer les diagrammes
+    if args.diagram != "none":
+        console.print()
+        console.print("[cyan]📊 Génération des diagrammes...[/cyan]")
+
+        diagram_gen = DiagramGenerator(output_dir)
+        files_created = diagram_gen.save_diagrams(result, args.diagram)
+
+        console.print(f"[green]✅ {len(files_created)} fichier(s) créé(s):[/green]")
+        for f in files_created[:5]:
+            console.print(f"  • {f}")
+
+    # Sauvegarder le rapport JSON si demandé
+    if args.output_format in ["json", "both"]:
+        os.makedirs(output_dir, exist_ok=True)
+        json_path = os.path.join(output_dir, "analysis-result.json")
+
+        report = {
+            "analysis_id": result.analysis_id,
+            "timestamp": result.timestamp,
+            "summary": {
+                "total_flows": result.total_flows,
+                "total_steps": result.total_steps,
+                "total_api_calls": result.total_api_calls,
+                "total_endpoints": result.total_endpoints,
+                "issues": {
+                    "critical": result.critical_count,
+                    "high": result.high_count,
+                    "medium": result.medium_count,
+                    "low": result.low_count,
+                },
+            },
+            "flows": [
+                {
+                    "id": flow.id,
+                    "title": flow.title,
+                    "entry_point": flow.entry_point,
+                    "steps_count": len(flow.steps),
+                    "issues_count": len(flow.issues),
+                }
+                for flow in result.flows
+            ],
+            "orphan_endpoints": [
+                {"method": ep.method, "path": ep.path, "file": ep.file_path}
+                for ep in result.orphan_endpoints
+            ],
+            "issues": [
+                {
+                    "id": issue.id,
+                    "severity": issue.severity,
+                    "type": issue.issue_type,
+                    "title": issue.title,
+                    "description": issue.description,
+                }
+                for issue in result.all_issues
+            ],
+        }
+
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(report, f, indent=2, ensure_ascii=False)
+
+        console.print(f"[green]📄 Rapport JSON: {json_path}[/green]")
+
+    console.print()
+    console.rule("[bold green]✅ Analyse terminée")
+
+
 def get_version():
     """Retourne la version depuis pyproject.toml"""
     try:
         import importlib.metadata
         return importlib.metadata.version("adryserage-aetheris")
     except Exception:
-        return "2.2.7"  # Fallback
+        return "2.3.0"  # Fallback
 
 
 def create_parser():
@@ -514,6 +822,9 @@ Exemples:
     # Ajouter la sous-commande fix
     setup_fix_parser(subparsers)
 
+    # Ajouter la sous-commande user-story
+    setup_user_story_parser(subparsers)
+
     return parser
 
 
@@ -530,6 +841,8 @@ def main():
         asyncio.run(run_analysis(args))
     elif args.command == "fix":
         asyncio.run(run_fix(args))
+    elif args.command == "user-story":
+        asyncio.run(run_user_story(args))
     else:
         parser.print_help()
         sys.exit(1)

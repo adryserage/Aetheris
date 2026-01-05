@@ -5,6 +5,41 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.3.0] - 2025-01-05
+
+### ✨ Nouvelles fonctionnalités
+
+- **User Story Analysis** : Nouvelle commande `aetheris user-story` pour analyser les flux utilisateur
+  - Trace les appels frontend ↔ backend bidirectionnels
+  - Détecte les endpoints orphelins (définis mais jamais appelés)
+  - Détecte les appels API sans handler correspondant
+  - Analyse les incohérences logiques et les problèmes potentiels
+  - Génère des diagrammes Mermaid et PlantUML
+  - Supporte plusieurs modes d'entrée :
+    - `--text "description"` : Depuis une description textuelle
+    - `--file user-stories.md` : Depuis un fichier markdown
+    - `--entry LoginButton.tsx` : Depuis un point d'entrée code
+    - `--auto` : Auto-détection de tous les flux
+  - Sortie en markdown, JSON ou les deux
+
+- **Nouveaux modèles et services** :
+  - `FlowTracer` : Détection agnostique des appels API (JS/TS, Dart, Python)
+  - `UserStoryParser` : Parsing de user stories depuis texte, markdown, Gherkin
+  - `UserStoryAnalysisAgent` : Agent IA pour l'analyse des flux
+  - `DiagramGenerator` : Génération de diagrammes de séquence et flowcharts
+
+- **Détection multi-framework** :
+  - Frontend : fetch, axios, dio, requests, httpx, aiohttp
+  - Backend : Express, Next.js, FastAPI, Flask, Django, NestJS
+
+- **Types de problèmes détectés** :
+  - `orphan_endpoint` : Endpoint défini mais jamais appelé
+  - `missing_handler` : Appel API sans endpoint correspondant
+  - `missing_error_handling` : Appel API sans gestion d'erreur
+  - `race_condition` : Appels concurrents sur même state
+  - `missing_auth` : Endpoint sensible sans authentification
+  - `dead_code` : Code jamais exécuté dans le flux
+
 ## [2.2.8] - 2025-01-05
 
 ### 🐛 Corrections

@@ -134,6 +134,39 @@ class AnalysisConfig:
     # Google Search : recherche web intégrée pour grounding
     enable_google_search: bool = False
 
+    # === User Story Analysis Options ===
+    # Analyse des flux frontend ↔ backend et détection d'incohérences
+
+    # Activer l'analyse de user stories
+    enable_user_story_analysis: bool = True
+
+    # Profondeur maximale des flux (nombre d'étapes)
+    user_story_max_depth: int = 15
+
+    # Détection des endpoints orphelins (définis mais jamais appelés)
+    detect_orphan_endpoints: bool = True
+
+    # Détection du code mort dans les flux
+    detect_dead_code: bool = True
+
+    # Détection des race conditions potentielles
+    detect_race_conditions: bool = True
+
+    # Détection de la gestion d'erreurs manquante
+    detect_missing_error_handling: bool = True
+
+    # Détection des problèmes d'authentification
+    detect_auth_issues: bool = True
+
+    # Format de diagramme par défaut (mermaid, plantuml)
+    user_story_diagram_format: str = "mermaid"
+
+    # Répertoire de sortie pour les rapports de user stories
+    user_story_output_dir: str = "docs/user-stories"
+
+    # Sévérité minimale pour les issues (critical, high, medium, low, info)
+    user_story_min_severity: str = "low"
+
     def __post_init__(self):
         """Initialise les valeurs par défaut après création"""
         # Normaliser le provider

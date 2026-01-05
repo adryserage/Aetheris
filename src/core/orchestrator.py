@@ -31,6 +31,7 @@ class WorkflowStage(Enum):
     ARCHITECTURE_REPORT = "architecture_report"
     VULNERABILITY_ANALYSIS = "vulnerability_analysis"
     QUALITY_REPORT = "quality_report"
+    USER_STORY_ANALYSIS = "user_story_analysis"  # Analyse des flux user stories
     COMPLETE = "complete"
     ERROR = "error"
 
@@ -46,6 +47,7 @@ class WorkflowContext:
     vulnerabilities: List[Any] = field(default_factory=list)
     architecture_report: str = ""
     quality_report: str = ""
+    user_story_result: Optional[Any] = None  # Résultat de l'analyse user story
     errors: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
     start_time: Optional[datetime] = None
