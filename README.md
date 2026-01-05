@@ -22,6 +22,14 @@ Système d'analyse de code automatisé utilisant plusieurs agents coopérants po
 - **🛡️ Gestion d'erreurs robuste** : Circuit breaker et backoff exponentiel pour une meilleure résilience
 - **🔌 Système de plugins** : Hooks extensibles pour personnaliser le workflow (voir `docs/PLUGINS.md`)
 
+### Version 2.1.0 - Correction de Bugs avec Claude Code
+
+- **🔧 Commande `aetheris fix`** : Correction automatique des bugs avec Claude Code
+- **📤 Analyse des exports** : Extraction des exports (TS/JS, Python, Dart) pour comprendre les relations
+- **🔙 Graphe de dépendances inverse** : Savoir "qui dépend de ce fichier" pour l'analyse d'impact
+- **💥 Analyse d'impact** : Calcul automatique des fichiers impactés par chaque bug
+- **🔢 IDs de bugs uniques** : Chaque bug détecté a un ID unique (ex: `BUG-A1B2C3D4`)
+
 ### Architecture du Système
 
 Le système utilise un **orchestrateur dédié** (`AnalysisOrchestrator`) qui coordonne l'exécution du workflow d'analyse avec :
@@ -291,6 +299,12 @@ Vous pouvez personnaliser le comportement via des variables d'environnement ou l
 | `MAX_DEPENDENCY_DEPTH`            | Profondeur maximale pour l'analyse des dépendances            | `2`                             |
 | `ENABLE_METRICS`                  | Activer la collecte de métriques de performance              | `true`                          |
 | `ENABLE_PRIORITY_ANALYSIS`        | Activer l'analyse par priorité (PR files = HIGH)             | `true`                          |
+| `ENABLE_EXPORT_ANALYSIS`          | Activer l'extraction des exports                             | `true`                          |
+| `ENABLE_REVERSE_DEPENDENCY`       | Activer le graphe de dépendances inverses                    | `true`                          |
+| `ENABLE_IMPACT_ANALYSIS`          | Activer l'analyse d'impact des bugs                          | `true`                          |
+| `MAX_IMPACT_DEPTH`                | Profondeur maximale pour l'analyse d'impact                  | `3`                             |
+| `ENABLE_CLAUDE_CODE_FIX`          | Activer l'intégration Claude Code pour la correction         | `true`                          |
+| `FIX_SEVERITY_THRESHOLD`          | Seuil de sévérité minimale pour les corrections              | `medium`                        |
 
 ### 💰 Coûts d'analyse
 
@@ -403,6 +417,63 @@ python main.py
 # Ou utiliser le module CLI
 python -m src.cli analysis
 ```
+
+### Correction de bugs avec Claude Code (v2.1.0+)
+
+La nouvelle commande `aetheris fix` permet de corriger automatiquement les bugs détectés en utilisant Claude Code.
+
+#### Prérequis
+
+- **Claude Code** doit être installé sur votre machine :
+  ```bash
+  npm install -g @anthropic-ai/claude-code
+  ```
+
+#### Commande fix
+
+```bash
+# Corriger les bugs depuis le cache existant
+aetheris fix
+
+# Lancer une analyse puis corriger
+aetheris fix --analyze-first
+
+# Corriger uniquement les bugs critiques et high
+aetheris fix --severity high
+
+# Mode automatique (sans confirmations entre les bugs)
+aetheris fix --auto
+```
+
+#### Options disponibles
+
+| Option | Description |
+|--------|-------------|
+| `--analyze-first` | Lancer une analyse avant de corriger |
+| `--severity` | Sévérité minimale des bugs à corriger (`critical`, `high`, `medium`, `low`) |
+| `--auto` | Mode automatique sans confirmations entre les bugs |
+
+#### Fonctionnement
+
+1. **Détection de Claude Code** : Vérifie si Claude Code est installé
+2. **Chargement des bugs** : Lit le cache `.bugs_cache.json` ou lance une analyse
+3. **Filtrage par sévérité** : Filtre les bugs selon le seuil choisi
+4. **Affichage du tableau** : Montre un récapitulatif des bugs à corriger
+5. **Correction séquentielle** : Pour chaque bug :
+   - Affiche les détails du bug
+   - Lance Claude Code dans une **nouvelle fenêtre de terminal**
+   - Attend la confirmation de l'utilisateur
+   - Passe au bug suivant
+
+#### Support multi-plateforme
+
+La commande détecte automatiquement le système d'exploitation et lance Claude Code dans le terminal approprié :
+
+| OS | Terminal utilisé |
+|----|------------------|
+| **Windows** | `cmd` avec `start` |
+| **macOS** | Terminal.app via AppleScript |
+| **Linux** | `gnome-terminal`, `konsole`, `xfce4-terminal`, `xterm`, ou `x-terminal-emulator` |
 
 ## 🔄 GitHub Actions
 

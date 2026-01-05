@@ -17,6 +17,9 @@ Les hooks peuvent être enregistrés sur les étapes suivantes :
 - `WorkflowStage.SCAN` : Scan des fichiers
 - `WorkflowStage.DEPENDENCY_INIT` : Initialisation de l'analyseur de dépendances
 - `WorkflowStage.FILE_ANALYSIS` : Analyse des fichiers
+- `WorkflowStage.EXPORT_ANALYSIS` : Extraction des exports de chaque fichier (v2.1.0+)
+- `WorkflowStage.REVERSE_DEPENDENCY` : Construction du graphe de dépendances inverse (v2.1.0+)
+- `WorkflowStage.IMPACT_ANALYSIS` : Analyse d'impact des bugs (v2.1.0+)
 - `WorkflowStage.DEPENDENCY_ANALYSIS` : Analyse des dépendances et détection des cycles
 - `WorkflowStage.ARCHITECTURE_REPORT` : Génération du rapport d'architecture
 - `WorkflowStage.VULNERABILITY_ANALYSIS` : Analyse des vulnérabilités
@@ -170,6 +173,70 @@ async def export_to_custom_format(context):
         json.dump(custom_data, f, indent=2)
 
 orchestrator.register_hook(WorkflowStage.QUALITY_REPORT, export_to_custom_format)
+```
+
+### Exemple 5 : Hook sur l'analyse d'impact (v2.1.0+)
+
+```python
+async def on_impact_analysis(context):
+    """Traite les résultats de l'analyse d'impact des bugs"""
+    # Accéder aux bugs via les analyses
+    total_bugs = 0
+    high_impact_files = set()
+
+    for analysis in context.analyses:
+        if hasattr(analysis, 'bugs') and analysis.bugs:
+            for bug in analysis.bugs:
+                total_bugs += 1
+                # Collecter les fichiers avec fort impact
+                if len(bug.impacted_files) > 5:
+                    high_impact_files.update(bug.impacted_files)
+
+    print(f"Total bugs détectés: {total_bugs}")
+    print(f"Fichiers à fort impact: {len(high_impact_files)}")
+
+    # Stocker dans les métadonnées pour utilisation ultérieure
+    context.metadata["total_bugs"] = total_bugs
+    context.metadata["high_impact_files"] = list(high_impact_files)
+
+orchestrator.register_hook(WorkflowStage.IMPACT_ANALYSIS, on_impact_analysis)
+```
+
+### Exemple 6 : Hook sur le graphe de dépendances inverse (v2.1.0+)
+
+```python
+async def on_reverse_dependencies(context):
+    """Analyse le graphe de dépendances inverse"""
+    # Les dépendances inverses sont accessibles via l'analyseur de dépendances
+    for analysis in context.analyses:
+        if hasattr(analysis, 'reverse_dependencies') and analysis.reverse_dependencies:
+            file_path = analysis.file_path
+            dependents = analysis.reverse_dependencies
+            print(f"{file_path} est importé par {len(dependents)} fichier(s)")
+
+orchestrator.register_hook(WorkflowStage.REVERSE_DEPENDENCY, on_reverse_dependencies)
+```
+
+### Exemple 7 : Hook sur l'extraction des exports (v2.1.0+)
+
+```python
+async def on_export_analysis(context):
+    """Analyse les exports de chaque fichier"""
+    total_exports = 0
+    export_types = {}
+
+    for analysis in context.analyses:
+        if hasattr(analysis, 'exports') and analysis.exports:
+            for export in analysis.exports:
+                total_exports += 1
+                export_type = export.export_type
+                export_types[export_type] = export_types.get(export_type, 0) + 1
+
+    print(f"Total exports: {total_exports}")
+    for export_type, count in export_types.items():
+        print(f"  - {export_type}: {count}")
+
+orchestrator.register_hook(WorkflowStage.EXPORT_ANALYSIS, on_export_analysis)
 ```
 
 ## Intégration dans CodeAnalyzer
