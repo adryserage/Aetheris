@@ -658,10 +658,31 @@ class CodeAnalyzer:
         )
 
         self.orchestrator.register_step(
+            WorkflowStage.EXPORT_ANALYSIS,
+            "Extraction des exports",
+            self._step_analyze_exports,
+            dependencies=[WorkflowStage.FILE_ANALYSIS],
+        )
+
+        self.orchestrator.register_step(
+            WorkflowStage.REVERSE_DEPENDENCY,
+            "Construction du graphe de dépendances inverse",
+            self._step_build_reverse_dependencies,
+            dependencies=[WorkflowStage.EXPORT_ANALYSIS],
+        )
+
+        self.orchestrator.register_step(
+            WorkflowStage.IMPACT_ANALYSIS,
+            "Analyse d'impact des bugs",
+            self._step_analyze_impact,
+            dependencies=[WorkflowStage.REVERSE_DEPENDENCY],
+        )
+
+        self.orchestrator.register_step(
             WorkflowStage.DEPENDENCY_ANALYSIS,
             "Analyse des dépendances et détection des cycles",
             self._step_analyze_dependencies,
-            dependencies=[WorkflowStage.FILE_ANALYSIS],
+            dependencies=[WorkflowStage.IMPACT_ANALYSIS],
         )
 
         self.orchestrator.register_step(
@@ -941,6 +962,176 @@ class CodeAnalyzer:
 
         context.cycles = cycles
         return context
+
+    async def _step_analyze_exports(self, context: WorkflowContext) -> WorkflowContext:
+        """Étape: Extraire les exports de tous les fichiers analysés"""
+        from src.services.export_analyzer import ExportAnalyzer
+
+        export_task = self.progress_manager.add_task(
+            "📤 Extraction des exports...", total=len(context.analyses)
+        )
+
+        export_analyzer = ExportAnalyzer(self.config.root_dir)
+
+        for analysis in context.analyses:
+            if analysis.success:
+                try:
+                    with open(analysis.file_path, "r", encoding="utf-8", errors="ignore") as f:
+                        content = f.read()
+                    exports = export_analyzer.extract_exports(
+                        analysis.file_path, content, analysis.language
+                    )
+                    analysis.exports = exports
+                except Exception as e:
+                    log_print(f"⚠️  Erreur extraction exports {analysis.file_path}: {e}")
+
+            self.progress_manager.update_task(export_task, advance=1)
+
+        total_exports = sum(len(a.exports) for a in context.analyses if a.success)
+        self.progress_manager.complete_task(export_task)
+        self.progress_manager.print(f"✅ {total_exports} exports extraits\n")
+
+        return context
+
+    async def _step_build_reverse_dependencies(self, context: WorkflowContext) -> WorkflowContext:
+        """Étape: Construire le graphe de dépendances inverse"""
+        rev_task = self.progress_manager.add_task(
+            "🔄 Construction du graphe de dépendances inverse...", total=100
+        )
+
+        # Construire la map des dépendances
+        dependencies_map = {}
+        for analysis in context.analyses:
+            if analysis.success and analysis.dependencies:
+                dependencies_map[analysis.file_path] = analysis.dependencies
+
+        # Construire le graphe inverse
+        reverse_graph = self.dependency_analyzer.build_reverse_dependency_graph(dependencies_map)
+
+        # Stocker les dépendances inverses dans chaque analyse
+        for analysis in context.analyses:
+            if analysis.file_path in reverse_graph:
+                analysis.reverse_dependencies = reverse_graph[analysis.file_path]
+
+        context.metadata["reverse_dependencies_count"] = sum(
+            len(deps) for deps in reverse_graph.values()
+        )
+
+        self.progress_manager.update_task(
+            rev_task,
+            advance=100,
+            description=f"✅ {len(reverse_graph)} fichiers avec dépendants identifiés",
+        )
+        self.progress_manager.complete_task(rev_task)
+        self.progress_manager.print()
+
+        return context
+
+    async def _step_analyze_impact(self, context: WorkflowContext) -> WorkflowContext:
+        """Étape: Analyser l'impact des bugs sur le codebase"""
+        from src.services.impact_analyzer import ImpactAnalyzer
+        import json
+
+        impact_task = self.progress_manager.add_task(
+            "🎯 Analyse d'impact des bugs...", total=100
+        )
+
+        impact_analyzer = ImpactAnalyzer(
+            self.dependency_analyzer, max_impact_depth=self.config.max_dependency_depth
+        )
+
+        impact_by_severity = impact_analyzer.generate_impact_report(context.analyses)
+
+        # Stocker dans le metadata
+        context.metadata["impact_analysis"] = impact_by_severity
+        context.metadata["total_bugs"] = sum(
+            len(impacts) for impacts in impact_by_severity.values()
+        )
+
+        # Sauvegarder le cache des bugs pour la commande `aetheris fix`
+        bugs_cache = impact_analyzer.bugs_to_dict()
+        bugs_cache_path = os.path.join(self.config.output_dir, ".bugs_cache.json")
+        os.makedirs(os.path.dirname(bugs_cache_path), exist_ok=True)
+        with open(bugs_cache_path, "w", encoding="utf-8") as f:
+            json.dump(bugs_cache, f, indent=2, ensure_ascii=False)
+
+        # Générer le rapport d'impact
+        await self._generate_impact_report(context, impact_by_severity, impact_analyzer)
+
+        self.progress_manager.update_task(
+            impact_task,
+            advance=100,
+            description=f"✅ {context.metadata['total_bugs']} bugs analysés",
+        )
+        self.progress_manager.complete_task(impact_task)
+        self.progress_manager.print()
+
+        return context
+
+    async def _generate_impact_report(
+        self,
+        context: WorkflowContext,
+        impact_by_severity: dict,
+        impact_analyzer,
+    ) -> None:
+        """Génère le rapport d'impact en markdown"""
+        report = f"""# Rapport d'Analyse d'Impact
+
+*Généré le {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*
+
+## Résumé
+
+| Sévérité | Nombre de bugs | Fichiers impactés |
+|----------|----------------|-------------------|
+"""
+
+        for severity in ["critical", "high", "medium", "low"]:
+            impacts = impact_by_severity.get(severity, [])
+            total_impacted = sum(
+                len(i.directly_impacted) + len(i.transitively_impacted) for i in impacts
+            )
+            emoji = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🟢"}.get(
+                severity, "⚪"
+            )
+            report += f"| {emoji} {severity.upper()} | {len(impacts)} | {total_impacted} |\n"
+
+        report += "\n## Détails par Bug\n\n"
+
+        for severity in ["critical", "high", "medium", "low"]:
+            impacts = impact_by_severity.get(severity, [])
+            if impacts:
+                report += f"### {severity.upper()}\n\n"
+                for impact in impacts[:10]:  # Limiter à 10 par sévérité
+                    bug = impact_analyzer.bugs_registry.get(impact.bug_id)
+                    if bug:
+                        rel_path = os.path.relpath(bug.file_path, self.config.root_dir)
+                        report += f"#### {bug.id}\n\n"
+                        report += f"- **Fichier**: `{rel_path}`\n"
+                        if bug.line_number:
+                            report += f"- **Ligne**: {bug.line_number}\n"
+                        report += f"- **Type**: {bug.bug_type}\n"
+                        report += f"- **Description**: {bug.description[:200]}...\n" if len(
+                            bug.description
+                        ) > 200 else f"- **Description**: {bug.description}\n"
+                        if impact.directly_impacted:
+                            report += f"- **Fichiers directement impactés**: {len(impact.directly_impacted)}\n"
+                            for f in impact.directly_impacted[:3]:
+                                report += f"  - `{os.path.relpath(f, self.config.root_dir)}`\n"
+                            if len(impact.directly_impacted) > 3:
+                                report += f"  - ... et {len(impact.directly_impacted) - 3} autres\n"
+                        report += "\n"
+                if len(impacts) > 10:
+                    report += f"*... et {len(impacts) - 10} autres bugs {severity}*\n\n"
+
+        # Sauvegarder le rapport
+        impact_report_path = os.path.join(self.config.output_dir, "impact_analysis_report.md")
+        sanitized_report = sanitize_markdown(report)
+        with open(impact_report_path, "w", encoding="utf-8") as f:
+            f.write(sanitized_report)
+
+        self.progress_manager.print(
+            f"✅ Rapport d'impact sauvegardé: {impact_report_path}\n"
+        )
 
     async def _step_generate_architecture_report(self, context: WorkflowContext) -> WorkflowContext:
         """Étape 5: Générer le rapport d'architecture"""

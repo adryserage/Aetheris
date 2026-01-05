@@ -6,7 +6,7 @@ import os
 import re
 from typing import List, Dict, Optional
 
-from src.models.data_models import FileDependency
+from src.models.data_models import FileDependency, ReverseDependency
 
 
 class DependencyAnalyzer:
@@ -16,6 +16,7 @@ class DependencyAnalyzer:
         self.root_dir = root_dir
         self.all_files = all_files
         self.file_map = self._build_file_map()
+        self.reverse_dependencies: Dict[str, List[ReverseDependency]] = {}
 
     def _build_file_map(self) -> Dict[str, str]:
         """Construit une map des chemins relatifs vers les chemins absolus"""
@@ -329,3 +330,94 @@ class DependencyAnalyzer:
                 dfs(file_path, [])
 
         return cycles
+
+    def build_reverse_dependency_graph(
+        self, dependencies_map: Dict[str, List[FileDependency]]
+    ) -> Dict[str, List[ReverseDependency]]:
+        """
+        Construit le graphe de dépendances inverse.
+        Pour chaque fichier, liste tous les fichiers qui l'importent.
+
+        Args:
+            dependencies_map: Map de file_path -> list of FileDependency
+
+        Returns:
+            Map de file_path -> list of ReverseDependency (fichiers qui importent ce fichier)
+        """
+        reverse_graph: Dict[str, List[ReverseDependency]] = {}
+
+        for file_path, deps in dependencies_map.items():
+            for dep in deps:
+                if dep.resolved_path and dep.exists:
+                    target_file = dep.resolved_path
+
+                    if target_file not in reverse_graph:
+                        reverse_graph[target_file] = []
+
+                    # Éviter les doublons
+                    existing = [
+                        rd for rd in reverse_graph[target_file] if rd.dependent_file == file_path
+                    ]
+                    if not existing:
+                        reverse_graph[target_file].append(
+                            ReverseDependency(
+                                dependent_file=file_path,
+                                import_path=dep.import_path,
+                                line_number=dep.line_number,
+                                imported_symbols=[],  # Pourrait être enrichi avec parsing des imports
+                            )
+                        )
+
+        self.reverse_dependencies = reverse_graph
+        return reverse_graph
+
+    def get_dependents(self, file_path: str, max_depth: int = 2) -> Dict[int, List[str]]:
+        """
+        Trouve tous les fichiers qui dépendent du fichier donné, organisés par niveau.
+
+        Args:
+            file_path: Fichier pour lequel trouver les dépendants
+            max_depth: Profondeur maximale de traversée (défaut: 2)
+
+        Returns:
+            Dict mappant le niveau de profondeur vers la liste des fichiers dépendants
+            Ex: {1: ['a.py', 'b.py'], 2: ['c.py']}
+        """
+        result: Dict[int, List[str]] = {}
+        visited = set()
+
+        def traverse(current_file: str, depth: int):
+            if depth > max_depth or current_file in visited:
+                return
+
+            visited.add(current_file)
+
+            if current_file in self.reverse_dependencies:
+                for rev_dep in self.reverse_dependencies[current_file]:
+                    dependent = rev_dep.dependent_file
+                    if dependent not in visited:
+                        if depth not in result:
+                            result[depth] = []
+                        if dependent not in result[depth]:
+                            result[depth].append(dependent)
+                        traverse(dependent, depth + 1)
+
+        traverse(file_path, 1)
+        return result
+
+    def get_all_dependents_flat(self, file_path: str, max_depth: int = 2) -> List[str]:
+        """
+        Retourne une liste plate de tous les fichiers dépendants.
+
+        Args:
+            file_path: Fichier pour lequel trouver les dépendants
+            max_depth: Profondeur maximale de traversée
+
+        Returns:
+            Liste de tous les fichiers dépendants (directement et transitivement)
+        """
+        dependents_by_level = self.get_dependents(file_path, max_depth)
+        all_dependents = []
+        for level in sorted(dependents_by_level.keys()):
+            all_dependents.extend(dependents_by_level[level])
+        return all_dependents

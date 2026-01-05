@@ -24,6 +24,9 @@ class WorkflowStage(Enum):
     SCAN = "scan"
     DEPENDENCY_INIT = "dependency_init"
     FILE_ANALYSIS = "file_analysis"
+    EXPORT_ANALYSIS = "export_analysis"  # Extraction des exports
+    REVERSE_DEPENDENCY = "reverse_dependency"  # Construction du graphe inverse
+    IMPACT_ANALYSIS = "impact_analysis"  # Analyse d'impact des bugs
     DEPENDENCY_ANALYSIS = "dependency_analysis"
     ARCHITECTURE_REPORT = "architecture_report"
     VULNERABILITY_ANALYSIS = "vulnerability_analysis"
