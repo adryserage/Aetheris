@@ -21,12 +21,14 @@ class FileDependency:
 class SecurityIssue:
     """Problème de sécurité détecté"""
 
-    severity: str  # 'critical', 'high', 'medium', 'low'
-    issue_type: str  # Type de vulnérabilité
+    severity: str  # 'critical', 'high', 'medium', 'low', 'info'
+    issue_type: str  # Type de vulnérabilité (XSS, SQLi, SSRF, etc.)
     description: str
     line_number: Optional[int] = None
     code_snippet: Optional[str] = None
     recommendation: str = ""
+    cwe_id: Optional[str] = None  # Identifiant CWE (ex: CWE-79)
+    owasp_category: Optional[str] = None  # Catégorie OWASP (ex: A01:2021)
 
 
 @dataclass
@@ -61,6 +63,52 @@ class DependencyVulnerability:
 
 
 @dataclass
+class FileExport:
+    """Export d'un fichier (fonction, classe, variable exportée)"""
+
+    name: str  # Nom de l'export
+    export_type: str  # 'default', 'named', 'function', 'class', 'variable', 'type', 'reexport'
+    line_number: int
+    is_default: bool = False
+    alias: Optional[str] = None  # Pour "export { X as Y }"
+
+
+@dataclass
+class ReverseDependency:
+    """Dépendance inverse - qui dépend de moi"""
+
+    dependent_file: str  # Fichier qui m'importe
+    import_path: str  # L'instruction d'import utilisée
+    line_number: int  # Ligne dans le fichier dépendant
+    imported_symbols: List[str] = field(default_factory=list)  # Symboles importés
+
+
+@dataclass
+class BugIdentifier:
+    """Identifiant unique de bug pour corrélation inter-fichiers"""
+
+    id: str  # ID unique (format: "BUG-{hash[:8]}")
+    file_path: str
+    line_number: Optional[int]
+    bug_type: str  # 'security', 'risk', 'inconsistency', 'suggestion'
+    severity: str  # 'critical', 'high', 'medium', 'low'
+    description: str
+    recommendation: str
+    impacted_files: List[str] = field(default_factory=list)  # Fichiers affectés via dépendances
+
+
+@dataclass
+class ImpactAnalysis:
+    """Analyse d'impact pour un bug"""
+
+    bug_id: str
+    source_file: str
+    directly_impacted: List[str] = field(default_factory=list)  # Fichiers qui importent directement
+    transitively_impacted: List[str] = field(default_factory=list)  # Fichiers à N niveaux
+    impact_chain: List[List[str]] = field(default_factory=list)  # Chemins source → impacté
+
+
+@dataclass
 class FileAnalysis:
     """Résultat d'analyse d'un fichier"""
 
@@ -77,3 +125,7 @@ class FileAnalysis:
     security_issues: List[SecurityIssue] = field(default_factory=list)
     code_metrics: Optional[CodeMetrics] = None
     error: Optional[str] = None
+    # Nouveaux champs pour l'analyse des relations et bugs
+    exports: List[FileExport] = field(default_factory=list)
+    reverse_dependencies: List[ReverseDependency] = field(default_factory=list)
+    bugs: List[BugIdentifier] = field(default_factory=list)
