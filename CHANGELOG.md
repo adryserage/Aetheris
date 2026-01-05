@@ -5,6 +5,37 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.2.7] - 2025-01-05
+
+### ✨ Nouvelles fonctionnalités
+
+- **Flag `--version`** : Affichage de la version avec `aetheris --version` ou `aetheris -v`
+
+- **Mode direct pour Claude Code** : Exécution en arrière-plan (sans fenêtre terminal)
+  - Nouvelle méthode `run_claude_direct()` pour exécution directe
+  - Nouvelle méthode `test_claude_code()` pour vérifier la connexion
+  - Nouvelle méthode `fix_bug_direct()` pour correction sans fenêtre
+  - Mode direct par défaut (plus fiable que le mode terminal)
+
+- **Flag `--test` pour Claude Code** : Test de connexion avant correction
+  - `aetheris fix --test` vérifie si Claude Code fonctionne
+  - Affiche la version et effectue un test de communication
+
+- **Flag `--terminal` pour Claude Code** : Mode fenêtre terminal optionnel
+  - `aetheris fix --terminal` ouvre Claude Code dans une nouvelle fenêtre
+  - Utile pour le débogage interactif
+
+### 🐛 Corrections
+
+- **Correction du terminal vide sur Windows** : Le mode direct évite les problèmes d'échappement
+
+## [2.2.6] - 2025-01-05
+
+### ✨ Nouvelles fonctionnalités
+
+- **Mode direct pour Claude Code (initial)** : Première implémentation du mode arrière-plan
+- **Workflow publish avec workflow_dispatch** : Permet le déclenchement manuel de la publication
+
 ## [2.2.5] - 2025-01-05
 
 ### 🐛 Corrections

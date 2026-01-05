@@ -405,11 +405,17 @@ _Note : Consultez les pages de tarification officielles pour les tarifs les plus
 Une fois installé, utilisez la commande `aetheris` :
 
 ```bash
+# Afficher la version
+aetheris --version
+
 # Afficher l'aide
 aetheris --help
 
 # Afficher l'aide pour la sous-commande analysis
 aetheris analysis --help
+
+# Afficher l'aide pour la sous-commande fix
+aetheris fix --help
 ```
 
 ### Analyse de base
@@ -459,9 +465,9 @@ python main.py
 python -m src.cli analysis
 ```
 
-### Correction de bugs avec Claude Code (v2.1.0+)
+### Correction de bugs avec Claude Code (v2.1.0+, amélioré en v2.2.7)
 
-La nouvelle commande `aetheris fix` permet de corriger automatiquement les bugs détectés en utilisant Claude Code.
+La commande `aetheris fix` permet de corriger automatiquement les bugs détectés en utilisant Claude Code.
 
 #### Prérequis
 
@@ -473,40 +479,57 @@ La nouvelle commande `aetheris fix` permet de corriger automatiquement les bugs 
 #### Commande fix
 
 ```bash
-# Corriger les bugs depuis le cache existant
+# Tester la connexion à Claude Code
+aetheris fix --test
+
+# Corriger les bugs depuis le cache existant (mode arrière-plan)
 aetheris fix
 
-# Lancer une analyse puis corriger
-aetheris fix --analyze-first
+# Mode automatique (sans confirmations entre les bugs)
+aetheris fix --auto
+
+# Ouvrir Claude Code dans une fenêtre terminal
+aetheris fix --terminal
 
 # Corriger uniquement les bugs critiques et high
 aetheris fix --severity high
 
-# Mode automatique (sans confirmations entre les bugs)
-aetheris fix --auto
+# Lancer une analyse puis corriger
+aetheris fix --analyze-first
 ```
 
 #### Options disponibles
 
 | Option | Description |
 |--------|-------------|
-| `--analyze-first` | Lancer une analyse avant de corriger |
-| `--severity` | Sévérité minimale des bugs à corriger (`critical`, `high`, `medium`, `low`) |
+| `--test` | Tester la connexion à Claude Code sans corriger de bugs |
 | `--auto` | Mode automatique sans confirmations entre les bugs |
+| `--terminal` | Ouvrir Claude Code dans une nouvelle fenêtre terminal (au lieu du mode arrière-plan) |
+| `--severity` | Sévérité minimale des bugs à corriger (`critical`, `high`, `medium`, `low`) |
+| `--analyze-first` | Lancer une analyse avant de corriger |
+
+#### Modes d'exécution (v2.2.7+)
+
+| Mode | Description | Utilisation |
+|------|-------------|-------------|
+| **Direct (défaut)** | Claude Code s'exécute en arrière-plan | `aetheris fix` |
+| **Terminal** | Claude Code s'ouvre dans une nouvelle fenêtre | `aetheris fix --terminal` |
+
+Le mode **direct** (par défaut) est plus fiable car il évite les problèmes d'échappement de caractères dans le terminal.
 
 #### Fonctionnement
 
-1. **Détection de Claude Code** : Vérifie si Claude Code est installé
+1. **Test de Claude Code** : Vérifie si Claude Code est installé et fonctionnel
 2. **Chargement des bugs** : Lit le cache `.bugs_cache.json` ou lance une analyse
 3. **Filtrage par sévérité** : Filtre les bugs selon le seuil choisi
 4. **Affichage du tableau** : Montre un récapitulatif des bugs à corriger
 5. **Correction séquentielle** : Pour chaque bug :
-   - Affiche les détails du bug
-   - Lance Claude Code dans une **nouvelle fenêtre de terminal**
-   - Attend la confirmation de l'utilisateur
+   - Affiche les détails du bug avec spinner de progression
+   - Exécute Claude Code en arrière-plan (ou dans une fenêtre si `--terminal`)
+   - Affiche le résultat de la correction
    - Passe au bug suivant
 
-#### Support multi-plateforme
+#### Support multi-plateforme (mode terminal)
 
 La commande détecte automatiquement le système d'exploitation et lance Claude Code dans le terminal approprié :
 

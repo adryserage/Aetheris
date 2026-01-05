@@ -473,6 +473,15 @@ async def run_fix(args):
         console.print("[red]❌ Aucun bug n'a été corrigé[/red]")
 
 
+def get_version():
+    """Retourne la version depuis pyproject.toml"""
+    try:
+        import importlib.metadata
+        return importlib.metadata.version("adryserage-aetheris")
+    except Exception:
+        return "2.2.7"  # Fallback
+
+
 def create_parser():
     """Crée le parser principal avec sous-commandes"""
     parser = argparse.ArgumentParser(
@@ -486,9 +495,16 @@ Pour plus d'informations sur une commande spécifique:
 Exemples:
   aetheris analysis                    # Analyse complète
   aetheris fix                         # Corriger les bugs avec Claude Code
+  aetheris fix --test                  # Tester la connexion à Claude Code
   aetheris fix --analyze-first         # Analyser puis corriger
   aetheris fix --severity high         # Corriger uniquement bugs critiques/high
         """,
+    )
+
+    parser.add_argument(
+        "-v", "--version",
+        action="version",
+        version=f"%(prog)s {get_version()}"
     )
 
     subparsers = parser.add_subparsers(
