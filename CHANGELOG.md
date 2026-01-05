@@ -5,6 +5,165 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.2.0] - 2025-01-05
+
+### ✨ Nouvelles fonctionnalités
+
+- **Migration vers le nouveau SDK google-genai** : Passage de `google-generativeai` à `google-genai>=1.0.0`
+  - Nouvelle architecture client-based (`genai.Client`)
+  - API plus moderne et performante
+  - Support des dernières fonctionnalités Gemini
+
+- **Modèle par défaut Gemini 3 Pro Preview** : `gemini-3-pro-preview`
+  - Input: 1,048,576 tokens
+  - Output: 65,536 tokens
+  - Support de toutes les fonctionnalités avancées
+
+- **Structured Outputs (Sorties structurées)** : Réponses JSON garanties via schémas Pydantic
+  - Nouvelle méthode `generate_structured()` dans GeminiProvider
+  - Nouvelle méthode `_call_ai_structured()` dans BaseAgent
+  - Schémas Pydantic dans `src/models/analysis_schemas.py`
+  - Validation automatique des réponses
+
+- **Code Execution (Exécution de code)** : Le modèle peut exécuter du Python en sandbox
+  - Nouvelle méthode `generate_with_code_execution()`
+  - Nouvelle méthode `_call_ai_with_code_execution()` dans BaseAgent
+  - Analyse dynamique avec parsing AST, calcul de métriques, etc.
+
+- **Thinking/Reasoning (Raisonnement)** : Affichage du processus de raisonnement du modèle
+  - Nouvelle méthode `generate_with_thinking()`
+  - Nouvelle méthode `_call_ai_with_thinking()` dans BaseAgent
+  - Budget de tokens configurable (`thinking_budget`)
+
+- **Context Caching (Cache de contexte)** : Réduction des coûts API (~50%)
+  - Nouvelle méthode `create_cache()` pour créer des caches
+  - Nouvelle méthode `generate_with_cache()` pour utiliser les caches
+  - TTL configurable (`cache_ttl_seconds`)
+
+- **Batch API (API Batch)** : Traitement en lot à coût réduit (-50%)
+  - Nouvelle méthode `create_batch_job()` pour créer des jobs batch
+  - Mode batch activable via configuration
+
+- **Function Calling (Appel de fonction)** : Appel automatique de fonctions Python
+  - Nouvelle méthode `generate_with_tools()` avec fonctions Python
+  - Support des outils personnalisés
+
+- **Google Search (Recherche web intégrée)** : Grounding avec recherche web
+  - Nouvelle méthode `generate_with_search()` pour recherche en temps réel
+
+### 🔧 Modifications
+
+- **Configuration** : Nouvelles options dans `AnalysisConfig`
+  - `enable_code_execution` : Activer l'exécution de code
+  - `enable_structured_outputs` : Activer les sorties structurées (défaut: true)
+  - `enable_function_calling` : Activer l'appel de fonctions
+  - `enable_thinking` : Activer le mode thinking
+  - `thinking_budget` : Budget de tokens pour le raisonnement
+  - `enable_context_caching` : Activer le cache de contexte
+  - `cache_ttl_seconds` : Durée de vie du cache API
+  - `enable_batch_mode` : Activer le mode batch
+  - `enable_google_search` : Activer la recherche Google intégrée
+
+- **BaseAgent** : Nouvelles méthodes pour les fonctionnalités avancées
+  - `_call_ai_structured()` pour les sorties structurées
+  - `_call_ai_with_thinking()` pour le raisonnement visible
+  - `_call_ai_with_code_execution()` pour l'exécution de code
+
+- **SecurityAnalysisAgent** : Utilisation des Structured Outputs
+  - Analyse de sécurité avec schémas Pydantic validés
+  - Champs CWE et OWASP enrichis
+
+- **CodeAnalysisExpert** : Nouvelles méthodes avancées
+  - `analyze_file_structured()` avec Structured Outputs
+  - `analyze_with_code_execution()` pour analyses dynamiques
+
+- **SecurityIssue (data_models)** : Nouveaux champs
+  - `cwe_id` : Identifiant CWE (ex: CWE-79)
+  - `owasp_category` : Catégorie OWASP (ex: A01:2021)
+
+### 📦 Nouveaux modules
+
+- `src/core/gemini_config.py` : Configuration des fonctionnalités avancées Gemini
+  - `GeminiFeatureConfig` : Configuration par requête
+  - `CodeExecutionResult` : Résultat d'exécution de code
+  - `ThinkingResult` : Résultat avec raisonnement
+  - `CacheConfig` : Configuration du cache
+  - `BatchRequest/BatchJobInfo` : Gestion des jobs batch
+  - Helpers : `supports_code_execution()`, `supports_thinking()`, etc.
+
+- `src/models/analysis_schemas.py` : Schémas Pydantic pour Structured Outputs
+  - `Severity`, `IssueCategory` : Enums pour les issues
+  - `SecurityIssue`, `SecurityAnalysisResult` : Analyse de sécurité
+  - `CodeMetrics`, `CodeIssue`, `Dependency` : Métriques et issues
+  - `FileAnalysisResult` : Résultat complet d'analyse
+  - `ArchitecturePattern`, `LayerAnalysis`, `ArchitectureAnalysisResult` : Architecture
+  - `QualityDimension`, `QualityAssuranceResult` : Qualité
+  - `VulnerabilityInfo`, `DependencyVulnerabilityResult` : Vulnérabilités
+
+### 📦 Dépendances
+
+- `google-genai>=1.0.0` remplace `google-generativeai>=0.8.5`
+- `pydantic>=2.0.0` pour les schémas structurés
+
+### 📝 Documentation
+
+- Mise à jour du README avec les nouvelles fonctionnalités Gemini
+- Exemples d'utilisation des Structured Outputs
+- Documentation des méthodes avancées
+
+## [2.1.0] - 2025-01-05
+
+### ✨ Nouvelles fonctionnalités
+
+- **Commande `aetheris fix`** : Nouvelle commande CLI pour corriger les bugs détectés avec Claude Code
+  - Lance Claude Code dans une fenêtre séparée pour chaque bug
+  - Correction séquentielle avec confirmation utilisateur
+  - Filtrage par sévérité (`--severity critical|high|medium|low`)
+  - Mode automatique (`--auto`) sans confirmations entre les bugs
+  - Détection automatique et support multi-plateforme (Windows, macOS, Linux)
+
+- **Extraction des exports** : Analyse des exports de chaque fichier pour comprendre les relations
+  - Support TypeScript/JavaScript (export default, export {}, export function/class)
+  - Support Python (__all__, fonctions/classes publiques)
+  - Support Dart (export, classes/fonctions publiques)
+
+- **Graphe de dépendances inverse** : Savoir "qui dépend de ce fichier"
+  - Construction automatique du graphe inverse
+  - Méthode `get_dependents()` pour trouver les fichiers impactés
+  - Profondeur configurable
+
+- **Analyse d'impact des bugs** : Calcul automatique des fichiers impactés par chaque bug
+  - IDs de bugs uniques au format `BUG-XXXXXXXX`
+  - Extraction des bugs depuis les analyses (sécurité, risques, incohérences)
+  - Cache des bugs dans `.bugs_cache.json`
+
+### 🔧 Modifications
+
+- **Orchestrateur** : Ajout de 3 nouveaux stages de workflow
+  - `EXPORT_ANALYSIS` : Extraction des exports
+  - `REVERSE_DEPENDENCY` : Construction du graphe inverse
+  - `IMPACT_ANALYSIS` : Analyse d'impact des bugs
+
+- **Configuration** : Nouvelles options
+  - `enable_export_analysis` : Activer l'extraction des exports
+  - `enable_reverse_dependency` : Activer le graphe de dépendances inverses
+  - `enable_impact_analysis` : Activer l'analyse d'impact
+  - `max_impact_depth` : Profondeur maximale pour l'analyse d'impact
+  - `enable_claude_code_fix` : Activer l'intégration Claude Code
+  - `fix_severity_threshold` : Seuil de sévérité minimale pour les corrections
+
+### 📦 Nouveaux modules
+
+- `src/services/export_analyzer.py` : Extraction des exports multi-langage
+- `src/services/impact_analyzer.py` : Analyse d'impact des bugs
+- `src/services/claude_code_integration.py` : Intégration avec Claude Code CLI
+
+### 📝 Documentation
+
+- Mise à jour du README avec documentation complète de `aetheris fix`
+- Mise à jour de `docs/PLUGINS.md` avec les nouveaux hooks
+- Exemples d'utilisation des nouveaux stages
+
 ## [2.0.1] - 2025-01-16
 
 ### 🔧 Corrections
@@ -250,6 +409,8 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Génération de rapports détaillés en Markdown
 - Configuration flexible via variables d'environnement
 
+[2.1.0]: https://github.com/adryserage/aetheris/compare/v2.0.1...v2.1.0
+[2.0.1]: https://github.com/adryserage/aetheris/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/adryserage/aetheris/compare/v1.1.0...v2.0.0
 [1.1.0]: https://github.com/adryserage/aetheris/compare/v1.0.9...v1.1.0
 [1.0.9]: https://github.com/adryserage/aetheris/compare/v1.0.8...v1.0.9
