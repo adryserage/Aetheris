@@ -26,6 +26,46 @@ RATE_LIMIT_PATTERNS = [
     r"reset.*(\d+)\s*(hour|minute|second|hr|min|sec)",
 ]
 
+# Pattern pour supprimer les codes ANSI
+ANSI_ESCAPE_PATTERN = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]|\x1b\].*?\x07|\x1b[PX^_].*?\x1b\\")
+
+
+def sanitize_terminal_output(text: str) -> str:
+    """
+    Nettoie le texte pour un affichage compatible avec le terminal.
+
+    - Supprime les codes ANSI
+    - Remplace les caractères non-imprimables
+    - Gère les caractères Unicode problématiques sur Windows
+
+    Args:
+        text: Le texte à nettoyer
+
+    Returns:
+        Le texte nettoyé compatible terminal
+    """
+    if not text:
+        return ""
+
+    # Supprimer les codes ANSI
+    text = ANSI_ESCAPE_PATTERN.sub("", text)
+
+    # Remplacer les caractères de contrôle (sauf newline, tab, carriage return)
+    cleaned = []
+    for char in text:
+        code = ord(char)
+        if code < 32 and code not in (9, 10, 13):  # Tab, LF, CR
+            cleaned.append(" ")
+        elif code == 0x9D:  # Caractère problématique Windows
+            cleaned.append(" ")
+        elif code >= 127 and code < 160:  # Caractères de contrôle étendus
+            cleaned.append(" ")
+        else:
+            cleaned.append(char)
+
+    return "".join(cleaned)
+
+
 from rich.console import Console
 from rich.live import Live
 from rich.panel import Panel
@@ -739,6 +779,9 @@ class ClaudeCodeIntegration:
                     stats["remaining"] = len(bugs) - i + 1
                     break
 
+                # Nettoyer l'output pour le terminal
+                clean_output = sanitize_terminal_output(output) if output else ""
+
                 if success:
                     stats["fixed"] += 1
                     self.console.print(f"[green]✅ {bug.id} corrigé[/green]")
@@ -748,8 +791,8 @@ class ClaudeCodeIntegration:
                     bug.fixed_at = datetime.now().isoformat()
                     bug.failed = False  # Reset si précédemment échoué
                     # Extraire un résumé de la correction (dernières lignes utiles)
-                    if output:
-                        lines = [line for line in output.strip().split("\n") if line.strip()]
+                    if clean_output:
+                        lines = [ln for ln in clean_output.strip().split("\n") if ln.strip()]
                         bug.fix_summary = "\n".join(lines[-5:]) if lines else "Corrigé"
                     else:
                         bug.fix_summary = "Corrigé sans détails"
@@ -758,9 +801,9 @@ class ClaudeCodeIntegration:
                     if on_bug_status:
                         on_bug_status(bug)
 
-                    if output:
+                    if clean_output:
                         # Afficher un résumé de la sortie
-                        lines = output.strip().split("\n")
+                        lines = clean_output.strip().split("\n")
                         if len(lines) > 10:
                             self.console.print("[dim]Résumé de la correction:[/dim]")
                             for line in lines[-10:]:
@@ -775,14 +818,14 @@ class ClaudeCodeIntegration:
                     # Marquer le bug comme échoué
                     bug.failed = True
                     bug.failed_at = datetime.now().isoformat()
-                    bug.failure_reason = output[:500] if output else "Échec sans détails"
+                    bug.failure_reason = clean_output[:500] if clean_output else "Échec sans détails"
 
                     # Sauvegarder l'état via callback
                     if on_bug_status:
                         on_bug_status(bug)
 
-                    if output:
-                        self.console.print(f"[red]{output[:500]}[/red]")
+                    if clean_output:
+                        self.console.print(f"[red]{clean_output[:500]}[/red]")
 
                     if not auto_mode and i < len(bugs):
                         skip = Confirm.ask("Continuer avec le bug suivant?", default=True)
@@ -1020,6 +1063,9 @@ class ClaudeCodeIntegration:
                         bug_queue.task_done()
                         break
 
+                    # Nettoyer l'output pour le terminal
+                    clean_output = sanitize_terminal_output(output) if output else ""
+
                     completed_count += 1
 
                     if success:
@@ -1027,8 +1073,8 @@ class ClaudeCodeIntegration:
                         bug.fixed = True
                         bug.fixed_at = datetime.now().isoformat()
                         bug.failed = False  # Reset si précédemment échoué
-                        if output:
-                            lines = [ln for ln in output.strip().split("\n") if ln.strip()]
+                        if clean_output:
+                            lines = [ln for ln in clean_output.strip().split("\n") if ln.strip()]
                             bug.fix_summary = "\n".join(lines[-3:]) if lines else "Corrigé"
                         else:
                             bug.fix_summary = "Corrigé"
@@ -1043,7 +1089,7 @@ class ClaudeCodeIntegration:
                         # Marquer le bug comme échoué
                         bug.failed = True
                         bug.failed_at = datetime.now().isoformat()
-                        bug.failure_reason = output[:500] if output else "Échec sans détails"
+                        bug.failure_reason = clean_output[:500] if clean_output else "Échec sans détails"
 
                         if on_bug_status:
                             on_bug_status(bug)
