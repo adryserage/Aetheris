@@ -2,4 +2,4 @@
 Aetheris by Adryan - Système d'analyse de code multi-agents
 """
 
-__version__ = "1.1.0"
+__version__ = "2.4.1"
