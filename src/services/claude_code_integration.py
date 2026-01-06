@@ -193,6 +193,8 @@ class ClaudeCodeIntegration:
                 capture_output=True,
                 text=True,
                 timeout=10,
+                encoding="utf-8",
+                errors="replace",
             )
             if result.returncode == 0:
                 version = result.stdout.strip() or result.stderr.strip()
@@ -232,6 +234,8 @@ class ClaudeCodeIntegration:
                 timeout=timeout,
                 cwd=self.root_dir,
                 env={**os.environ, "FORCE_COLOR": "0", "NO_COLOR": "1"},
+                encoding="utf-8",
+                errors="replace",
             )
 
             if result.returncode == 0:
@@ -292,6 +296,8 @@ class ClaudeCodeIntegration:
                         "FORCE_COLOR": "0",
                         "NO_COLOR": "1",
                     },  # Désactiver les couleurs
+                    encoding="utf-8",
+                    errors="replace",  # Remplace les caractères non-décodables (Windows)
                 )
 
                 # Vérifier si c'est un rate limit
@@ -885,6 +891,8 @@ class ClaudeCodeIntegration:
                     timeout=timeout,
                     cwd=self.root_dir,
                     env={**os.environ, "FORCE_COLOR": "0", "NO_COLOR": "1"},
+                    encoding="utf-8",
+                    errors="replace",  # Remplace les caractères non-décodables
                 )
                 return result.returncode == 0, result.stdout, result.stderr
 
