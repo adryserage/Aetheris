@@ -7,11 +7,24 @@ Supporte le mode parallèle pour accélérer les corrections
 import asyncio
 import os
 import platform
+import re
 import shutil
 import subprocess
 import tempfile
 from datetime import datetime
 from typing import Callable, Dict, List, Optional, Tuple
+
+# Constante pour identifier les erreurs de rate limit
+RATE_LIMIT_PATTERNS = [
+    r"rate.?limit",
+    r"too many requests",
+    r"usage.?limit",
+    r"exceeded.*limit",
+    r"quota.*exceeded",
+    r"try again in (\d+)\s*(hour|minute|second|hr|min|sec)",
+    r"wait.*(\d+)\s*(hour|minute|second|hr|min|sec)",
+    r"reset.*(\d+)\s*(hour|minute|second|hr|min|sec)",
+]
 
 from rich.console import Console
 from rich.live import Live
@@ -31,8 +44,63 @@ from rich.table import Table
 from src.models.data_models import BugIdentifier
 
 
+class RateLimitError(Exception):
+    """Exception levée quand Claude Code atteint sa limite d'usage."""
+
+    def __init__(self, message: str, wait_hours: float = 0):
+        super().__init__(message)
+        self.wait_hours = wait_hours
+
+
 class ClaudeCodeIntegration:
     """Intégration avec Claude Code CLI pour la correction automatique de bugs"""
+
+    @staticmethod
+    def _detect_rate_limit(output: str) -> Optional[Tuple[bool, float]]:
+        """
+        Détecte si la sortie contient une erreur de rate limit.
+
+        Args:
+            output: La sortie (stdout ou stderr) de Claude Code
+
+        Returns:
+            Tuple (is_rate_limited, wait_hours) ou None si pas de rate limit
+        """
+        if not output:
+            return None
+
+        output_lower = output.lower()
+
+        # Vérifier les patterns de rate limit
+        for pattern in RATE_LIMIT_PATTERNS:
+            match = re.search(pattern, output_lower)
+            if match:
+                # Essayer d'extraire le temps d'attente
+                wait_hours = 0.0
+
+                # Chercher un pattern de temps dans le message
+                time_match = re.search(
+                    r"(\d+(?:\.\d+)?)\s*(hour|hr|minute|min|second|sec)s?",
+                    output_lower,
+                )
+                if time_match:
+                    value = float(time_match.group(1))
+                    unit = time_match.group(2)
+
+                    if "hour" in unit or "hr" in unit:
+                        wait_hours = value
+                    elif "minute" in unit or "min" in unit:
+                        wait_hours = value / 60
+                    elif "second" in unit or "sec" in unit:
+                        wait_hours = value / 3600
+
+                # Si pas de temps trouvé, supposer ~5 heures (limite typique)
+                if wait_hours == 0:
+                    wait_hours = 5.0
+
+                return (True, wait_hours)
+
+        return None
 
     def __init__(self, root_dir: str):
         """
@@ -176,7 +244,9 @@ class ClaudeCodeIntegration:
         except Exception as e:
             return False, f"Erreur: {e}"
 
-    def run_claude_direct(self, prompt: str, timeout: int = 300) -> Tuple[bool, str, str]:
+    def run_claude_direct(
+        self, prompt: str, timeout: int = 300
+    ) -> Tuple[bool, str, str, Optional[float]]:
         """
         Exécute Claude Code directement en arrière-plan (sans terminal).
 
@@ -185,10 +255,11 @@ class ClaudeCodeIntegration:
             timeout: Timeout en secondes (défaut: 5 minutes)
 
         Returns:
-            Tuple (success, stdout, stderr)
+            Tuple (success, stdout, stderr, rate_limit_hours)
+            rate_limit_hours est None si pas de rate limit
         """
         if not self.is_available:
-            return False, "", "Claude Code n'est pas installé"
+            return False, "", "Claude Code n'est pas installé", None
 
         try:
             # Écrire le prompt dans un fichier temporaire pour éviter les problèmes d'échappement
@@ -223,7 +294,14 @@ class ClaudeCodeIntegration:
                     },  # Désactiver les couleurs
                 )
 
-                return result.returncode == 0, result.stdout, result.stderr
+                # Vérifier si c'est un rate limit
+                combined_output = f"{result.stdout}\n{result.stderr}"
+                rate_limit_info = self._detect_rate_limit(combined_output)
+                if rate_limit_info:
+                    _, wait_hours = rate_limit_info
+                    return False, result.stdout, result.stderr, wait_hours
+
+                return result.returncode == 0, result.stdout, result.stderr, None
 
             finally:
                 # Nettoyer le fichier temporaire
@@ -233,11 +311,13 @@ class ClaudeCodeIntegration:
                     pass
 
         except subprocess.TimeoutExpired:
-            return False, "", f"Timeout après {timeout}s"
+            return False, "", f"Timeout après {timeout}s", None
         except Exception as e:
-            return False, "", f"Erreur: {e}"
+            return False, "", f"Erreur: {e}", None
 
-    def fix_bug_direct(self, bug: BugIdentifier, timeout: int = 300) -> Tuple[bool, str]:
+    def fix_bug_direct(
+        self, bug: BugIdentifier, timeout: int = 300
+    ) -> Tuple[bool, str, Optional[float]]:
         """
         Corrige un bug directement via Claude Code (sans fenêtre terminal).
 
@@ -246,7 +326,8 @@ class ClaudeCodeIntegration:
             timeout: Timeout en secondes
 
         Returns:
-            Tuple (success, output)
+            Tuple (success, output, rate_limit_hours)
+            rate_limit_hours est None si pas de rate limit
         """
         prompt = self._generate_fix_prompt(bug)
 
@@ -256,12 +337,15 @@ class ClaudeCodeIntegration:
             console=self.console,
         ) as progress:
             progress.add_task(f"🔧 Correction de {bug.id}...", total=None)
-            success, stdout, stderr = self.run_claude_direct(prompt, timeout)
+            success, stdout, stderr, rate_limit_hours = self.run_claude_direct(prompt, timeout)
+
+        if rate_limit_hours is not None:
+            return False, stderr or stdout, rate_limit_hours
 
         if success:
-            return True, stdout
+            return True, stdout, None
         else:
-            return False, stderr or stdout
+            return False, stderr or stdout, None
 
     def _escape_prompt_for_shell(self, prompt: str) -> str:
         """
@@ -590,9 +674,17 @@ class ClaudeCodeIntegration:
             on_bug_fixed: Callback appelé après chaque bug corrigé pour sauvegarder l'état
 
         Returns:
-            Statistiques de la session (fixed, skipped, failed)
+            Statistiques de la session (fixed, skipped, failed, rate_limited, remaining, wait_hours)
         """
-        stats = {"fixed": 0, "skipped": 0, "failed": 0, "total": len(bugs)}
+        stats = {
+            "fixed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "total": len(bugs),
+            "rate_limited": False,
+            "remaining": 0,
+            "wait_hours": 0.0,
+        }
 
         if not bugs:
             self.console.print("[yellow]Aucun bug à corriger.[/yellow]")
@@ -632,7 +724,15 @@ class ClaudeCodeIntegration:
 
             if direct_mode:
                 # Mode direct: exécuter en arrière-plan
-                success, output = self.fix_bug_direct(bug)
+                success, output, rate_limit_hours = self.fix_bug_direct(bug)
+
+                # Vérifier si rate limit atteint
+                if rate_limit_hours is not None:
+                    stats["rate_limited"] = True
+                    stats["wait_hours"] = rate_limit_hours
+                    stats["remaining"] = len(bugs) - i + 1
+                    break
+
                 if success:
                     stats["fixed"] += 1
                     self.console.print(f"[green]✅ {bug.id} corrigé[/green]")
@@ -706,11 +806,33 @@ class ClaudeCodeIntegration:
 
         # Afficher le résumé
         self.console.print()
-        self.console.rule("[bold green]Résumé de la session")
-        self.console.print(f"[green]✅ Corrigés:[/green] {stats['fixed']}")
-        self.console.print(f"[yellow]⏭️  Passés:[/yellow] {stats['skipped']}")
-        self.console.print(f"[red]❌ Échoués:[/red] {stats['failed']}")
-        self.console.print(f"[dim]Total:[/dim] {stats['total']}")
+
+        if stats["rate_limited"]:
+            # Afficher le message de rate limit
+            wait_hours = stats["wait_hours"]
+            if wait_hours >= 1:
+                wait_display = f"{wait_hours:.1f} heures"
+            else:
+                wait_display = f"{int(wait_hours * 60)} minutes"
+
+            self.console.print(
+                Panel(
+                    f"[bold red]⚠️  LIMITE D'USAGE CLAUDE CODE ATTEINTE[/bold red]\n\n"
+                    f"[yellow]La limite d'utilisation de Claude Code a été atteinte.[/yellow]\n"
+                    f"[cyan]Reprendre dans environ [bold]{wait_display}[/bold][/cyan]\n\n"
+                    f"[dim]Bugs corrigés avant la limite: {stats['fixed']}/{stats['total']}[/dim]\n"
+                    f"[dim]Bugs restants à traiter: {stats['remaining']}[/dim]\n\n"
+                    f"[green]💡 Astuce: Relancez la commande plus tard pour continuer.[/green]",
+                    title="🛑 Rate Limit",
+                    border_style="red",
+                )
+            )
+        else:
+            self.console.rule("[bold green]Résumé de la session")
+            self.console.print(f"[green]✅ Corrigés:[/green] {stats['fixed']}")
+            self.console.print(f"[yellow]⏭️  Passés:[/yellow] {stats['skipped']}")
+            self.console.print(f"[red]❌ Échoués:[/red] {stats['failed']}")
+            self.console.print(f"[dim]Total:[/dim] {stats['total']}")
 
         return stats
 
@@ -718,7 +840,7 @@ class ClaudeCodeIntegration:
         self,
         bug: BugIdentifier,
         timeout: int = 300,
-    ) -> Tuple[BugIdentifier, bool, str]:
+    ) -> Tuple[BugIdentifier, bool, str, Optional[float]]:
         """
         Corrige un bug de manière asynchrone.
 
@@ -727,7 +849,8 @@ class ClaudeCodeIntegration:
             timeout: Timeout en secondes
 
         Returns:
-            Tuple (bug, success, output)
+            Tuple (bug, success, output, rate_limit_hours)
+            rate_limit_hours est None si pas de rate limit, sinon le temps d'attente en heures
         """
         prompt = self._generate_fix_prompt(bug)
 
@@ -755,12 +878,20 @@ class ClaudeCodeIntegration:
 
             success, stdout, stderr = await asyncio.to_thread(run_fix)
             output = stdout if success else (stderr or stdout)
-            return bug, success, output
+
+            # Vérifier si c'est un rate limit
+            combined_output = f"{stdout}\n{stderr}"
+            rate_limit_info = self._detect_rate_limit(combined_output)
+            if rate_limit_info:
+                _, wait_hours = rate_limit_info
+                return bug, False, output, wait_hours
+
+            return bug, success, output, None
 
         except subprocess.TimeoutExpired:
-            return bug, False, f"Timeout après {timeout}s"
+            return bug, False, f"Timeout après {timeout}s", None
         except Exception as e:
-            return bug, False, f"Erreur: {e}"
+            return bug, False, f"Erreur: {e}", None
 
     async def run_fix_session_parallel(
         self,
@@ -774,6 +905,7 @@ class ClaudeCodeIntegration:
 
         Utilise un pool de workers qui exécutent les corrections simultanément.
         Quand un worker termine, il prend immédiatement le bug suivant de la queue.
+        Détecte les rate limits et arrête proprement la session si atteint.
 
         Args:
             bugs: Liste des bugs à corriger
@@ -782,9 +914,17 @@ class ClaudeCodeIntegration:
             on_bug_fixed: Callback appelé après chaque bug corrigé
 
         Returns:
-            Statistiques de la session (fixed, skipped, failed)
+            Statistiques de la session (fixed, skipped, failed, rate_limited, remaining)
         """
-        stats = {"fixed": 0, "skipped": 0, "failed": 0, "total": len(bugs)}
+        stats = {
+            "fixed": 0,
+            "skipped": 0,
+            "failed": 0,
+            "total": len(bugs),
+            "rate_limited": False,
+            "remaining": 0,
+            "wait_hours": 0.0,
+        }
 
         if not bugs:
             self.console.print("[yellow]Aucun bug à corriger.[/yellow]")
@@ -814,9 +954,11 @@ class ClaudeCodeIntegration:
         for bug in bugs:
             await bug_queue.put(bug)
 
-        # Compteurs thread-safe
+        # Compteurs et événements thread-safe
         completed_count = 0
         lock = asyncio.Lock()
+        rate_limit_event = asyncio.Event()  # Signal pour arrêter tous les workers
+        rate_limit_wait_hours = 0.0
 
         # Créer la barre de progression
         progress = Progress(
@@ -831,9 +973,9 @@ class ClaudeCodeIntegration:
 
         async def worker(worker_id: int, main_task: TaskID):
             """Worker qui traite les bugs de la queue."""
-            nonlocal completed_count
+            nonlocal completed_count, rate_limit_wait_hours
 
-            while True:
+            while not rate_limit_event.is_set():
                 try:
                     bug = bug_queue.get_nowait()
                 except asyncio.QueueEmpty:
@@ -846,9 +988,18 @@ class ClaudeCodeIntegration:
                 )
 
                 # Exécuter la correction
-                bug, success, output = await self._fix_bug_async(bug, timeout)
+                bug, success, output, wait_hours = await self._fix_bug_async(bug, timeout)
 
                 async with lock:
+                    # Vérifier si rate limit atteint
+                    if wait_hours is not None:
+                        rate_limit_wait_hours = wait_hours
+                        rate_limit_event.set()  # Signal aux autres workers d'arrêter
+                        stats["rate_limited"] = True
+                        stats["wait_hours"] = wait_hours
+                        bug_queue.task_done()
+                        break
+
                     completed_count += 1
 
                     if success:
@@ -856,7 +1007,7 @@ class ClaudeCodeIntegration:
                         bug.fixed = True
                         bug.fixed_at = datetime.now().isoformat()
                         if output:
-                            lines = [l for l in output.strip().split("\n") if l.strip()]
+                            lines = [ln for ln in output.strip().split("\n") if ln.strip()]
                             bug.fix_summary = "\n".join(lines[-3:]) if lines else "Corrigé"
                         else:
                             bug.fix_summary = "Corrigé"
@@ -889,14 +1040,41 @@ class ClaudeCodeIntegration:
             # Attendre que tous les workers terminent
             await asyncio.gather(*workers)
 
+        # Calculer les bugs restants si rate limited
+        if stats["rate_limited"]:
+            stats["remaining"] = bug_queue.qsize()
+
         # Afficher le résumé
         self.console.print()
-        self.console.rule("[bold green]Résumé de la session parallèle")
-        self.console.print(f"[green]✅ Corrigés:[/green] {stats['fixed']}")
-        self.console.print(f"[yellow]⏭️  Passés:[/yellow] {stats['skipped']}")
-        self.console.print(f"[red]❌ Échoués:[/red] {stats['failed']}")
-        self.console.print(f"[dim]Total:[/dim] {stats['total']}")
-        self.console.print(f"[dim]Batch size:[/dim] {effective_batch_size} workers")
+
+        if stats["rate_limited"]:
+            # Afficher le message de rate limit
+            wait_hours = stats["wait_hours"]
+            if wait_hours >= 1:
+                wait_display = f"{wait_hours:.1f} heures"
+            else:
+                wait_display = f"{int(wait_hours * 60)} minutes"
+
+            self.console.print()
+            self.console.print(
+                Panel(
+                    f"[bold red]⚠️  LIMITE D'USAGE CLAUDE CODE ATTEINTE[/bold red]\n\n"
+                    f"[yellow]La limite d'utilisation de Claude Code a été atteinte.[/yellow]\n"
+                    f"[cyan]Reprendre dans environ [bold]{wait_display}[/bold][/cyan]\n\n"
+                    f"[dim]Bugs corrigés avant la limite: {stats['fixed']}/{stats['total']}[/dim]\n"
+                    f"[dim]Bugs restants à traiter: {stats['remaining']}[/dim]\n\n"
+                    f"[green]💡 Astuce: Relancez la commande plus tard pour continuer.[/green]",
+                    title="🛑 Rate Limit",
+                    border_style="red",
+                )
+            )
+        else:
+            self.console.rule("[bold green]Résumé de la session parallèle")
+            self.console.print(f"[green]✅ Corrigés:[/green] {stats['fixed']}")
+            self.console.print(f"[yellow]⏭️  Passés:[/yellow] {stats['skipped']}")
+            self.console.print(f"[red]❌ Échoués:[/red] {stats['failed']}")
+            self.console.print(f"[dim]Total:[/dim] {stats['total']}")
+            self.console.print(f"[dim]Batch size:[/dim] {effective_batch_size} workers")
 
         return stats
 

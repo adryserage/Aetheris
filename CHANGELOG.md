@@ -41,6 +41,11 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
   - Option `--timeout` pour définir le timeout par bug
   - Gain de performance ~5x avec `--batch-size 10`
   - Barre de progression en temps réel pour toutes les corrections
+  - **Détection de rate limit** : Arrêt automatique si limite Claude Code atteinte
+    - Détection intelligente des messages de rate limit
+    - Extraction du temps d'attente (heures/minutes)
+    - Affichage du nombre de bugs corrigés et restants
+    - Message clair pour reprendre plus tard
 
 ### 📦 Nouveaux modules
 
