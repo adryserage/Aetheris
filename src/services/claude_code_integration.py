@@ -117,76 +117,19 @@ class ClaudeCodeIntegration:
     @staticmethod
     def _detect_rate_limit(output: str) -> Optional[Tuple[bool, float]]:
         """
-        Détecte si la sortie contient une VRAIE erreur de rate limit.
+        Détecte si la sortie contient une erreur de rate limit.
 
-        IMPORTANT: Cette fonction doit être TRÈS conservatrice pour éviter
-        les faux positifs. Mieux vaut manquer un vrai rate limit que de
-        stopper une session qui fonctionne.
+        DÉSACTIVÉ: La détection de rate limit est désactivée pour éviter
+        les faux positifs. Claude Code gère ses propres limites.
 
         Args:
             output: La sortie (stdout ou stderr) de Claude Code
 
         Returns:
-            Tuple (is_rate_limited, wait_hours) ou None si pas de rate limit
+            Toujours None (détection désactivée)
         """
-        if not output:
-            return None
-
-        # Nettoyer l'output des codes ANSI
-        clean_output = ANSI_ESCAPE_PATTERN.sub("", output)
-        output_lower = clean_output.lower()
-
-        # PREMIÈRE ÉTAPE: Vérifier les patterns d'exclusion
-        # Si un seul pattern d'exclusion match, ce n'est PAS un rate limit
-        for exclusion in RATE_LIMIT_EXCLUSIONS:
-            if re.search(exclusion, output_lower):
-                return None
-
-        # DEUXIÈME ÉTAPE: Vérifier qu'il y a des indicateurs d'ERREUR
-        # Un rate limit est une ERREUR, pas juste un message d'info
-        error_indicators = [
-            r"\berror\b",
-            r"\bfailed\b",
-            r"\bfailure\b",
-            r"\bexception\b",
-            r"exit code [1-9]",
-            r"status code 429",
-            r"http 429",
-        ]
-        has_error_context = any(re.search(ind, output_lower) for ind in error_indicators)
-
-        if not has_error_context:
-            # Pas de contexte d'erreur = pas de rate limit
-            return None
-
-        # TROISIÈME ÉTAPE: Chercher un pattern de rate limit
-        for pattern in RATE_LIMIT_PATTERNS:
-            match = re.search(pattern, output_lower)
-            if match:
-                # Rate limit confirmé, extraire le temps d'attente
-                wait_hours = 5.0  # Défaut conservateur
-
-                # Chercher un pattern de temps PRÈS du match (dans les 100 chars)
-                match_pos = match.start()
-                context = output_lower[max(0, match_pos - 50) : match_pos + 100]
-
-                time_match = re.search(
-                    r"(\d+(?:\.\d+)?)\s*(hour|hr|minute|min|second|sec)s?",
-                    context,
-                )
-                if time_match:
-                    value = float(time_match.group(1))
-                    unit = time_match.group(2)
-
-                    if "hour" in unit or "hr" in unit:
-                        wait_hours = value
-                    elif "minute" in unit or "min" in unit:
-                        wait_hours = value / 60
-                    elif "second" in unit or "sec" in unit:
-                        wait_hours = value / 3600
-
-                return (True, wait_hours)
-
+        # Rate limit detection désactivée - trop de faux positifs
+        # Claude Code gère ses propres limites et affichera un message clair
         return None
 
     def __init__(self, root_dir: str):
