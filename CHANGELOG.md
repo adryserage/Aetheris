@@ -5,6 +5,96 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.4.0] - 2025-01-05
+
+### ✨ Nouvelles fonctionnalités
+
+- **Commande `aetheris pr`** : Revue de Pull Requests GitHub avec AI
+  - Support URL (`--url https://github.com/owner/repo/pull/123`)
+  - Support repo + numéro (`--repo owner/repo --pr 123`)
+  - Intégration complète avec GitHub CLI (`gh`)
+
+- **Multi-Provider avec Consensus** : Analyse avec plusieurs providers AI
+  - Support simultané de Gemini, Claude et OpenAI (`--providers gemini,claude,openai`)
+  - Mode consensus (par défaut) : ne reporte que les issues trouvées par TOUS les providers
+  - Matching intelligent des issues par fichier, type et proximité de ligne (±3 lignes)
+  - Option `--no-consensus` pour reporter toutes les issues
+
+- **Commentaires GitHub** : Publication directe sur les PRs
+  - Commentaires inline sur les lignes spécifiques du diff
+  - Commentaire résumé avec tableau des issues, score de risque et recommandation
+  - Mode `--dry-run` pour prévisualiser sans poster
+  - Option `--no-inline` pour résumé uniquement
+
+- **Détection de propriété de PR** : Détection automatique si la PR vous appartient
+  - Comparaison de l'email git local avec l'auteur de la PR
+  - Comparaison du login GitHub authentifié
+  - Option `--auto-fix` pour corriger avec Claude Code si c'est votre PR
+
+- **Filtrage avancé** :
+  - Filtrage par sévérité (`--severity critical|high|medium|low|info`)
+  - Export du rapport en markdown (`--output report.md`)
+
+- **Mode parallèle pour `aetheris fix`** : Correction de bugs en batch
+  - Option `--batch-size` / `-b` pour définir le nombre de corrections simultanées
+  - Pool de workers avec remplacement dynamique (quand un termine, le suivant démarre)
+  - Option `--timeout` pour définir le timeout par bug
+  - Gain de performance ~5x avec `--batch-size 10`
+  - Barre de progression en temps réel pour toutes les corrections
+
+### 📦 Nouveaux modules
+
+- `src/models/pr_models.py` : Modèles de données pour PR review
+  - `PRInfo`, `PRFile`, `PRIssue`, `PRComment`, `PRReviewResult`
+  - Enums `PRIssueSeverity`, `PRIssueType`, `PRFileStatus`
+
+- `src/models/pr_schemas.py` : Schémas Pydantic pour Structured Outputs
+  - `PRIssueSchema`, `PRAnalysisResultSchema`
+  - Validation automatique des réponses AI
+
+- `src/services/github_service.py` : Service GitHub via `gh` CLI
+  - `parse_pr_url()` : Extraction repo/numéro depuis URL
+  - `fetch_pr_info()` : Récupération métadonnées PR
+  - `fetch_pr_diff()` : Récupération du diff
+  - `fetch_pr_files()` : Liste des fichiers modifiés
+  - `post_review_comment()` : Publication commentaire résumé
+  - `post_inline_comment()` : Publication commentaire inline
+  - `is_own_pr()` : Détection propriété PR
+
+- `src/agents/pr_review_agent.py` : Agent de revue de PR
+  - Support multi-provider avec analyse parallèle
+  - Algorithme de consensus pour matching d'issues
+  - Génération de commentaires inline et résumé
+  - Intégration Claude Code pour auto-fix
+
+### 🔧 Modifications
+
+- **Configuration** : Nouvelles options PR dans `AnalysisConfig`
+  - `pr_providers` : Liste des providers AI pour PR review
+  - `pr_consensus_mode` : Activer le mode consensus
+  - `pr_min_severity` : Sévérité minimale des issues
+  - `pr_post_inline_comments` : Poster commentaires inline
+  - `pr_auto_fix_own_pr` : Auto-fix si PR propre
+  - `pr_dry_run` : Mode dry-run
+
+- **CLI** : Ajout de la sous-commande `pr` (alias `review-pr`)
+  - Arguments mutuellement exclusifs pour source PR
+  - Validation des clés API selon providers sélectionnés
+
+- **ClaudeCodeIntegration** : Nouvelles méthodes pour le mode parallèle
+  - `_fix_bug_async()` : Correction asynchrone d'un bug
+  - `run_fix_session_parallel()` : Session de correction avec pool de workers
+
+- **CLI fix** : Nouveaux arguments
+  - `--batch-size` / `-b` : Nombre de corrections parallèles
+  - `--timeout` : Timeout par bug en secondes
+
+### 📝 Documentation
+
+- Mise à jour du README avec documentation complète de `aetheris pr`
+- Description PyPI améliorée avec mots-clés PR review
+- Statut de développement passé à "Production/Stable"
+
 ## [2.3.4] - 2025-01-05
 
 ### 🧹 Qualité de code
@@ -577,6 +667,20 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Génération de rapports détaillés en Markdown
 - Configuration flexible via variables d'environnement
 
+[2.4.0]: https://github.com/adryserage/aetheris/compare/v2.3.4...v2.4.0
+[2.3.4]: https://github.com/adryserage/aetheris/compare/v2.3.3...v2.3.4
+[2.3.3]: https://github.com/adryserage/aetheris/compare/v2.3.2...v2.3.3
+[2.3.2]: https://github.com/adryserage/aetheris/compare/v2.3.1...v2.3.2
+[2.3.1]: https://github.com/adryserage/aetheris/compare/v2.3.0...v2.3.1
+[2.3.0]: https://github.com/adryserage/aetheris/compare/v2.2.8...v2.3.0
+[2.2.8]: https://github.com/adryserage/aetheris/compare/v2.2.7...v2.2.8
+[2.2.7]: https://github.com/adryserage/aetheris/compare/v2.2.6...v2.2.7
+[2.2.6]: https://github.com/adryserage/aetheris/compare/v2.2.5...v2.2.6
+[2.2.5]: https://github.com/adryserage/aetheris/compare/v2.2.4...v2.2.5
+[2.2.4]: https://github.com/adryserage/aetheris/compare/v2.2.3...v2.2.4
+[2.2.3]: https://github.com/adryserage/aetheris/compare/v2.2.1...v2.2.3
+[2.2.1]: https://github.com/adryserage/aetheris/compare/v2.2.0...v2.2.1
+[2.2.0]: https://github.com/adryserage/aetheris/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/adryserage/aetheris/compare/v2.0.1...v2.1.0
 [2.0.1]: https://github.com/adryserage/aetheris/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/adryserage/aetheris/compare/v1.1.0...v2.0.0

@@ -4,17 +4,17 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "adryserage-aetheris"
-version = "2.3.4"
-description = "Aetheris by Adryan - Système d'analyse de code multi-agents avec plusieurs agents coopérants"
+version = "2.4.0"
+description = "Aetheris - Multi-agent AI code analysis system with PR review, multi-provider consensus (Gemini/Claude/OpenAI), security analysis, and automatic bug fixing via Claude Code"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
     {name = "Adryan from Allowebs.com"}
 ]
-keywords = ["code-analysis", "code-review", "static-analysis", "security", "quality-assurance"]
+keywords = ["code-analysis", "code-review", "static-analysis", "security", "quality-assurance", "pr-review", "pull-request", "github", "multi-provider", "consensus", "gemini", "claude", "openai", "ai-code-review"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
@@ -45,7 +45,7 @@ aetheris = "src.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/adryserage/aetheris"
-Repository = "https://github.com//adryserage/aetheris"
+Repository = "https://github.com/adryserage/aetheris"
 Issues = "https://github.com/adryserage/aetheris/issues"
 
 [tool.setuptools]

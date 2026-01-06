@@ -251,27 +251,33 @@ def setup_fix_parser(subparsers):
     fix_parser = subparsers.add_parser(
         "fix",
         help="Corriger les bugs détectés avec Claude Code",
-        description="Lance Claude Code pour corriger les bugs un par un",
+        description="Lance Claude Code pour corriger les bugs (séquentiel ou parallèle)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Exemples:
   # Tester la connexion à Claude Code
   aetheris fix --test
 
-  # Corriger les bugs depuis le cache existant (mode arrière-plan)
+  # Corriger les bugs depuis le cache existant (mode séquentiel)
   aetheris fix
 
   # Mode automatique (sans confirmations)
   aetheris fix --auto
 
-  # Ouvrir Claude Code dans une fenêtre terminal
+  # Mode parallèle: 10 corrections simultanées (RECOMMANDÉ pour beaucoup de bugs)
+  aetheris fix --auto --batch-size 10
+
+  # Mode parallèle avec timeout personnalisé (5 min par bug)
+  aetheris fix --auto -b 10 --timeout 300
+
+  # Ouvrir Claude Code dans une fenêtre terminal (mode séquentiel uniquement)
   aetheris fix --terminal
 
   # Corriger uniquement les bugs critiques et high
   aetheris fix --severity high
 
-  # Lancer une analyse puis corriger
-  aetheris fix --analyze-first
+  # Lancer une analyse puis corriger en parallèle
+  aetheris fix --analyze-first --batch-size 10
         """,
     )
 
@@ -304,6 +310,21 @@ Exemples:
         "--test",
         action="store_true",
         help="Tester la connexion à Claude Code sans corriger de bugs",
+    )
+
+    fix_parser.add_argument(
+        "--batch-size",
+        "-b",
+        type=int,
+        default=1,
+        help="Nombre de corrections en parallèle (défaut: 1, max recommandé: 10)",
+    )
+
+    fix_parser.add_argument(
+        "--timeout",
+        type=int,
+        default=300,
+        help="Timeout par bug en secondes (défaut: 300)",
     )
 
     return fix_parser
@@ -490,14 +511,29 @@ async def run_fix(args):
             json.dump(cache_data, f, indent=2, ensure_ascii=False)
 
     # Lancer la session de correction
-    # Par défaut mode direct (arrière-plan), --terminal pour ouvrir une fenêtre
-    direct_mode = not getattr(args, "terminal", False)
-    stats = claude.run_fix_session(
-        bugs,
-        auto_mode=args.auto,
-        direct_mode=direct_mode,
-        on_bug_fixed=save_bugs_cache,
-    )
+    batch_size = getattr(args, "batch_size", 1)
+    timeout = getattr(args, "timeout", 300)
+
+    if batch_size > 1:
+        # Mode parallèle avec batching
+        console.print(f"[cyan]⚡ Mode parallèle activé: {batch_size} corrections simultanées[/cyan]")
+        console.print()
+        stats = await claude.run_fix_session_parallel(
+            bugs,
+            batch_size=batch_size,
+            timeout=timeout,
+            on_bug_fixed=save_bugs_cache,
+        )
+    else:
+        # Mode séquentiel classique
+        # Par défaut mode direct (arrière-plan), --terminal pour ouvrir une fenêtre
+        direct_mode = not getattr(args, "terminal", False)
+        stats = claude.run_fix_session(
+            bugs,
+            auto_mode=args.auto,
+            direct_mode=direct_mode,
+            on_bug_fixed=save_bugs_cache,
+        )
 
     console.print()
     console.rule("[bold green]🎉 Session de correction terminée")
@@ -826,6 +862,355 @@ async def run_user_story(args):
     console.rule("[bold green]✅ Analyse terminée")
 
 
+def setup_pr_parser(subparsers):
+    """Configure le parser pour la sous-commande pr (review-pr)"""
+    pr_parser = subparsers.add_parser(
+        "pr",
+        aliases=["review-pr"],
+        help="Analyser une Pull Request GitHub",
+        description="Analyse une PR avec plusieurs providers AI et poste des commentaires",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Exemples:
+  # Analyser une PR par URL
+  aetheris pr --url https://github.com/owner/repo/pull/123
+
+  # Analyser une PR par repo et numéro
+  aetheris pr --repo owner/repo --pr 123
+
+  # Multi-provider avec consensus
+  aetheris pr --url https://... --providers gemini,claude
+
+  # Désactiver le mode consensus (voir tous les issues)
+  aetheris pr --url https://... --providers gemini,claude --no-consensus
+
+  # Mode dry-run (analyse sans poster de commentaires)
+  aetheris pr --url https://... --dry-run
+
+  # Sauvegarder le rapport dans un fichier
+  aetheris pr --url https://... --output review.md
+        """,
+    )
+
+    # Source de la PR (mutuellement exclusif)
+    source_group = pr_parser.add_mutually_exclusive_group(required=True)
+    source_group.add_argument(
+        "--url",
+        type=str,
+        help="URL complète de la PR (ex: https://github.com/owner/repo/pull/123)",
+    )
+    source_group.add_argument(
+        "--repo",
+        type=str,
+        help="Repository au format owner/repo (requiert --pr)",
+    )
+
+    pr_parser.add_argument(
+        "--pr",
+        type=int,
+        help="Numéro de PR (requis avec --repo)",
+    )
+
+    # AI providers
+    pr_parser.add_argument(
+        "--providers",
+        type=str,
+        default="gemini",
+        help="Providers AI séparés par virgules (ex: gemini,claude,openai). Défaut: gemini",
+    )
+
+    # Consensus mode
+    pr_parser.add_argument(
+        "--consensus",
+        action="store_true",
+        default=True,
+        help="Mode consensus: reporter uniquement les issues trouvés par TOUS les providers (défaut)",
+    )
+    pr_parser.add_argument(
+        "--no-consensus",
+        action="store_true",
+        help="Désactiver le mode consensus (reporter tous les issues)",
+    )
+
+    # Output options
+    pr_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Analyser sans poster de commentaires sur la PR",
+    )
+    pr_parser.add_argument(
+        "--severity",
+        choices=["critical", "high", "medium", "low", "info"],
+        default="low",
+        help="Sévérité minimale des issues à reporter (défaut: low = tout)",
+    )
+    pr_parser.add_argument(
+        "--no-inline",
+        action="store_true",
+        help="Ne pas poster de commentaires inline, seulement le résumé",
+    )
+    pr_parser.add_argument(
+        "--output",
+        type=str,
+        help="Sauvegarder le rapport dans un fichier (markdown)",
+    )
+    pr_parser.add_argument(
+        "--auto-fix",
+        action="store_true",
+        help="Si c'est votre PR, proposer de corriger les issues avec Claude Code",
+    )
+
+    return pr_parser
+
+
+async def run_pr(args):
+    """Exécute l'analyse de Pull Request"""
+    console = Console()
+
+    console.print()
+    console.rule("[bold blue]Aetheris PR Review")
+    console.print()
+
+    # Valider les arguments
+    if args.repo and not args.pr:
+        console.print("[red]Erreur: --pr est requis avec --repo[/red]")
+        sys.exit(1)
+
+    # Charger l'environnement
+    env_vars = load_env_file(".env")
+
+    # Parser les providers
+    providers = [p.strip().lower() for p in args.providers.split(",")]
+
+    # Mapping des clés API
+    api_key_env_vars = {
+        "gemini": "GEMINI_API_KEY",
+        "openai": "OPENAI_API_KEY",
+        "claude": "ANTHROPIC_API_KEY",
+    }
+
+    # Valider les clés API pour chaque provider
+    api_keys = {}
+    for provider in providers:
+        key_name = api_key_env_vars.get(provider)
+        if key_name:
+            key = env_vars.get(key_name) or os.getenv(key_name)
+            if not key:
+                console.print(f"[red]Erreur: {key_name} non trouvée pour le provider {provider}[/red]")
+                console.print(f"[dim]Définissez la variable dans .env ou l'environnement[/dim]")
+                sys.exit(1)
+            api_keys[provider] = key
+
+    if not api_keys:
+        console.print("[red]Erreur: Aucun provider valide configuré[/red]")
+        sys.exit(1)
+
+    # Initialiser le service GitHub
+    from src.services.github_service import GitHubService, GitHubServiceError
+
+    gh_service = GitHubService()
+
+    if not gh_service.is_available:
+        console.print("[red]Erreur: gh CLI n'est pas disponible ou non authentifié[/red]")
+        console.print("[dim]Installez gh: https://cli.github.com/[/dim]")
+        console.print("[dim]Authentifiez-vous: gh auth login[/dim]")
+        sys.exit(1)
+
+    # Parser l'URL ou utiliser repo/pr
+    try:
+        if args.url:
+            repo, pr_number = gh_service.parse_pr_url(args.url)
+        else:
+            repo = args.repo
+            pr_number = args.pr
+    except GitHubServiceError as e:
+        console.print(f"[red]Erreur: {e}[/red]")
+        sys.exit(1)
+
+    console.print(f"[cyan]Repository:[/cyan] {repo}")
+    console.print(f"[cyan]PR #:[/cyan] {pr_number}")
+    console.print(f"[cyan]Providers:[/cyan] {', '.join(providers)}")
+    consensus_mode = not args.no_consensus
+    console.print(f"[cyan]Mode consensus:[/cyan] {'Oui' if consensus_mode else 'Non'}")
+    console.print()
+
+    # Récupérer les infos de la PR
+    console.print("[cyan]Récupération des informations de la PR...[/cyan]")
+    try:
+        pr_info = await gh_service.fetch_pr_info(repo, pr_number)
+    except GitHubServiceError as e:
+        console.print(f"[red]Erreur lors de la récupération de la PR: {e}[/red]")
+        sys.exit(1)
+
+    # Vérifier la propriété
+    is_own_pr = gh_service.is_own_pr(pr_info)
+    if is_own_pr:
+        console.print(f"[green]C'est VOTRE PR[/green]")
+    else:
+        console.print(f"[yellow]PR par:[/yellow] {pr_info.author_login}")
+
+    console.print(f"[dim]Titre: {pr_info.title}[/dim]")
+    console.print(f"[dim]Branche: {pr_info.head_branch} -> {pr_info.base_branch}[/dim]")
+    console.print()
+
+    # Récupérer le diff et les fichiers
+    console.print("[cyan]Récupération du diff...[/cyan]")
+    try:
+        diff_content = await gh_service.fetch_pr_diff(repo, pr_number)
+        files_changed = await gh_service.fetch_pr_files(repo, pr_number)
+    except GitHubServiceError as e:
+        console.print(f"[red]Erreur lors de la récupération du diff: {e}[/red]")
+        sys.exit(1)
+
+    console.print(f"[dim]{len(files_changed)} fichiers modifiés, +{pr_info.additions}/-{pr_info.deletions}[/dim]")
+    console.print()
+
+    # Créer la config et lancer l'analyse
+    config = AnalysisConfig(
+        ai_api_key=list(api_keys.values())[0],
+        ai_provider=providers[0],
+        root_dir=os.getcwd(),
+        timeout_seconds=120,
+        max_retries=3,
+    )
+
+    progress_manager = ProgressManager(enabled=True)
+
+    from src.agents.pr_review_agent import PRReviewAgent
+
+    agent = PRReviewAgent(
+        config=config,
+        providers=providers,
+        api_keys=api_keys,
+        consensus_mode=consensus_mode,
+        progress_manager=progress_manager,
+    )
+
+    # Lancer l'analyse
+    console.print("[cyan]Analyse en cours...[/cyan]")
+    console.print()
+
+    result = await agent.analyze_pr_diff(pr_info, diff_content, files_changed)
+    result.is_own_pr = is_own_pr
+
+    # Afficher les résultats
+    console.print()
+    console.rule("[bold]Résultats de l'analyse")
+    console.print()
+
+    # Filtrer par sévérité
+    severity_order = ["critical", "high", "medium", "low", "info"]
+    min_severity_idx = severity_order.index(args.severity)
+    filtered_issues = [
+        issue for issue in result.issues
+        if severity_order.index(issue.severity.value) <= min_severity_idx
+    ]
+
+    console.print(f"[bold]Score de risque:[/bold] {result.risk_score}/10")
+    console.print(f"[bold]Recommandation:[/bold] {result.approval_recommendation}")
+    console.print(f"[bold]Issues trouvées:[/bold] {len(result.issues)} ({len(filtered_issues)} après filtre)")
+
+    if result.consensus_mode and len(providers) > 1:
+        console.print(f"[dim]Mode consensus: {result.total_issues_before_consensus} issues détectées, {len(result.issues)} en consensus[/dim]")
+
+    console.print()
+
+    # Afficher les issues
+    if filtered_issues:
+        from rich.table import Table
+
+        table = Table(title="Issues détectées")
+        table.add_column("Sév.", style="bold")
+        table.add_column("Type")
+        table.add_column("Fichier")
+        table.add_column("Ligne")
+        table.add_column("Titre")
+
+        emoji_map = {
+            "critical": "[red]CRIT[/red]",
+            "high": "[orange1]HIGH[/orange1]",
+            "medium": "[yellow]MED[/yellow]",
+            "low": "[blue]LOW[/blue]",
+            "info": "[dim]INFO[/dim]",
+        }
+
+        for issue in filtered_issues:
+            table.add_row(
+                emoji_map.get(issue.severity.value, issue.severity.value),
+                issue.issue_type.value,
+                issue.file_path[:30] + "..." if len(issue.file_path) > 30 else issue.file_path,
+                str(issue.line_number) if issue.line_number else "-",
+                issue.title[:40] + "..." if len(issue.title) > 40 else issue.title,
+            )
+
+        console.print(table)
+        console.print()
+
+    # Sauvegarder le rapport si demandé
+    if args.output:
+        summary_comment = agent.generate_summary_comment(result)
+        with open(args.output, "w", encoding="utf-8") as f:
+            f.write(summary_comment)
+        console.print(f"[green]Rapport sauvegardé: {args.output}[/green]")
+        console.print()
+
+    # Gérer le posting des commentaires ou la correction
+    if not args.dry_run and filtered_issues:
+        if is_own_pr and args.auto_fix:
+            # Proposer de corriger
+            if Confirm.ask("Voulez-vous corriger ces issues avec Claude Code ?"):
+                console.print("[yellow]Fonctionnalité de correction à implémenter...[/yellow]")
+                # TODO: Intégration avec ClaudeCodeIntegration
+        else:
+            # Proposer de poster les commentaires
+            if Confirm.ask(f"Poster {len(filtered_issues)} commentaires sur la PR ?"):
+                console.print("[cyan]Publication des commentaires...[/cyan]")
+
+                # Poster le résumé
+                summary_comment = agent.generate_summary_comment(result)
+                success = await gh_service.post_review_comment(
+                    repo=repo,
+                    pr_number=pr_number,
+                    body=summary_comment,
+                    event="COMMENT",
+                )
+
+                if success:
+                    console.print("[green]Commentaire de résumé posté avec succès[/green]")
+                else:
+                    console.print("[red]Erreur lors de la publication du résumé[/red]")
+
+                # Poster les commentaires inline si activé
+                if not args.no_inline and pr_info.head_sha:
+                    inline_count = 0
+                    for comment in result.inline_comments:
+                        # Filtrer par sévérité aussi
+                        issue = next(
+                            (i for i in filtered_issues
+                             if i.file_path == comment.file_path and i.line_number == comment.line_number),
+                            None
+                        )
+                        if issue:
+                            success = await gh_service.post_inline_comment(
+                                repo=repo,
+                                pr_number=pr_number,
+                                commit_id=pr_info.head_sha,
+                                file_path=comment.file_path,
+                                line_number=comment.line_number,
+                                body=comment.body,
+                            )
+                            if success:
+                                inline_count += 1
+
+                    console.print(f"[green]{inline_count} commentaires inline postés[/green]")
+
+    elif args.dry_run:
+        console.print("[dim]Mode dry-run: aucun commentaire posté[/dim]")
+
+    console.print()
+    console.rule("[bold green]Analyse terminée")
+
+
 def get_version():
     """Retourne la version depuis pyproject.toml"""
     try:
@@ -852,6 +1237,9 @@ Exemples:
   aetheris fix --test                  # Tester la connexion à Claude Code
   aetheris fix --analyze-first         # Analyser puis corriger
   aetheris fix --severity high         # Corriger uniquement bugs critiques/high
+  aetheris pr --url https://...        # Analyser une PR GitHub
+  aetheris pr --repo owner/repo --pr 1 # Analyser par repo et numéro
+  aetheris pr --providers gemini,claude # Multi-provider avec consensus
         """,
     )
 
@@ -869,6 +1257,9 @@ Exemples:
 
     # Ajouter la sous-commande user-story
     setup_user_story_parser(subparsers)
+
+    # Ajouter la sous-commande pr (review-pr)
+    setup_pr_parser(subparsers)
 
     return parser
 
@@ -888,6 +1279,8 @@ def main():
         asyncio.run(run_fix(args))
     elif args.command == "user-story":
         asyncio.run(run_user_story(args))
+    elif args.command in ["pr", "review-pr"]:
+        asyncio.run(run_pr(args))
     else:
         parser.print_help()
         sys.exit(1)

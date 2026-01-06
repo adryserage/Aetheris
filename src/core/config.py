@@ -166,6 +166,27 @@ class AnalysisConfig:
     # Sévérité minimale pour les issues (critical, high, medium, low, info)
     user_story_min_severity: str = "low"
 
+    # === PR Review Options ===
+    # Options pour la commande `aetheris pr`
+
+    # Providers AI à utiliser pour la revue de PR (séparés par virgule)
+    pr_providers: List[str] = field(default_factory=lambda: ["gemini"])
+
+    # Mode consensus : ne retient que les issues trouvées par TOUS les providers
+    pr_consensus_mode: bool = True
+
+    # Sévérité minimale des issues à reporter
+    pr_min_severity: str = "low"
+
+    # Poster des commentaires inline sur les lignes spécifiques
+    pr_post_inline_comments: bool = True
+
+    # Proposer de corriger automatiquement si c'est notre PR
+    pr_auto_fix_own_pr: bool = False
+
+    # Mode dry-run : analyser sans poster de commentaires
+    pr_dry_run: bool = False
+
     def __post_init__(self):
         """Initialise les valeurs par défaut après création"""
         # Normaliser le provider

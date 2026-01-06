@@ -11,6 +11,28 @@ Système d'analyse de code automatisé utilisant plusieurs agents coopérants po
 
 ## 🎯 Fonctionnalités
 
+### Version 2.4.0 - PR Review avec Consensus Multi-Provider
+
+- **🔍 Commande `aetheris pr`** : Analyse de Pull Requests GitHub avec AI
+  - Support des URLs (`--url https://github.com/owner/repo/pull/123`)
+  - Support repo + numéro (`--repo owner/repo --pr 123`)
+  - Détection automatique de la propriété de la PR (comparaison email git)
+
+- **🤝 Mode Consensus Multi-Provider** : Analyse avec plusieurs providers AI
+  - Utilisation simultanée de Gemini, Claude et OpenAI
+  - Mode consensus : ne reporte que les issues trouvées par TOUS les providers
+  - Matching intelligent des issues (fichier, type, proximité de ligne ±3)
+
+- **💬 Commentaires GitHub Intelligents** :
+  - Commentaires inline sur les lignes spécifiques du diff
+  - Commentaire résumé avec tableau des issues et recommandation
+  - Mode dry-run pour prévisualiser sans poster
+
+- **🔧 Auto-fix pour vos PRs** :
+  - Détection automatique si la PR vous appartient
+  - Option `--auto-fix` pour corriger avec Claude Code
+  - Filtrage par sévérité (`--severity critical|high|medium|low|info`)
+
 ### Version 2.0.0 - Améliorations Majeures
 
 - **🎼 Orchestrateur dédié** : Système d'orchestration séparé avec workflow à étapes, dépendances et hooks pour une meilleure maintenabilité
@@ -426,6 +448,9 @@ aetheris analysis --help
 
 # Afficher l'aide pour la sous-commande fix
 aetheris fix --help
+
+# Afficher l'aide pour la sous-commande pr
+aetheris pr --help
 ```
 
 ### Analyse de base
@@ -508,13 +533,37 @@ aetheris fix --severity high
 aetheris fix --analyze-first
 ```
 
+#### Mode parallèle (v2.4.0+) - RECOMMANDÉ pour beaucoup de bugs
+
+Le mode parallèle permet de corriger plusieurs bugs simultanément, accélérant significativement le processus :
+
+```bash
+# Corriger 10 bugs en parallèle (recommandé)
+aetheris fix --auto --batch-size 10
+
+# Avec timeout personnalisé (5 minutes par bug)
+aetheris fix --auto -b 10 --timeout 300
+
+# Combiner avec filtre de sévérité
+aetheris fix --auto --batch-size 10 --severity high
+```
+
+**Performance estimée :**
+| Bugs | Mode séquentiel | Mode parallèle (10) | Gain |
+|------|-----------------|---------------------|------|
+| 10   | ~10 min         | ~2 min              | 5x   |
+| 50   | ~50 min         | ~10 min             | 5x   |
+| 100  | ~1h40           | ~20 min             | 5x   |
+
 #### Options disponibles
 
 | Option | Description |
 |--------|-------------|
 | `--test` | Tester la connexion à Claude Code sans corriger de bugs |
 | `--auto` | Mode automatique sans confirmations entre les bugs |
-| `--terminal` | Ouvrir Claude Code dans une nouvelle fenêtre terminal (au lieu du mode arrière-plan) |
+| `--batch-size`, `-b` | Nombre de corrections en parallèle (défaut: 1, recommandé: 10) |
+| `--timeout` | Timeout par bug en secondes (défaut: 300) |
+| `--terminal` | Ouvrir Claude Code dans une fenêtre terminal (mode séquentiel uniquement) |
 | `--severity` | Sévérité minimale des bugs à corriger (`critical`, `high`, `medium`, `low`) |
 | `--analyze-first` | Lancer une analyse avant de corriger |
 
@@ -548,6 +597,102 @@ La commande détecte automatiquement le système d'exploitation et lance Claude 
 | **Windows** | `cmd` avec `start` |
 | **macOS** | Terminal.app via AppleScript |
 | **Linux** | `gnome-terminal`, `konsole`, `xfce4-terminal`, `xterm`, ou `x-terminal-emulator` |
+
+### Revue de Pull Request avec AI (v2.4.0+)
+
+La commande `aetheris pr` permet d'analyser des Pull Requests GitHub avec un ou plusieurs providers AI et de poster des commentaires directement sur la PR.
+
+#### Prérequis
+
+- **GitHub CLI (`gh`)** doit être installé et authentifié :
+  ```bash
+  # Installation
+  brew install gh        # macOS
+  sudo apt install gh    # Ubuntu/Debian
+  winget install gh      # Windows
+
+  # Authentification
+  gh auth login
+  ```
+
+#### Usage basique
+
+```bash
+# Analyser une PR via URL
+aetheris pr --url https://github.com/owner/repo/pull/123
+
+# Analyser via repo + numéro
+aetheris pr --repo owner/repo --pr 123
+
+# Mode dry-run (prévisualiser sans poster de commentaires)
+aetheris pr --url https://github.com/owner/repo/pull/123 --dry-run
+```
+
+#### Multi-Provider et Consensus
+
+```bash
+# Analyser avec Gemini et Claude (mode consensus par défaut)
+aetheris pr --url https://... --providers gemini,claude
+
+# Analyser avec les 3 providers
+aetheris pr --url https://... --providers gemini,claude,openai
+
+# Désactiver le consensus (reporter toutes les issues)
+aetheris pr --url https://... --providers gemini,claude --no-consensus
+```
+
+Le **mode consensus** (par défaut) ne reporte que les issues trouvées par TOUS les providers. Cela réduit les faux positifs et augmente la confiance dans les résultats.
+
+#### Options de filtrage et sortie
+
+```bash
+# Filtrer par sévérité minimale
+aetheris pr --url https://... --severity high
+
+# Ne pas poster de commentaires inline (résumé uniquement)
+aetheris pr --url https://... --no-inline
+
+# Sauvegarder le rapport dans un fichier
+aetheris pr --url https://... --output review.md
+```
+
+#### Auto-fix pour vos PRs
+
+Si la PR vous appartient (comparaison email git), vous pouvez demander à corriger automatiquement les issues :
+
+```bash
+# Proposer de corriger avec Claude Code
+aetheris pr --url https://... --auto-fix
+```
+
+#### Options disponibles
+
+| Option | Description |
+|--------|-------------|
+| `--url URL` | URL complète de la PR GitHub |
+| `--repo REPO` | Repository au format `owner/repo` |
+| `--pr NUM` | Numéro de la PR (avec `--repo`) |
+| `--providers LIST` | Providers AI séparés par virgule (défaut: `gemini`) |
+| `--consensus` | Mode consensus - issues de TOUS les providers (défaut) |
+| `--no-consensus` | Reporter toutes les issues de chaque provider |
+| `--dry-run` | Analyser sans poster de commentaires |
+| `--severity LEVEL` | Sévérité minimale (`critical`, `high`, `medium`, `low`, `info`) |
+| `--no-inline` | Pas de commentaires inline, résumé uniquement |
+| `--output FILE` | Sauvegarder le rapport markdown |
+| `--auto-fix` | Proposer de corriger si c'est votre PR |
+
+#### Types d'issues détectées
+
+| Type | Description |
+|------|-------------|
+| `security` | Vulnérabilités de sécurité (injection, XSS, etc.) |
+| `bug` | Bugs potentiels et erreurs logiques |
+| `performance` | Problèmes de performance |
+| `logic` | Erreurs de logique métier |
+| `style` | Non-respect des conventions de code |
+| `documentation` | Documentation manquante ou incorrecte |
+| `test` | Tests manquants ou insuffisants |
+| `best_practice` | Non-respect des bonnes pratiques |
 
 ### Analyse de User Stories (v2.3.0+)
 

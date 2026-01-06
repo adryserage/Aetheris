@@ -1,19 +1,30 @@
 """
 Claude Code Integration - Intégration avec Claude Code CLI pour la correction de bugs
 Exécute Claude Code directement en arrière-plan pour corriger les bugs
+Supporte le mode parallèle pour accélérer les corrections
 """
 
+import asyncio
 import os
 import platform
 import shutil
 import subprocess
 import tempfile
 from datetime import datetime
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 from rich.console import Console
+from rich.live import Live
 from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.progress import (
+    BarColumn,
+    Progress,
+    SpinnerColumn,
+    TaskID,
+    TaskProgressColumn,
+    TextColumn,
+    TimeElapsedColumn,
+)
 from rich.prompt import Confirm
 from rich.table import Table
 
@@ -700,6 +711,192 @@ class ClaudeCodeIntegration:
         self.console.print(f"[yellow]⏭️  Passés:[/yellow] {stats['skipped']}")
         self.console.print(f"[red]❌ Échoués:[/red] {stats['failed']}")
         self.console.print(f"[dim]Total:[/dim] {stats['total']}")
+
+        return stats
+
+    async def _fix_bug_async(
+        self,
+        bug: BugIdentifier,
+        timeout: int = 300,
+    ) -> Tuple[BugIdentifier, bool, str]:
+        """
+        Corrige un bug de manière asynchrone.
+
+        Args:
+            bug: Le bug à corriger
+            timeout: Timeout en secondes
+
+        Returns:
+            Tuple (bug, success, output)
+        """
+        prompt = self._generate_fix_prompt(bug)
+
+        try:
+            # Utiliser asyncio.to_thread pour exécuter subprocess de manière non-bloquante
+            def run_fix():
+                cmd = [
+                    self._claude_path or "claude",
+                    "--print",
+                    "--dangerously-skip-permissions",
+                    "--output-format",
+                    "text",
+                    "--no-session-persistence",
+                    prompt,
+                ]
+                result = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout,
+                    cwd=self.root_dir,
+                    env={**os.environ, "FORCE_COLOR": "0", "NO_COLOR": "1"},
+                )
+                return result.returncode == 0, result.stdout, result.stderr
+
+            success, stdout, stderr = await asyncio.to_thread(run_fix)
+            output = stdout if success else (stderr or stdout)
+            return bug, success, output
+
+        except subprocess.TimeoutExpired:
+            return bug, False, f"Timeout après {timeout}s"
+        except Exception as e:
+            return bug, False, f"Erreur: {e}"
+
+    async def run_fix_session_parallel(
+        self,
+        bugs: List[BugIdentifier],
+        batch_size: int = 10,
+        timeout: int = 300,
+        on_bug_fixed: Optional[Callable[[BugIdentifier], None]] = None,
+    ) -> dict:
+        """
+        Exécute une session de correction de bugs en parallèle.
+
+        Utilise un pool de workers qui exécutent les corrections simultanément.
+        Quand un worker termine, il prend immédiatement le bug suivant de la queue.
+
+        Args:
+            bugs: Liste des bugs à corriger
+            batch_size: Nombre de corrections parallèles (défaut: 10)
+            timeout: Timeout par bug en secondes (défaut: 300)
+            on_bug_fixed: Callback appelé après chaque bug corrigé
+
+        Returns:
+            Statistiques de la session (fixed, skipped, failed)
+        """
+        stats = {"fixed": 0, "skipped": 0, "failed": 0, "total": len(bugs)}
+
+        if not bugs:
+            self.console.print("[yellow]Aucun bug à corriger.[/yellow]")
+            return stats
+
+        # Tester Claude Code avant de commencer
+        self.console.print("[cyan]🔍 Vérification de Claude Code...[/cyan]")
+        test_ok, test_msg = self.test_claude_code()
+        if not test_ok:
+            self.console.print(f"[red]❌ {test_msg}[/red]")
+            return stats
+        self.console.print(f"[green]✅ {test_msg}[/green]")
+        self.console.print()
+
+        # Afficher le tableau récapitulatif
+        self.display_bugs_table(bugs)
+        self.console.print()
+
+        effective_batch_size = min(batch_size, len(bugs))
+        self.console.print(
+            f"[cyan]⚡ Mode parallèle: {effective_batch_size} corrections simultanées[/cyan]"
+        )
+        self.console.print()
+
+        # Queue des bugs à traiter
+        bug_queue: asyncio.Queue = asyncio.Queue()
+        for bug in bugs:
+            await bug_queue.put(bug)
+
+        # Compteurs thread-safe
+        completed_count = 0
+        lock = asyncio.Lock()
+
+        # Créer la barre de progression
+        progress = Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            TextColumn("•"),
+            TimeElapsedColumn(),
+            console=self.console,
+        )
+
+        async def worker(worker_id: int, main_task: TaskID):
+            """Worker qui traite les bugs de la queue."""
+            nonlocal completed_count
+
+            while True:
+                try:
+                    bug = bug_queue.get_nowait()
+                except asyncio.QueueEmpty:
+                    break
+
+                # Mettre à jour la description
+                progress.update(
+                    main_task,
+                    description=f"[bold]Worker {worker_id + 1}: {bug.id}[/bold]",
+                )
+
+                # Exécuter la correction
+                bug, success, output = await self._fix_bug_async(bug, timeout)
+
+                async with lock:
+                    completed_count += 1
+
+                    if success:
+                        stats["fixed"] += 1
+                        bug.fixed = True
+                        bug.fixed_at = datetime.now().isoformat()
+                        if output:
+                            lines = [l for l in output.strip().split("\n") if l.strip()]
+                            bug.fix_summary = "\n".join(lines[-3:]) if lines else "Corrigé"
+                        else:
+                            bug.fix_summary = "Corrigé"
+
+                        if on_bug_fixed:
+                            on_bug_fixed(bug)
+
+                        self.console.print(f"  [green]✅ {bug.id} corrigé[/green]")
+                    else:
+                        stats["failed"] += 1
+                        self.console.print(f"  [red]❌ {bug.id} échoué[/red]")
+
+                    progress.update(main_task, completed=completed_count)
+
+                bug_queue.task_done()
+
+        # Lancer la session
+        with progress:
+            main_task = progress.add_task(
+                "[bold]Correction en cours...[/bold]",
+                total=len(bugs),
+            )
+
+            # Créer et lancer les workers
+            workers = [
+                asyncio.create_task(worker(i, main_task))
+                for i in range(effective_batch_size)
+            ]
+
+            # Attendre que tous les workers terminent
+            await asyncio.gather(*workers)
+
+        # Afficher le résumé
+        self.console.print()
+        self.console.rule("[bold green]Résumé de la session parallèle")
+        self.console.print(f"[green]✅ Corrigés:[/green] {stats['fixed']}")
+        self.console.print(f"[yellow]⏭️  Passés:[/yellow] {stats['skipped']}")
+        self.console.print(f"[red]❌ Échoués:[/red] {stats['failed']}")
+        self.console.print(f"[dim]Total:[/dim] {stats['total']}")
+        self.console.print(f"[dim]Batch size:[/dim] {effective_batch_size} workers")
 
         return stats
 
