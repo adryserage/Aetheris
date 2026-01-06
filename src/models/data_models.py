@@ -98,6 +98,9 @@ class BugIdentifier:
     fixed: bool = False  # Si le bug a été corrigé
     fixed_at: Optional[str] = None  # Timestamp de la correction (ISO format)
     fix_summary: Optional[str] = None  # Résumé de la correction appliquée
+    failed: bool = False  # Si la correction a échoué
+    failed_at: Optional[str] = None  # Timestamp de l'échec (ISO format)
+    failure_reason: Optional[str] = None  # Raison de l'échec
 
 
 @dataclass

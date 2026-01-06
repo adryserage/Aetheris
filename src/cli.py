@@ -327,6 +327,12 @@ Exemples:
         help="Timeout par bug en secondes (défaut: 300)",
     )
 
+    fix_parser.add_argument(
+        "--retry-failed",
+        action="store_true",
+        help="Relancer uniquement les bugs qui ont échoué précédemment",
+    )
+
     return fix_parser
 
 
@@ -436,6 +442,7 @@ async def run_fix(args):
     # Convertir les données en objets BugIdentifier
     all_bugs: List[BugIdentifier] = []
     fixed_count = 0
+    failed_count = 0
     for bug_data in bugs_data:
         bug = BugIdentifier(
             id=bug_data["id"],
@@ -449,19 +456,42 @@ async def run_fix(args):
             fixed=bug_data.get("fixed", False),
             fixed_at=bug_data.get("fixed_at"),
             fix_summary=bug_data.get("fix_summary"),
+            failed=bug_data.get("failed", False),
+            failed_at=bug_data.get("failed_at"),
+            failure_reason=bug_data.get("failure_reason"),
         )
         all_bugs.append(bug)
         if bug.fixed:
             fixed_count += 1
+        elif bug.failed:
+            failed_count += 1
 
-    # Filtrer les bugs déjà corrigés
-    bugs = [b for b in all_bugs if not b.fixed]
+    # Filtrer selon le mode
+    retry_failed = getattr(args, "retry_failed", False)
 
-    if fixed_count > 0:
-        console.print(f"[dim]ℹ️  {fixed_count} bug(s) déjà corrigé(s) (ignorés)[/dim]")
+    if retry_failed:
+        # Mode retry-failed: uniquement les bugs échoués
+        bugs = [b for b in all_bugs if b.failed and not b.fixed]
+        if fixed_count > 0:
+            console.print(f"[dim]ℹ️  {fixed_count} bug(s) déjà corrigé(s) (ignorés)[/dim]")
+        if failed_count > 0:
+            console.print(f"[cyan]🔄 {failed_count} bug(s) échoué(s) à relancer[/cyan]")
+    else:
+        # Mode normal: tous les bugs non corrigés
+        bugs = [b for b in all_bugs if not b.fixed]
+        if fixed_count > 0:
+            console.print(f"[dim]ℹ️  {fixed_count} bug(s) déjà corrigé(s) (ignorés)[/dim]")
+        if failed_count > 0:
+            console.print(
+                f"[yellow]⚠️  {failed_count} bug(s) échoué(s) précédemment "
+                f"(utilisez --retry-failed pour les relancer uniquement)[/yellow]"
+            )
 
     if not bugs:
-        console.print("[green]✅ Aucun bug à corriger![/green]")
+        if retry_failed:
+            console.print("[green]✅ Aucun bug échoué à relancer![/green]")
+        else:
+            console.print("[green]✅ Aucun bug à corriger![/green]")
         sys.exit(0)
 
     # Filtrer par sévérité
@@ -480,13 +510,13 @@ async def run_fix(args):
         claude.display_bugs_table(bugs)
         sys.exit(0)
 
-    # Callback pour sauvegarder le cache après chaque correction
-    def save_bugs_cache(fixed_bug: BugIdentifier):
-        """Sauvegarde le cache des bugs avec le statut mis à jour"""
+    # Callback pour sauvegarder le cache après chaque correction ou échec
+    def save_bug_status(updated_bug: BugIdentifier):
+        """Sauvegarde le cache des bugs avec le statut mis à jour (fixé ou échoué)"""
         # Mettre à jour le bug dans all_bugs
         for i, b in enumerate(all_bugs):
-            if b.id == fixed_bug.id:
-                all_bugs[i] = fixed_bug
+            if b.id == updated_bug.id:
+                all_bugs[i] = updated_bug
                 break
 
         # Sauvegarder tout le cache
@@ -504,6 +534,9 @@ async def run_fix(args):
                 "fixed": b.fixed,
                 "fixed_at": b.fixed_at,
                 "fix_summary": b.fix_summary,
+                "failed": getattr(b, "failed", False),
+                "failed_at": getattr(b, "failed_at", None),
+                "failure_reason": getattr(b, "failure_reason", None),
             }
             cache_data.append(bug_dict)
 
@@ -522,7 +555,7 @@ async def run_fix(args):
             bugs,
             batch_size=batch_size,
             timeout=timeout,
-            on_bug_fixed=save_bugs_cache,
+            on_bug_status=save_bug_status,
         )
     else:
         # Mode séquentiel classique
@@ -532,7 +565,7 @@ async def run_fix(args):
             bugs,
             auto_mode=args.auto,
             direct_mode=direct_mode,
-            on_bug_fixed=save_bugs_cache,
+            on_bug_status=save_bug_status,
         )
 
     console.print()

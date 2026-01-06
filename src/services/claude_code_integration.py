@@ -662,7 +662,7 @@ class ClaudeCodeIntegration:
         bugs: List[BugIdentifier],
         auto_mode: bool = False,
         direct_mode: bool = True,
-        on_bug_fixed: Optional[Callable[[BugIdentifier], None]] = None,
+        on_bug_status: Optional[Callable[[BugIdentifier], None]] = None,
     ) -> dict:
         """
         Exécute une session de correction de bugs.
@@ -671,7 +671,7 @@ class ClaudeCodeIntegration:
             bugs: Liste des bugs à corriger
             auto_mode: Si True, ne demande pas de confirmation entre les bugs
             direct_mode: Si True, exécute Claude Code en arrière-plan (sans fenêtre terminal)
-            on_bug_fixed: Callback appelé après chaque bug corrigé pour sauvegarder l'état
+            on_bug_status: Callback appelé après chaque bug (corrigé ou échoué) pour sauvegarder l'état
 
         Returns:
             Statistiques de la session (fixed, skipped, failed, rate_limited, remaining, wait_hours)
@@ -740,6 +740,7 @@ class ClaudeCodeIntegration:
                     # Marquer le bug comme corrigé
                     bug.fixed = True
                     bug.fixed_at = datetime.now().isoformat()
+                    bug.failed = False  # Reset si précédemment échoué
                     # Extraire un résumé de la correction (dernières lignes utiles)
                     if output:
                         lines = [line for line in output.strip().split("\n") if line.strip()]
@@ -748,8 +749,8 @@ class ClaudeCodeIntegration:
                         bug.fix_summary = "Corrigé sans détails"
 
                     # Sauvegarder l'état via callback
-                    if on_bug_fixed:
-                        on_bug_fixed(bug)
+                    if on_bug_status:
+                        on_bug_status(bug)
 
                     if output:
                         # Afficher un résumé de la sortie
@@ -764,6 +765,16 @@ class ClaudeCodeIntegration:
                 else:
                     stats["failed"] += 1
                     self.console.print(f"[red]❌ Échec de la correction de {bug.id}[/red]")
+
+                    # Marquer le bug comme échoué
+                    bug.failed = True
+                    bug.failed_at = datetime.now().isoformat()
+                    bug.failure_reason = output[:500] if output else "Échec sans détails"
+
+                    # Sauvegarder l'état via callback
+                    if on_bug_status:
+                        on_bug_status(bug)
+
                     if output:
                         self.console.print(f"[red]{output[:500]}[/red]")
 
@@ -784,11 +795,12 @@ class ClaudeCodeIntegration:
                     # Marquer le bug comme corrigé
                     bug.fixed = True
                     bug.fixed_at = datetime.now().isoformat()
+                    bug.failed = False  # Reset si précédemment échoué
                     bug.fix_summary = "Corrigé via mode terminal interactif"
 
                     # Sauvegarder l'état via callback
-                    if on_bug_fixed:
-                        on_bug_fixed(bug)
+                    if on_bug_status:
+                        on_bug_status(bug)
                 else:
                     if not auto_mode and i < len(bugs):
                         skip = Confirm.ask("Passer au bug suivant?", default=True)
@@ -898,7 +910,7 @@ class ClaudeCodeIntegration:
         bugs: List[BugIdentifier],
         batch_size: int = 10,
         timeout: int = 300,
-        on_bug_fixed: Optional[Callable[[BugIdentifier], None]] = None,
+        on_bug_status: Optional[Callable[[BugIdentifier], None]] = None,
     ) -> dict:
         """
         Exécute une session de correction de bugs en parallèle.
@@ -911,7 +923,7 @@ class ClaudeCodeIntegration:
             bugs: Liste des bugs à corriger
             batch_size: Nombre de corrections parallèles (défaut: 10)
             timeout: Timeout par bug en secondes (défaut: 300)
-            on_bug_fixed: Callback appelé après chaque bug corrigé
+            on_bug_status: Callback appelé après chaque bug (corrigé ou échoué)
 
         Returns:
             Statistiques de la session (fixed, skipped, failed, rate_limited, remaining)
@@ -1006,18 +1018,28 @@ class ClaudeCodeIntegration:
                         stats["fixed"] += 1
                         bug.fixed = True
                         bug.fixed_at = datetime.now().isoformat()
+                        bug.failed = False  # Reset si précédemment échoué
                         if output:
                             lines = [ln for ln in output.strip().split("\n") if ln.strip()]
                             bug.fix_summary = "\n".join(lines[-3:]) if lines else "Corrigé"
                         else:
                             bug.fix_summary = "Corrigé"
 
-                        if on_bug_fixed:
-                            on_bug_fixed(bug)
+                        if on_bug_status:
+                            on_bug_status(bug)
 
                         self.console.print(f"  [green]✅ {bug.id} corrigé[/green]")
                     else:
                         stats["failed"] += 1
+
+                        # Marquer le bug comme échoué
+                        bug.failed = True
+                        bug.failed_at = datetime.now().isoformat()
+                        bug.failure_reason = output[:500] if output else "Échec sans détails"
+
+                        if on_bug_status:
+                            on_bug_status(bug)
+
                         self.console.print(f"  [red]❌ {bug.id} échoué[/red]")
 
                     progress.update(main_task, completed=completed_count)
