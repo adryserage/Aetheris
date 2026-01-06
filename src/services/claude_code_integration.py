@@ -9,6 +9,7 @@ import os
 import platform
 import re
 import shutil
+import signal
 import subprocess
 import tempfile
 from datetime import datetime
@@ -728,6 +729,7 @@ class ClaudeCodeIntegration:
             "failed": 0,
             "total": len(bugs),
             "rate_limited": False,
+            "user_stopped": False,
             "remaining": 0,
             "wait_hours": 0.0,
         }
@@ -735,6 +737,17 @@ class ClaudeCodeIntegration:
         if not bugs:
             self.console.print("[yellow]Aucun bug à corriger.[/yellow]")
             return stats
+
+        # Variable pour l'arrêt utilisateur
+        user_stopped = False
+
+        def handle_interrupt(signum, frame):
+            nonlocal user_stopped
+            user_stopped = True
+            self.console.print("\n[yellow]⏹️  Arrêt demandé après ce bug...[/yellow]")
+
+        # Installer le handler
+        original_handler = signal.signal(signal.SIGINT, handle_interrupt)
 
         # Tester Claude Code avant de commencer
         self.console.print("[cyan]🔍 Vérification de Claude Code...[/cyan]")
@@ -751,6 +764,7 @@ class ClaudeCodeIntegration:
 
         mode_msg = "en arrière-plan" if direct_mode else "dans une nouvelle fenêtre"
         self.console.print(f"[dim]Mode: Claude Code sera exécuté {mode_msg}[/dim]")
+        self.console.print("[dim]Appuyez sur Ctrl+C pour arrêter[/dim]")
         self.console.print()
 
         if not auto_mode:
@@ -764,6 +778,12 @@ class ClaudeCodeIntegration:
 
         # Corriger chaque bug un par un
         for i, bug in enumerate(bugs, 1):
+            # Vérifier si l'utilisateur a demandé l'arrêt
+            if user_stopped:
+                stats["user_stopped"] = True
+                stats["remaining"] = len(bugs) - i + 1
+                break
+
             self.console.print()
             self.console.rule(f"[bold blue]Bug {i}/{len(bugs)}")
             self._display_bug_details(bug)
@@ -867,6 +887,9 @@ class ClaudeCodeIntegration:
                     else:
                         stats["skipped"] += 1
 
+        # Restaurer le handler original
+        signal.signal(signal.SIGINT, original_handler)
+
         # Afficher le résumé
         self.console.print()
 
@@ -888,6 +911,19 @@ class ClaudeCodeIntegration:
                     f"[green]💡 Astuce: Relancez la commande plus tard pour continuer.[/green]",
                     title="🛑 Rate Limit",
                     border_style="red",
+                )
+            )
+        elif stats["user_stopped"]:
+            # Afficher le message d'arrêt utilisateur
+            self.console.print(
+                Panel(
+                    f"[bold yellow]⏹️  SESSION ARRÊTÉE PAR L'UTILISATEUR[/bold yellow]\n\n"
+                    f"[dim]Bugs corrigés: {stats['fixed']}/{stats['total']}[/dim]\n"
+                    f"[dim]Bugs échoués: {stats['failed']}[/dim]\n"
+                    f"[dim]Bugs restants: {stats['remaining']}[/dim]\n\n"
+                    f"[green]💡 Relancez la commande pour continuer avec les bugs restants.[/green]",
+                    title="⏹️ Arrêt manuel",
+                    border_style="yellow",
                 )
             )
         else:
@@ -987,6 +1023,7 @@ class ClaudeCodeIntegration:
             "failed": 0,
             "total": len(bugs),
             "rate_limited": False,
+            "user_stopped": False,
             "remaining": 0,
             "wait_hours": 0.0,
         }
@@ -1012,6 +1049,7 @@ class ClaudeCodeIntegration:
         self.console.print(
             f"[cyan]⚡ Mode parallèle: {effective_batch_size} corrections simultanées[/cyan]"
         )
+        self.console.print("[dim]   Appuyez sur Ctrl+C pour arrêter[/dim]")
         self.console.print()
 
         # Queue des bugs à traiter
@@ -1023,7 +1061,19 @@ class ClaudeCodeIntegration:
         completed_count = 0
         lock = asyncio.Lock()
         rate_limit_event = asyncio.Event()  # Signal pour arrêter tous les workers
+        user_stop_event = asyncio.Event()  # Signal pour arrêt utilisateur (Ctrl+C)
         rate_limit_wait_hours = 0.0
+        user_stopped = False
+
+        # Handler pour Ctrl+C
+        def handle_interrupt(signum, frame):
+            nonlocal user_stopped
+            user_stopped = True
+            user_stop_event.set()
+            self.console.print("\n[yellow]⏹️  Arrêt demandé... Finalisation en cours...[/yellow]")
+
+        # Installer le handler
+        original_handler = signal.signal(signal.SIGINT, handle_interrupt)
 
         # Créer la barre de progression
         progress = Progress(
@@ -1040,7 +1090,7 @@ class ClaudeCodeIntegration:
             """Worker qui traite les bugs de la queue."""
             nonlocal completed_count, rate_limit_wait_hours
 
-            while not rate_limit_event.is_set():
+            while not rate_limit_event.is_set() and not user_stop_event.is_set():
                 try:
                     bug = bug_queue.get_nowait()
                 except asyncio.QueueEmpty:
@@ -1119,9 +1169,14 @@ class ClaudeCodeIntegration:
             # Attendre que tous les workers terminent
             await asyncio.gather(*workers)
 
-        # Calculer les bugs restants si rate limited
-        if stats["rate_limited"]:
+        # Restaurer le handler original
+        signal.signal(signal.SIGINT, original_handler)
+
+        # Calculer les bugs restants si rate limited ou user stopped
+        if stats["rate_limited"] or user_stopped:
             stats["remaining"] = bug_queue.qsize()
+            if user_stopped:
+                stats["user_stopped"] = True
 
         # Afficher le résumé
         self.console.print()
@@ -1145,6 +1200,20 @@ class ClaudeCodeIntegration:
                     f"[green]💡 Astuce: Relancez la commande plus tard pour continuer.[/green]",
                     title="🛑 Rate Limit",
                     border_style="red",
+                )
+            )
+        elif stats["user_stopped"]:
+            # Afficher le message d'arrêt utilisateur
+            self.console.print()
+            self.console.print(
+                Panel(
+                    f"[bold yellow]⏹️  SESSION ARRÊTÉE PAR L'UTILISATEUR[/bold yellow]\n\n"
+                    f"[dim]Bugs corrigés: {stats['fixed']}/{stats['total']}[/dim]\n"
+                    f"[dim]Bugs échoués: {stats['failed']}[/dim]\n"
+                    f"[dim]Bugs restants: {stats['remaining']}[/dim]\n\n"
+                    f"[green]💡 Relancez la commande pour continuer avec les bugs restants.[/green]",
+                    title="⏹️ Arrêt manuel",
+                    border_style="yellow",
                 )
             )
         else:
