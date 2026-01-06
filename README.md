@@ -11,68 +11,75 @@ Système d'analyse de code automatisé utilisant plusieurs agents coopérants po
 
 ## 🎯 Fonctionnalités
 
-### Version 2.4.0 - PR Review avec Consensus Multi-Provider
+### 🔍 Commandes Principales
 
-- **🔍 Commande `aetheris pr`** : Analyse de Pull Requests GitHub avec AI
-  - Support des URLs (`--url https://github.com/owner/repo/pull/123`)
-  - Support repo + numéro (`--repo owner/repo --pr 123`)
-  - Détection automatique de la propriété de la PR (comparaison email git)
+| Commande | Description |
+|----------|-------------|
+| `aetheris analysis` | Analyse complète du code (qualité, sécurité, architecture) |
+| `aetheris pr` | Review de Pull Requests GitHub avec AI multi-provider |
+| `aetheris fix` | Correction automatique des bugs avec Claude Code |
+| `aetheris user-story` | Analyse des flux utilisateur frontend ↔ backend |
 
-- **🤝 Mode Consensus Multi-Provider** : Analyse avec plusieurs providers AI
-  - Utilisation simultanée de Gemini, Claude et OpenAI
-  - Mode consensus : ne reporte que les issues trouvées par TOUS les providers
-  - Matching intelligent des issues (fichier, type, proximité de ligne ±3)
+### 🤖 Multi-Provider AI
 
-- **💬 Commentaires GitHub Intelligents** :
-  - Commentaires inline sur les lignes spécifiques du diff
-  - Commentaire résumé avec tableau des issues et recommandation
-  - Mode dry-run pour prévisualiser sans poster
+- **Providers supportés** : Gemini, Claude (Anthropic), OpenAI
+- **Mode consensus** : Ne reporte que les issues trouvées par TOUS les providers
+- **Matching intelligent** : Corrélation des issues par fichier, type et proximité de ligne (±3)
+- **Structured Outputs** : Réponses JSON validées via Pydantic
 
-- **🔧 Auto-fix pour vos PRs** :
-  - Détection automatique si la PR vous appartient
-  - Option `--auto-fix` pour corriger avec Claude Code
-  - Filtrage par sévérité (`--severity critical|high|medium|low|info`)
+### 📋 PR Review (`aetheris pr`)
 
-### Version 2.0.0 - Améliorations Majeures
+- Support URL (`--url`) et repo+numéro (`--repo`/`--pr`)
+- Commentaires inline sur les lignes du diff
+- Commentaire résumé avec tableau des issues
+- Détection automatique si la PR vous appartient
+- Option `--auto-fix` pour corriger avec Claude Code
+- Mode `--dry-run` pour prévisualiser sans poster
 
-- **🎼 Orchestrateur dédié** : Système d'orchestration séparé avec workflow à étapes, dépendances et hooks pour une meilleure maintenabilité
-- **🚀 Cache intelligent** : Réduction des coûts API de 60-80% grâce au cache basé sur git SHA
-- **⚡ Parallélisation intelligente** : Analyse des fichiers indépendants en parallèle pour des performances optimales
-- **🎯 Système de priorités** : Priorisation automatique des fichiers PR pour des reviews plus rapides
-- **📊 Métriques et monitoring** : Collecte complète de métriques de performance avec export JSON
-- **🔄 Analyse incrémentale** : Détection automatique des fichiers dépendants avec profondeur configurable
-- **🛡️ Gestion d'erreurs robuste** : Circuit breaker et backoff exponentiel pour une meilleure résilience
-- **🔌 Système de plugins** : Hooks extensibles pour personnaliser le workflow (voir `docs/PLUGINS.md`)
+### 🔧 Correction de Bugs (`aetheris fix`)
 
-### Version 2.1.0 - Correction de Bugs avec Claude Code
+- Correction automatique via Claude Code CLI
+- **Mode parallèle** : `--batch-size 10` pour 10 corrections simultanées (~5x plus rapide)
+- **Détection rate limit** : Arrêt automatique avec temps d'attente affiché
+- **Suivi des échecs** : `--retry-failed` pour relancer les bugs échoués
+- IDs uniques par bug (`BUG-A1B2C3D4`)
+- Analyse d'impact : fichiers affectés par chaque bug
 
-- **🔧 Commande `aetheris fix`** : Correction automatique des bugs avec Claude Code
-- **📤 Analyse des exports** : Extraction des exports (TS/JS, Python, Dart) pour comprendre les relations
-- **🔙 Graphe de dépendances inverse** : Savoir "qui dépend de ce fichier" pour l'analyse d'impact
-- **💥 Analyse d'impact** : Calcul automatique des fichiers impactés par chaque bug
-- **🔢 IDs de bugs uniques** : Chaque bug détecté a un ID unique (ex: `BUG-A1B2C3D4`)
+### 📖 User Story Analysis (`aetheris user-story`)
 
-### Version 2.3.0 - User Story Analysis
+- Traçage bidirectionnel frontend ↔ backend
+- Détection d'endpoints orphelins et appels sans handler
+- Diagrammes Mermaid/PlantUML automatiques
+- Multi-framework : Express, Next.js, FastAPI, Flask, Django, NestJS, etc.
 
-- **📖 Commande `aetheris user-story`** : Analyse complète des flux utilisateur
-- **🔄 Traçage frontend ↔ backend** : Détection bidirectionnelle des appels API
-- **🔍 Détection d'endpoints orphelins** : Identifie les endpoints définis mais jamais appelés
-- **⚠️ Détection d'appels sans handler** : Identifie les appels API sans endpoint correspondant
-- **📊 Diagrammes Mermaid/PlantUML** : Génération automatique de diagrammes de séquence et flowcharts
-- **🎯 Multi-framework** : Support Express, Next.js, FastAPI, Flask, Django, NestJS, fetch, axios, dio, etc.
-- **📝 Multi-input** : Description textuelle, fichier markdown, point d'entrée code, ou auto-détection
+### ⚡ Performance & Optimisation
 
-### Version 2.2.0 - Gemini 3 Pro Preview & Fonctionnalités Avancées
+- **Cache intelligent** : Réduction des coûts API de 60-80% (basé sur git SHA)
+- **Parallélisation** : Analyse des fichiers indépendants en parallèle
+- **Context Caching Gemini** : -50% de coûts API
+- **Batch API** : Traitement en lot à -50% du prix
+- **Analyse incrémentale** : Détection automatique des fichiers modifiés
 
-- **🧠 Structured Outputs** : Réponses JSON garanties validées via Pydantic pour une analyse plus fiable
-- **💭 Thinking/Reasoning** : Affichage du processus de raisonnement du modèle pour les analyses complexes
-- **⚡ Code Execution** : Exécution de code Python en sandbox pour des analyses dynamiques (métriques AST, etc.)
-- **🔧 Function Calling** : Appel automatique de fonctions Python par le modèle
-- **📦 Context Caching** : Réduction des coûts API de ~50% via le cache de contexte Gemini
-- **📊 Batch API** : Traitement en lot à -50% du prix pour les analyses volumineuses
-- **🔍 Google Search** : Recherche web intégrée (grounding) pour des analyses enrichies
-- **🛡️ Sécurité améliorée** : Identifiants CWE et catégories OWASP dans les rapports de sécurité
-- **📈 Modèle Gemini 3 Pro Preview** : Support du nouveau modèle avec 1M tokens en entrée et 65K en sortie
+### 🛡️ Sécurité & Qualité
+
+- Détection de vulnérabilités (injections SQL/XSS, secrets codés en dur, crypto faible)
+- Identifiants CWE et catégories OWASP
+- Analyse des dépendances via API OSV (npm, PyPI, Pub)
+- Circuit breaker et backoff exponentiel pour la résilience
+
+### 🧠 Fonctionnalités AI Avancées
+
+- **Thinking/Reasoning** : Processus de raisonnement visible
+- **Code Execution** : Sandbox Python pour métriques AST
+- **Function Calling** : Appel automatique de fonctions
+- **Google Search** : Recherche web intégrée (grounding)
+- **Gemini 2.0** : Support 1M tokens entrée, 65K sortie
+
+### 🔌 Extensibilité
+
+- **Système de hooks** : Points d'extension personnalisables
+- **Orchestrateur dédié** : Workflow à étapes avec dépendances
+- **Export métriques** : JSON avec performances par étape
 
 ### Architecture du Système
 
