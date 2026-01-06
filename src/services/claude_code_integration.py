@@ -682,21 +682,24 @@ class ClaudeCodeIntegration:
             )
         )
 
-    def display_bugs_table(self, bugs: List[BugIdentifier]):
+    def display_bugs_summary(self, bugs: List[BugIdentifier]):
         """
-        Affiche un tableau récapitulatif des bugs.
+        Affiche un résumé compact des bugs à corriger.
 
         Args:
             bugs: Liste des bugs à afficher
         """
-        table = Table(title="🐛 Bugs détectés", show_header=True, header_style="bold magenta")
-        table.add_column("ID", style="cyan", no_wrap=True)
-        table.add_column("Fichier", style="dim")
-        table.add_column("Ligne", justify="right")
-        table.add_column("Type", style="blue")
-        table.add_column("Sévérité")
-        table.add_column("Description", max_width=40)
+        from collections import Counter
 
+        # Calculer les statistiques
+        unique_files = set(bug.file_path for bug in bugs)
+        lines_with_number = [bug.line_number for bug in bugs if bug.line_number]
+
+        # Compteurs par type et sévérité
+        type_counts = Counter(bug.bug_type for bug in bugs)
+        severity_counts = Counter(bug.severity for bug in bugs)
+
+        # Couleurs pour les sévérités
         severity_colors = {
             "critical": "red bold",
             "high": "red",
@@ -704,21 +707,42 @@ class ClaudeCodeIntegration:
             "low": "green",
         }
 
-        for bug in bugs:
-            severity_color = severity_colors.get(bug.severity, "white")
-            # Tronquer la description si trop longue
-            desc = bug.description[:37] + "..." if len(bug.description) > 40 else bug.description
+        # Afficher le résumé compact
+        self.console.print()
+        self.console.print("[bold cyan]📊 Résumé des bugs à corriger[/bold cyan]")
+        self.console.print("─" * 50)
 
-            table.add_row(
-                bug.id,
-                bug.file_path,
-                str(bug.line_number) if bug.line_number else "-",
-                bug.bug_type,
-                f"[{severity_color}]{bug.severity}[/{severity_color}]",
-                desc,
+        # Stats principales
+        self.console.print(f"  [bold]Total:[/bold] {len(bugs)} bugs")
+        self.console.print(f"  [bold]Fichiers:[/bold] {len(unique_files)} fichiers affectés")
+        if lines_with_number:
+            self.console.print(
+                f"  [bold]Lignes:[/bold] {len(lines_with_number)} emplacements précis"
             )
 
-        self.console.print(table)
+        # Sévérité breakdown
+        self.console.print()
+        self.console.print("  [bold]Par sévérité:[/bold]")
+        for sev in ["critical", "high", "medium", "low"]:
+            count = severity_counts.get(sev, 0)
+            if count > 0:
+                color = severity_colors.get(sev, "white")
+                bar = "█" * min(count // 5 + 1, 20)
+                self.console.print(f"    [{color}]{sev:8}[/{color}] {bar} {count}")
+
+        # Types breakdown
+        if type_counts:
+            self.console.print()
+            self.console.print("  [bold]Par type:[/bold]")
+            for bug_type, count in type_counts.most_common():
+                self.console.print(f"    [blue]{bug_type:12}[/blue] {count}")
+
+        self.console.print("─" * 50)
+
+    # Alias pour compatibilité
+    def display_bugs_table(self, bugs: List[BugIdentifier]):
+        """Alias vers display_bugs_summary pour compatibilité."""
+        self.display_bugs_summary(bugs)
 
     def run_fix_session(
         self,
@@ -1105,6 +1129,7 @@ class ClaudeCodeIntegration:
         async def worker(worker_id: int, main_task: TaskID):
             """Worker qui traite les bugs de la queue."""
             nonlocal completed_count, rate_limit_wait_hours
+            worker_prefix = f"[dim cyan]Worker {worker_id + 1}[/dim cyan]"
 
             while not rate_limit_event.is_set() and not user_stop_event.is_set():
                 try:
@@ -1112,10 +1137,31 @@ class ClaudeCodeIntegration:
                 except asyncio.QueueEmpty:
                     break
 
+                # Afficher le démarrage verbose
+                file_short = bug.file_path.split("/")[-1] if "/" in bug.file_path else bug.file_path
+                desc_short = (
+                    bug.description[:60] + "..." if len(bug.description) > 60 else bug.description
+                )
+                self.console.print(
+                    f"  {worker_prefix} [bold]→[/bold] [cyan]{bug.id}[/cyan] "
+                    f"[dim]({file_short}:{bug.line_number or '-'})[/dim]"
+                )
+                sev_color = {
+                    "critical": "red bold",
+                    "high": "red",
+                    "medium": "yellow",
+                    "low": "green",
+                }.get(bug.severity, "white")
+                self.console.print(
+                    f"    [dim]Type:[/dim] [blue]{bug.bug_type}[/blue] "
+                    f"[dim]Sev:[/dim] [{sev_color}]{bug.severity}[/{sev_color}]"
+                )
+                self.console.print(f"    [dim]{desc_short}[/dim]")
+
                 # Mettre à jour la description
                 progress.update(
                     main_task,
-                    description=f"[bold]Worker {worker_id + 1}: {bug.id}[/bold]",
+                    description=f"[bold]Worker {worker_id + 1}: {file_short}[/bold]",
                 )
 
                 # Exécuter la correction
@@ -1144,13 +1190,21 @@ class ClaudeCodeIntegration:
                         if clean_output:
                             lines = [ln for ln in clean_output.strip().split("\n") if ln.strip()]
                             bug.fix_summary = "\n".join(lines[-3:]) if lines else "Corrigé"
+                            # Afficher les dernières lignes de l'output (verbose)
+                            summary_lines = lines[-2:] if len(lines) >= 2 else lines
+                            for line in summary_lines:
+                                if line.strip():
+                                    self.console.print(f"    [dim green]│ {line[:80]}[/dim green]")
                         else:
                             bug.fix_summary = "Corrigé"
 
                         if on_bug_status:
                             on_bug_status(bug)
 
-                        self.console.print(f"  [green]✅ {bug.id} corrigé[/green]")
+                        self.console.print(
+                            f"  {worker_prefix} [green]✅ {bug.id}[/green] "
+                            f"[dim]corrigé en {file_short}[/dim]"
+                        )
                     else:
                         stats["failed"] += 1
 
@@ -1160,11 +1214,22 @@ class ClaudeCodeIntegration:
                         bug.failure_reason = (
                             clean_output[:500] if clean_output else "Échec sans détails"
                         )
+                        # Afficher la raison de l'échec (verbose)
+                        if clean_output:
+                            err_lines = [
+                                ln for ln in clean_output.strip().split("\n") if ln.strip()
+                            ]
+                            for line in err_lines[-2:]:
+                                if line.strip():
+                                    self.console.print(f"    [dim red]│ {line[:80]}[/dim red]")
 
                         if on_bug_status:
                             on_bug_status(bug)
 
-                        self.console.print(f"  [red]❌ {bug.id} échoué[/red]")
+                        self.console.print(
+                            f"  {worker_prefix} [red]❌ {bug.id}[/red] "
+                            f"[dim]échec dans {file_short}[/dim]"
+                        )
 
                     progress.update(main_task, completed=completed_count)
 
