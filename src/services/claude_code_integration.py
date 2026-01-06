@@ -18,26 +18,34 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 
-# Constante pour identifier les erreurs de rate limit (patterns spécifiques aux erreurs)
+# Constante pour identifier les VRAIES erreurs de rate limit
+# Ces patterns doivent être TRÈS spécifiques pour éviter les faux positifs
 RATE_LIMIT_PATTERNS = [
-    r"rate.?limit.*(?:error|exceeded|reached|hit)",
-    r"(?:error|failed).*rate.?limit",
-    r"too many requests",
-    r"usage.?limit.*exceeded",
-    r"quota.*exceeded",
-    r"limit.*reached",
-    r"(?:please\s+)?try again (?:in|after) (\d+)\s*(hour|minute|second|hr|min|sec)",
-    r"(?:please\s+)?wait.*?(\d+)\s*(hour|minute|second|hr|min|sec).*(?:before|to|and)",
-    r"you(?:'ve| have)? (?:exceeded|reached|hit).*(?:limit|quota)",
-    r"(?:api|request).*limit.*(?:exceeded|reached)",
+    # Messages d'erreur explicites avec "error" ou "failed"
+    r"error.*rate.?limit",
+    r"rate.?limit.*error",
+    r"failed.*rate.?limit",
+    # Messages HTTP 429
+    r"429.*too many requests",
+    r"http.*429",
+    # Messages explicites d'API
+    r"api.*rate.*limit.*(?:error|exceeded|failed)",
+    # Messages avec contexte d'erreur clair
+    r"(?:error|exception|failed|failure).*(?:usage|rate|request).*(?:limit|quota)",
 ]
 
-# Patterns qui indiquent que ce N'EST PAS un rate limit (status display, etc.)
+# Patterns qui indiquent DÉFINITIVEMENT que ce N'EST PAS un rate limit
 RATE_LIMIT_EXCLUSIONS = [
-    r"resets?\s+\w+\s*\d",  # "Resets 11pm", "Resets Jan 8"
-    r"\d+%\s*used",  # "75% used"
+    r"resets?\s+\w+",  # "Resets 11pm", "Resets Jan 8", "Resets 3:59am"
+    r"\d+%\s*used",  # "75% used", "12% used"
     r"current\s+(?:session|week)",  # Status display headers
     r"extra usage",  # Settings display
+    r"extra-usage",  # Command mention
+    r"esc to cancel",  # UI element
+    r"tab to cycle",  # UI element
+    r"settings.*status.*config",  # Settings menu
+    r"sonnet only",  # Model usage display
+    r"all models",  # Model usage display
 ]
 
 # Pattern pour supprimer les codes ANSI
@@ -109,7 +117,11 @@ class ClaudeCodeIntegration:
     @staticmethod
     def _detect_rate_limit(output: str) -> Optional[Tuple[bool, float]]:
         """
-        Détecte si la sortie contient une erreur de rate limit.
+        Détecte si la sortie contient une VRAIE erreur de rate limit.
+
+        IMPORTANT: Cette fonction doit être TRÈS conservatrice pour éviter
+        les faux positifs. Mieux vaut manquer un vrai rate limit que de
+        stopper une session qui fonctionne.
 
         Args:
             output: La sortie (stdout ou stderr) de Claude Code
@@ -120,25 +132,47 @@ class ClaudeCodeIntegration:
         if not output:
             return None
 
-        output_lower = output.lower()
+        # Nettoyer l'output des codes ANSI
+        clean_output = ANSI_ESCAPE_PATTERN.sub("", output)
+        output_lower = clean_output.lower()
 
-        # D'abord, vérifier les patterns d'exclusion (status display, etc.)
+        # PREMIÈRE ÉTAPE: Vérifier les patterns d'exclusion
+        # Si un seul pattern d'exclusion match, ce n'est PAS un rate limit
         for exclusion in RATE_LIMIT_EXCLUSIONS:
             if re.search(exclusion, output_lower):
-                # C'est probablement un affichage de status, pas une erreur
                 return None
 
-        # Vérifier les patterns de rate limit
+        # DEUXIÈME ÉTAPE: Vérifier qu'il y a des indicateurs d'ERREUR
+        # Un rate limit est une ERREUR, pas juste un message d'info
+        error_indicators = [
+            r"\berror\b",
+            r"\bfailed\b",
+            r"\bfailure\b",
+            r"\bexception\b",
+            r"exit code [1-9]",
+            r"status code 429",
+            r"http 429",
+        ]
+        has_error_context = any(re.search(ind, output_lower) for ind in error_indicators)
+
+        if not has_error_context:
+            # Pas de contexte d'erreur = pas de rate limit
+            return None
+
+        # TROISIÈME ÉTAPE: Chercher un pattern de rate limit
         for pattern in RATE_LIMIT_PATTERNS:
             match = re.search(pattern, output_lower)
             if match:
-                # Essayer d'extraire le temps d'attente
-                wait_hours = 0.0
+                # Rate limit confirmé, extraire le temps d'attente
+                wait_hours = 5.0  # Défaut conservateur
 
-                # Chercher un pattern de temps dans le message d'erreur
+                # Chercher un pattern de temps PRÈS du match (dans les 100 chars)
+                match_pos = match.start()
+                context = output_lower[max(0, match_pos - 50) : match_pos + 100]
+
                 time_match = re.search(
                     r"(\d+(?:\.\d+)?)\s*(hour|hr|minute|min|second|sec)s?",
-                    output_lower,
+                    context,
                 )
                 if time_match:
                     value = float(time_match.group(1))
@@ -150,10 +184,6 @@ class ClaudeCodeIntegration:
                         wait_hours = value / 60
                     elif "second" in unit or "sec" in unit:
                         wait_hours = value / 3600
-
-                # Si pas de temps trouvé, supposer ~5 heures (limite typique)
-                if wait_hours == 0:
-                    wait_hours = 5.0
 
                 return (True, wait_hours)
 
