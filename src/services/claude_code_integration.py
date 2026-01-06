@@ -18,16 +18,26 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 
-# Constante pour identifier les erreurs de rate limit
+# Constante pour identifier les erreurs de rate limit (patterns spécifiques aux erreurs)
 RATE_LIMIT_PATTERNS = [
-    r"rate.?limit",
+    r"rate.?limit.*(?:error|exceeded|reached|hit)",
+    r"(?:error|failed).*rate.?limit",
     r"too many requests",
-    r"usage.?limit",
-    r"exceeded.*limit",
+    r"usage.?limit.*exceeded",
     r"quota.*exceeded",
-    r"try again in (\d+)\s*(hour|minute|second|hr|min|sec)",
-    r"wait.*(\d+)\s*(hour|minute|second|hr|min|sec)",
-    r"reset.*(\d+)\s*(hour|minute|second|hr|min|sec)",
+    r"limit.*reached",
+    r"(?:please\s+)?try again (?:in|after) (\d+)\s*(hour|minute|second|hr|min|sec)",
+    r"(?:please\s+)?wait.*?(\d+)\s*(hour|minute|second|hr|min|sec).*(?:before|to|and)",
+    r"you(?:'ve| have)? (?:exceeded|reached|hit).*(?:limit|quota)",
+    r"(?:api|request).*limit.*(?:exceeded|reached)",
+]
+
+# Patterns qui indiquent que ce N'EST PAS un rate limit (status display, etc.)
+RATE_LIMIT_EXCLUSIONS = [
+    r"resets?\s+\w+\s*\d",  # "Resets 11pm", "Resets Jan 8"
+    r"\d+%\s*used",  # "75% used"
+    r"current\s+(?:session|week)",  # Status display headers
+    r"extra usage",  # Settings display
 ]
 
 # Pattern pour supprimer les codes ANSI
@@ -112,6 +122,12 @@ class ClaudeCodeIntegration:
 
         output_lower = output.lower()
 
+        # D'abord, vérifier les patterns d'exclusion (status display, etc.)
+        for exclusion in RATE_LIMIT_EXCLUSIONS:
+            if re.search(exclusion, output_lower):
+                # C'est probablement un affichage de status, pas une erreur
+                return None
+
         # Vérifier les patterns de rate limit
         for pattern in RATE_LIMIT_PATTERNS:
             match = re.search(pattern, output_lower)
@@ -119,7 +135,7 @@ class ClaudeCodeIntegration:
                 # Essayer d'extraire le temps d'attente
                 wait_hours = 0.0
 
-                # Chercher un pattern de temps dans le message
+                # Chercher un pattern de temps dans le message d'erreur
                 time_match = re.search(
                     r"(\d+(?:\.\d+)?)\s*(hour|hr|minute|min|second|sec)s?",
                     output_lower,
