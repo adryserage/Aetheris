@@ -72,7 +72,7 @@ class AnalysisConfig:
     ai_provider: str = "gemini"  # Provider AI: "gemini", "openai", "claude"
     ai_api_key: str = ""  # Clé API du provider sélectionné
     ai_model: str = ""  # Modèle à utiliser (défaut selon provider)
-    batch_size: int = 10
+    batch_size: int = 15  # Optimal pour parallélisation + rate limits
     max_retries: int = 3
     timeout_seconds: int = 60
     output_dir: str = "docs/analyses"
@@ -131,7 +131,7 @@ class AnalysisConfig:
     cache_ttl_seconds: int = 3600  # Durée de vie du cache en secondes (1h par défaut)
 
     # Batch API : traitement en lot à coût réduit (-50%)
-    enable_batch_mode: bool = False
+    enable_batch_mode: bool = True
 
     # Google Search : recherche web intégrée pour grounding
     enable_google_search: bool = False
