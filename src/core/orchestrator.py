@@ -4,13 +4,19 @@ Sépare la logique d'orchestration de la logique métier
 """
 
 import asyncio
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import List
+from typing import Optional
 
 from src.core.config import AnalysisConfig
-from src.core.error_handler import classify_error, exponential_backoff
+from src.core.error_handler import classify_error
+from src.core.error_handler import exponential_backoff
 from src.core.logger import log_print
 from src.core.metrics import MetricsCollector
 from src.core.progress import ProgressManager
@@ -219,7 +225,7 @@ class AnalysisOrchestrator:
                     return False
             else:
                 # Étape non critique, continuer
-                log_print(f"⚠️  Étape non critique échouée, continuation...")
+                log_print("⚠️  Étape non critique échouée, continuation...")
                 return True
 
     async def execute(self) -> WorkflowContext:

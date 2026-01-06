@@ -4,9 +4,12 @@ Analyseur de dépendances entre fichiers
 
 import os
 import re
-from typing import Dict, List, Optional
+from typing import Dict
+from typing import List
+from typing import Optional
 
-from src.models.data_models import FileDependency, ReverseDependency
+from src.models.data_models import FileDependency
+from src.models.data_models import ReverseDependency
 
 
 class DependencyAnalyzer:

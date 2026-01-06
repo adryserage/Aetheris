@@ -6,22 +6,23 @@ Analyse les PRs avec plusieurs providers AI et produit un consensus sur les issu
 
 import asyncio
 import hashlib
-from typing import Dict, List, Optional, Tuple
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
 
 from src.agents.base_agent import BaseAgent
-from src.core.ai_providers import AIProvider, create_ai_provider
+from src.core.ai_providers import AIProvider
+from src.core.ai_providers import create_ai_provider
 from src.core.config import AnalysisConfig
 from src.core.progress import ProgressManager
-from src.models.pr_models import (
-    PRComment,
-    PRFile,
-    PRInfo,
-    PRIssue,
-    PRIssueSeverity,
-    PRIssueType,
-    PRReviewResult,
-)
-from src.models.pr_schemas import PRAnalysisResultSchema, PRIssueSchema
+from src.models.pr_models import PRComment
+from src.models.pr_models import PRFile
+from src.models.pr_models import PRInfo
+from src.models.pr_models import PRIssue
+from src.models.pr_models import PRIssueSeverity
+from src.models.pr_models import PRIssueType
+from src.models.pr_models import PRReviewResult
 
 
 class PRReviewAgent(BaseAgent):
@@ -233,7 +234,10 @@ class PRReviewAgent(BaseAgent):
             Prompt formaté pour l'AI
         """
         files_summary = "\n".join(
-            [f"- {f.path} (+{f.additions}/-{f.deletions}) [{f.status.value}]" for f in files_changed]
+            [
+                f"- {f.path} (+{f.additions}/-{f.deletions}) [{f.status.value}]"
+                for f in files_changed
+            ]
         )
 
         # Limiter la taille du diff si trop grand
@@ -327,7 +331,8 @@ IMPORTANT:
         except json.JSONDecodeError:
             # Essayer de trouver un objet JSON dans la réponse
             import re
-            match = re.search(r'\{[\s\S]*\}', response)
+
+            match = re.search(r"\{[\s\S]*\}", response)
             if match:
                 try:
                     data = json.loads(match.group())
@@ -519,10 +524,13 @@ IMPORTANT:
 
         if issues:
             summary += "\n### Issues détaillées\n\n"
-            for issue in sorted(issues, key=lambda x: (
-                ["critical", "high", "medium", "low", "info"].index(x.severity.value),
-                x.file_path,
-            )):
+            for issue in sorted(
+                issues,
+                key=lambda x: (
+                    ["critical", "high", "medium", "low", "info"].index(x.severity.value),
+                    x.file_path,
+                ),
+            ):
                 emoji = {
                     "critical": "🔴",
                     "high": "🟠",

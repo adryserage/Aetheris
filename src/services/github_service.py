@@ -10,21 +10,22 @@ Gère toutes les opérations GitHub pour l'analyse de Pull Requests:
 
 import asyncio
 import json
-import os
 import re
 import shutil
 import subprocess
-from typing import List, Optional, Tuple
+from typing import List
+from typing import Optional
+from typing import Tuple
 
 from rich.console import Console
 
-from src.models.pr_models import PRFile, PRFileStatus, PRInfo
+from src.models.pr_models import PRFile
+from src.models.pr_models import PRFileStatus
+from src.models.pr_models import PRInfo
 
 
 class GitHubServiceError(Exception):
     """Erreur du service GitHub"""
-
-    pass
 
 
 class GitHubService:
@@ -266,7 +267,9 @@ class GitHubService:
         )
 
         if result.returncode != 0:
-            raise GitHubServiceError(f"Erreur lors de la récupération des fichiers: {result.stderr}")
+            raise GitHubServiceError(
+                f"Erreur lors de la récupération des fichiers: {result.stderr}"
+            )
 
         files_data = json.loads(result.stdout)
         files = []
@@ -343,7 +346,9 @@ class GitHubService:
         )
 
         if result.returncode != 0:
-            self.console.print(f"[red]Erreur lors de la publication du commentaire: {result.stderr}[/red]")
+            self.console.print(
+                f"[red]Erreur lors de la publication du commentaire: {result.stderr}[/red]"
+            )
             return False
 
         return True
@@ -377,14 +382,6 @@ class GitHubService:
             raise GitHubServiceError("gh CLI n'est pas disponible ou non authentifié")
 
         # Utiliser l'API GitHub pour les commentaires inline
-        payload = {
-            "body": body,
-            "commit_id": commit_id,
-            "path": file_path,
-            "line": line_number,
-            "side": side.upper(),
-        }
-
         cmd = [
             "gh",
             "api",

@@ -9,7 +9,8 @@ from typing import List
 
 from src.agents.base_agent import BaseAgent
 from src.core.config import AnalysisConfig
-from src.models.data_models import DependencyVulnerability, FileAnalysis
+from src.models.data_models import DependencyVulnerability
+from src.models.data_models import FileAnalysis
 
 
 class QualityAssuranceAgent(BaseAgent):

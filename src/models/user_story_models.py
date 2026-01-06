@@ -3,9 +3,13 @@ Modèles de données pour l'analyse de User Stories
 Trace les flux frontend ↔ backend et détecte les incohérences
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
 
 class HTTPMethod(str, Enum):

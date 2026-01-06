@@ -8,13 +8,15 @@ import asyncio
 import json
 import os
 import sys
-from typing import List, Optional
+from typing import List
+from typing import Optional
 
 from rich.console import Console
 from rich.prompt import Confirm
 
 # Configuration du logging et encodage UTF-8
-from src.core.logger import log_print, setup_utf8_encoding
+from src.core.logger import log_print
+from src.core.logger import setup_utf8_encoding
 
 setup_utf8_encoding()
 
@@ -29,7 +31,8 @@ except ImportError as e:
 from src.core.analyzer import CodeAnalyzer
 
 # Import de la configuration depuis le module dédié
-from src.core.config import AnalysisConfig, load_env_file
+from src.core.config import AnalysisConfig
+from src.core.config import load_env_file
 from src.core.progress import ProgressManager
 
 
@@ -549,7 +552,9 @@ async def run_fix(args):
 
     if batch_size > 1:
         # Mode parallèle avec batching
-        console.print(f"[cyan]⚡ Mode parallèle activé: {batch_size} corrections simultanées[/cyan]")
+        console.print(
+            f"[cyan]⚡ Mode parallèle activé: {batch_size} corrections simultanées[/cyan]"
+        )
         console.print()
         stats = await claude.run_fix_session_parallel(
             bugs,
@@ -714,7 +719,7 @@ async def run_user_story(args):
     if args.text:
         input_mode = "text"
         input_value = args.text
-        console.print(f"[cyan]📝 Mode: Description textuelle[/cyan]")
+        console.print("[cyan]📝 Mode: Description textuelle[/cyan]")
         console.print(
             f"[dim]{args.text[:100]}...[/dim]"
             if len(args.text) > 100
@@ -795,14 +800,14 @@ async def run_user_story(args):
     console.rule("[bold green]📊 Résultats de l'analyse")
     console.print()
 
-    console.print(f"[bold]📈 Statistiques:[/bold]")
+    console.print("[bold]📈 Statistiques:[/bold]")
     console.print(f"  • Flux analysés: {result.total_flows}")
     console.print(f"  • Étapes totales: {result.total_steps}")
     console.print(f"  • Appels API: {result.total_api_calls}")
     console.print(f"  • Endpoints: {result.total_endpoints}")
     console.print()
 
-    console.print(f"[bold]🐛 Issues par sévérité:[/bold]")
+    console.print("[bold]🐛 Issues par sévérité:[/bold]")
     if result.critical_count > 0:
         console.print(f"  • [red]Critical: {result.critical_count}[/red]")
     if result.high_count > 0:
@@ -1029,8 +1034,10 @@ async def run_pr(args):
         if key_name:
             key = env_vars.get(key_name) or os.getenv(key_name)
             if not key:
-                console.print(f"[red]Erreur: {key_name} non trouvée pour le provider {provider}[/red]")
-                console.print(f"[dim]Définissez la variable dans .env ou l'environnement[/dim]")
+                console.print(
+                    f"[red]Erreur: {key_name} non trouvée pour le provider {provider}[/red]"
+                )
+                console.print("[dim]Définissez la variable dans .env ou l'environnement[/dim]")
                 sys.exit(1)
             api_keys[provider] = key
 
@@ -1039,7 +1046,8 @@ async def run_pr(args):
         sys.exit(1)
 
     # Initialiser le service GitHub
-    from src.services.github_service import GitHubService, GitHubServiceError
+    from src.services.github_service import GitHubService
+    from src.services.github_service import GitHubServiceError
 
     gh_service = GitHubService()
 
@@ -1078,7 +1086,7 @@ async def run_pr(args):
     # Vérifier la propriété
     is_own_pr = gh_service.is_own_pr(pr_info)
     if is_own_pr:
-        console.print(f"[green]C'est VOTRE PR[/green]")
+        console.print("[green]C'est VOTRE PR[/green]")
     else:
         console.print(f"[yellow]PR par:[/yellow] {pr_info.author_login}")
 
@@ -1095,7 +1103,9 @@ async def run_pr(args):
         console.print(f"[red]Erreur lors de la récupération du diff: {e}[/red]")
         sys.exit(1)
 
-    console.print(f"[dim]{len(files_changed)} fichiers modifiés, +{pr_info.additions}/-{pr_info.deletions}[/dim]")
+    console.print(
+        f"[dim]{len(files_changed)} fichiers modifiés, +{pr_info.additions}/-{pr_info.deletions}[/dim]"
+    )
     console.print()
 
     # Créer la config et lancer l'analyse
@@ -1135,16 +1145,21 @@ async def run_pr(args):
     severity_order = ["critical", "high", "medium", "low", "info"]
     min_severity_idx = severity_order.index(args.severity)
     filtered_issues = [
-        issue for issue in result.issues
+        issue
+        for issue in result.issues
         if severity_order.index(issue.severity.value) <= min_severity_idx
     ]
 
     console.print(f"[bold]Score de risque:[/bold] {result.risk_score}/10")
     console.print(f"[bold]Recommandation:[/bold] {result.approval_recommendation}")
-    console.print(f"[bold]Issues trouvées:[/bold] {len(result.issues)} ({len(filtered_issues)} après filtre)")
+    console.print(
+        f"[bold]Issues trouvées:[/bold] {len(result.issues)} ({len(filtered_issues)} après filtre)"
+    )
 
     if result.consensus_mode and len(providers) > 1:
-        console.print(f"[dim]Mode consensus: {result.total_issues_before_consensus} issues détectées, {len(result.issues)} en consensus[/dim]")
+        console.print(
+            f"[dim]Mode consensus: {result.total_issues_before_consensus} issues détectées, {len(result.issues)} en consensus[/dim]"
+        )
 
     console.print()
 
@@ -1219,9 +1234,13 @@ async def run_pr(args):
                     for comment in result.inline_comments:
                         # Filtrer par sévérité aussi
                         issue = next(
-                            (i for i in filtered_issues
-                             if i.file_path == comment.file_path and i.line_number == comment.line_number),
-                            None
+                            (
+                                i
+                                for i in filtered_issues
+                                if i.file_path == comment.file_path
+                                and i.line_number == comment.line_number
+                            ),
+                            None,
                         )
                         if issue:
                             success = await gh_service.post_inline_comment(

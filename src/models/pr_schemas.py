@@ -6,9 +6,11 @@ pour garantir des réponses JSON valides et typées.
 """
 
 from enum import Enum
-from typing import List, Optional
+from typing import List
+from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from pydantic import Field
 
 
 class PRIssueSeverityEnum(str, Enum):
@@ -38,7 +40,9 @@ class PRIssueSchema(BaseModel):
     """Schéma pour une issue détectée dans la PR"""
 
     file_path: str = Field(description="Chemin du fichier contenant l'issue")
-    line_number: Optional[int] = Field(None, description="Numéro de ligne (dans le nouveau fichier)")
+    line_number: Optional[int] = Field(
+        None, description="Numéro de ligne (dans le nouveau fichier)"
+    )
     line_end: Optional[int] = Field(None, description="Ligne de fin pour les issues multi-lignes")
     issue_type: PRIssueTypeEnum = Field(description="Type d'issue")
     severity: PRIssueSeverityEnum = Field(description="Niveau de sévérité")
@@ -51,16 +55,16 @@ class PRIssueSchema(BaseModel):
 class PRAnalysisResultSchema(BaseModel):
     """Schéma pour le résultat complet de l'analyse de PR"""
 
-    issues: List[PRIssueSchema] = Field(default_factory=list, description="Liste des issues trouvées")
+    issues: List[PRIssueSchema] = Field(
+        default_factory=list, description="Liste des issues trouvées"
+    )
     summary: str = Field(description="Résumé global de la revue de PR")
     risk_score: float = Field(0.0, ge=0.0, le=10.0, description="Score de risque (0-10)")
     approval_recommendation: str = Field(
         default="COMMENT",
         description="Recommandation: APPROVE, REQUEST_CHANGES, ou COMMENT",
     )
-    positive_points: List[str] = Field(
-        default_factory=list, description="Points positifs du code"
-    )
+    positive_points: List[str] = Field(default_factory=list, description="Points positifs du code")
     general_suggestions: List[str] = Field(
         default_factory=list, description="Suggestions générales (non liées à une ligne)"
     )

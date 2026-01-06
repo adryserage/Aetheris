@@ -8,7 +8,8 @@ import pathlib
 import re
 from collections import defaultdict
 from datetime import datetime
-from typing import List, Optional
+from typing import List
+from typing import Optional
 
 from pathspec import PathSpec
 
@@ -22,7 +23,9 @@ from src.core.cache import AnalysisCache
 from src.core.config import AnalysisConfig
 from src.core.logger import log_print
 from src.core.metrics import MetricsCollector
-from src.core.orchestrator import AnalysisOrchestrator, WorkflowContext, WorkflowStage
+from src.core.orchestrator import AnalysisOrchestrator
+from src.core.orchestrator import WorkflowContext
+from src.core.orchestrator import WorkflowStage
 from src.core.parallel_analyzer import detect_independent_files
 from src.core.priority_manager import PriorityManager
 from src.core.progress import ProgressManager
@@ -1292,7 +1295,7 @@ class CodeAnalyzer:
             lang = analysis.language
             languages[lang] = languages.get(lang, 0) + 1
 
-        self.progress_manager.print(f"\n  Répartition par langage:")
+        self.progress_manager.print("\n  Répartition par langage:")
         for lang, count in sorted(languages.items(), key=lambda x: -x[1]):
             self.progress_manager.print(f"    - {lang}: {count}")
 

@@ -3,10 +3,13 @@ Gestion d'erreurs améliorée avec circuit breaker et backoff exponentiel
 """
 
 import asyncio
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Optional
+from typing import Any
+from typing import Callable
+from typing import Optional
 
 
 class ErrorType(Enum):

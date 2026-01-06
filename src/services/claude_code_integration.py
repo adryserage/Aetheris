@@ -12,7 +12,10 @@ import shutil
 import subprocess
 import tempfile
 from datetime import datetime
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable
+from typing import List
+from typing import Optional
+from typing import Tuple
 
 # Constante pour identifier les erreurs de rate limit
 RATE_LIMIT_PATTERNS = [
@@ -67,17 +70,14 @@ def sanitize_terminal_output(text: str) -> str:
 
 
 from rich.console import Console
-from rich.live import Live
 from rich.panel import Panel
-from rich.progress import (
-    BarColumn,
-    Progress,
-    SpinnerColumn,
-    TaskID,
-    TaskProgressColumn,
-    TextColumn,
-    TimeElapsedColumn,
-)
+from rich.progress import BarColumn
+from rich.progress import Progress
+from rich.progress import SpinnerColumn
+from rich.progress import TaskID
+from rich.progress import TaskProgressColumn
+from rich.progress import TextColumn
+from rich.progress import TimeElapsedColumn
 from rich.prompt import Confirm
 from rich.table import Table
 
@@ -631,7 +631,7 @@ class ClaudeCodeIntegration:
                 f"[bold]Type:[/bold] {bug.bug_type}",
                 f"[bold]Sévérité:[/bold] [{severity_color}]{bug.severity}[/{severity_color}]",
                 "",
-                f"[bold]Description:[/bold]",
+                "[bold]Description:[/bold]",
                 f"  {bug.description}",
             ]
         )
@@ -640,7 +640,7 @@ class ClaudeCodeIntegration:
             content.extend(
                 [
                     "",
-                    f"[bold]Recommandation:[/bold]",
+                    "[bold]Recommandation:[/bold]",
                     f"  {bug.recommendation}",
                 ]
             )
@@ -818,7 +818,9 @@ class ClaudeCodeIntegration:
                     # Marquer le bug comme échoué
                     bug.failed = True
                     bug.failed_at = datetime.now().isoformat()
-                    bug.failure_reason = clean_output[:500] if clean_output else "Échec sans détails"
+                    bug.failure_reason = (
+                        clean_output[:500] if clean_output else "Échec sans détails"
+                    )
 
                     # Sauvegarder l'état via callback
                     if on_bug_status:
@@ -1089,7 +1091,9 @@ class ClaudeCodeIntegration:
                         # Marquer le bug comme échoué
                         bug.failed = True
                         bug.failed_at = datetime.now().isoformat()
-                        bug.failure_reason = clean_output[:500] if clean_output else "Échec sans détails"
+                        bug.failure_reason = (
+                            clean_output[:500] if clean_output else "Échec sans détails"
+                        )
 
                         if on_bug_status:
                             on_bug_status(bug)
@@ -1109,8 +1113,7 @@ class ClaudeCodeIntegration:
 
             # Créer et lancer les workers
             workers = [
-                asyncio.create_task(worker(i, main_task))
-                for i in range(effective_batch_size)
+                asyncio.create_task(worker(i, main_task)) for i in range(effective_batch_size)
             ]
 
             # Attendre que tous les workers terminent

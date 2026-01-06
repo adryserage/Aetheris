@@ -4,7 +4,10 @@ Analyse les fichiers indépendants en parallèle en utilisant le graphe de dépe
 """
 
 from collections import deque
-from typing import Dict, List, Set, Tuple
+from typing import Dict
+from typing import List
+from typing import Set
+from typing import Tuple
 
 
 def build_dependency_graph(

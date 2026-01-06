@@ -3,8 +3,11 @@ Configuration de l'analyse
 """
 
 import os
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from dataclasses import dataclass
+from dataclasses import field
+from typing import Dict
+from typing import List
+from typing import Optional
 
 # Modèles par défaut par fournisseur
 DEFAULT_MODELS = {

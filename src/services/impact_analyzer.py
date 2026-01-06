@@ -3,9 +3,13 @@ Impact Analyzer - Analyse l'impact des bugs à travers le codebase via le graphe
 """
 
 import hashlib
-from typing import Dict, List, Optional
+from typing import Dict
+from typing import List
+from typing import Optional
 
-from src.models.data_models import BugIdentifier, FileAnalysis, ImpactAnalysis
+from src.models.data_models import BugIdentifier
+from src.models.data_models import FileAnalysis
+from src.models.data_models import ImpactAnalysis
 from src.services.dependency_analyzer import DependencyAnalyzer
 
 

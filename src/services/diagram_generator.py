@@ -7,12 +7,10 @@ Génère des diagrammes visuels (Mermaid, PlantUML) à partir des flux analysés
 import os
 from typing import List
 
-from ..models.user_story_models import (
-    FlowStep,
-    FlowStepType,
-    UserStoryAnalysisResult,
-    UserStoryFlow,
-)
+from ..models.user_story_models import FlowStep
+from ..models.user_story_models import FlowStepType
+from ..models.user_story_models import UserStoryAnalysisResult
+from ..models.user_story_models import UserStoryFlow
 
 
 class DiagramGenerator:

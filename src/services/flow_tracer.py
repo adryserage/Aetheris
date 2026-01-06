@@ -7,10 +7,15 @@ Supporte JavaScript/TypeScript, Dart/Flutter, Python et plusieurs frameworks.
 
 import os
 import re
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set
+from dataclasses import dataclass
+from dataclasses import field
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Set
 
-from ..models.user_story_models import APICall, APIEndpoint
+from ..models.user_story_models import APICall
+from ..models.user_story_models import APIEndpoint
 
 # === Patterns de détection par langage ===
 

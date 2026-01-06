@@ -11,8 +11,16 @@ Gemini utilise le nouveau SDK google-genai avec support pour :
 """
 
 import asyncio
-from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Type
+from abc import ABC
+from abc import abstractmethod
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import Type
 
 if TYPE_CHECKING:
     from pydantic import BaseModel

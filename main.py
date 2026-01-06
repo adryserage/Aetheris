@@ -11,35 +11,34 @@ Aetheris by Adryan - Système d'analyse de code avec plusieurs agents coopérant
 Le système détecte automatiquement tous les langages présents dans le repository.
 """
 
+import argparse
+import asyncio
+import json
 import os
 import sys
-import asyncio
-import argparse
-import json
-from typing import List, Optional
+from typing import List
+from typing import Optional
 
 # Configuration du logging et encodage UTF-8
-from src.core.logger import setup_utf8_encoding, log_print
+from src.core.logger import log_print
+from src.core.logger import setup_utf8_encoding
 
 setup_utf8_encoding()
 
 try:
-    from google import genai  # Nouveau SDK google-genai
-    from pathspec import PathSpec
-    from ddgs import DDGS
-    import requests
-    import yaml
+    from google import genai  # noqa: F401 - Vérification dépendance
 except ImportError as e:
     print(f"❌ Dépendances manquantes: {e}")
     print("   Installez avec: pip install -r requirements.txt")
     sys.exit(1)
 
 
-# Import de la configuration depuis le module dédié
-from src.core.config import AnalysisConfig, load_env_file
-
 # Import de CodeAnalyzer depuis le module dédié
 from src.core.analyzer import CodeAnalyzer
+
+# Import de la configuration depuis le module dédié
+from src.core.config import AnalysisConfig
+from src.core.config import load_env_file
 from src.core.progress import ProgressManager
 
 
@@ -71,13 +70,13 @@ def parse_args():
 Exemples:
   # Analyse complète de la codebase
   python main.py
-  
+
   # Analyser uniquement les fichiers modifiés (depuis GitHub Actions)
   python main.py --changed-files-only --files '["src/file1.py", "src/file2.py"]'
-  
+
   # Analyser une liste de fichiers spécifiques
   python main.py --files src/file1.py,src/file2.py
-  
+
   # Analyser les fichiers d'une PR
   python main.py --changed-files-only --pr-number 123
         """,
