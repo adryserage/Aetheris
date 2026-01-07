@@ -5,6 +5,16 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.5.7] - 2025-01-07
+
+### 📦 Package
+
+- **Métadonnées PyPI améliorées** : Sidebar PyPI enrichie
+  - Ajout email auteur/mainteneur pour vérification
+  - Ajout classifiers : License OSI MIT, OS, Topics AI/Security, Framework Pydantic
+  - Ajout keywords : ai, llm, devops, ci-cd, vulnerability-scanner
+  - Support langues : Anglais, Français
+
 ## [2.5.6] - 2025-01-07
 
 ### 📝 Documentation

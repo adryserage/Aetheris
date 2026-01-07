@@ -4,27 +4,51 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "adryserage-aetheris"
-version = "2.5.6"
+version = "2.5.7"
 description = "Aetheris - Multi-agent AI code analysis system with PR review, multi-provider consensus (Gemini/Claude/OpenAI), security analysis, and automatic bug fixing via Claude Code"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
-    {name = "Adryan from Allowebs.com"}
+    {name = "Adryan Serage", email = "adryan@allowebs.com"}
 ]
-keywords = ["code-analysis", "code-review", "static-analysis", "security", "quality-assurance", "pr-review", "pull-request", "github", "multi-provider", "consensus", "gemini", "claude", "openai", "ai-code-review"]
+maintainers = [
+    {name = "Adryan Serage", email = "adryan@allowebs.com"}
+]
+keywords = [
+    "code-analysis", "code-review", "static-analysis", "security", "quality-assurance",
+    "pr-review", "pull-request", "github", "multi-provider", "consensus",
+    "gemini", "claude", "openai", "ai-code-review", "ai", "llm", "automated-review",
+    "vulnerability-scanner", "code-quality", "devops", "ci-cd"
+]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Quality Assurance",
     "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Bug Tracking",
+    "Topic :: Software Development :: Code Generators",
     "Topic :: Security",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Environment :: Console",
+    "Framework :: Pydantic :: 2",
+    "Natural Language :: English",
+    "Natural Language :: French",
+    "Typing :: Typed",
 ]
 
 dependencies = [
