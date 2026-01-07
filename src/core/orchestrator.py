@@ -285,7 +285,8 @@ class AnalysisOrchestrator:
             if self.context.start_time and self.context.end_time:
                 duration = (self.context.end_time - self.context.start_time).total_seconds()
                 self.context.metadata["duration_seconds"] = duration
-                log_print(f"✅ Workflow terminé en {duration:.2f}s")
+                log_print(f"\n🎉 Workflow terminé avec succès en {duration:.2f}s")
+                log_print("📁 Les rapports ont été générés dans le dossier de sortie.")
 
             # Terminer la session de métriques
             if self.metrics_collector:

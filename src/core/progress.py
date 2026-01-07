@@ -60,6 +60,8 @@ class ProgressManager:
             TimeRemainingColumn(),
             console=self.console,
             expand=True,
+            refresh_per_second=4,  # Limiter le rafraîchissement pour éviter les duplications
+            transient=False,  # Garder les barres de progression visibles
         ) as progress:
             self.progress = progress
             yield progress
@@ -128,13 +130,12 @@ class ProgressManager:
             **kwargs: Options d'affichage
         """
         if self.enabled and self.console:
-            # Si une barre de progression est active, on l'efface temporairement
-            if self.progress:
-                self.console.print(*args, **kwargs)
-            else:
-                self.console.print(*args, **kwargs)
+            # Utiliser console.log pour une meilleure intégration avec les barres de progression
+            # Cela évite les problèmes de duplication
+            self.console.print(*args, **kwargs)
         else:
-            # Fallback vers print standard
+            # Fallback vers print standard avec flush pour garantir la visibilité
+            kwargs.setdefault("flush", True)
             print(*args, **kwargs)
 
     def print_panel(self, content: str, title: str = "", style: str = "blue"):
