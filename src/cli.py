@@ -97,6 +97,72 @@ Exemples:
     return analysis_parser
 
 
+def setup_issues_parser(subparsers):
+    """Configure le parser pour la sous-commande issues"""
+    issues_parser = subparsers.add_parser(
+        "issues",
+        help="Create GitHub issues from analysis reports",
+        description="Create GitHub issues from Aetheris analysis reports",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Create issues from all analysis reports
+  aetheris issues
+
+  # Preview issues without creating them
+  aetheris issues --dry-run
+
+  # Create issues with custom labels
+  aetheris issues --labels security,sprint-42
+
+  # Assign issues to a user
+  aetheris issues --assignee username
+
+  # Create issues in a specific repository
+  aetheris issues --repo owner/repo
+
+  # Process only a specific report
+  aetheris issues --from-report docs/analyses/analyzer.md
+        """,
+    )
+
+    issues_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview issues without creating them",
+    )
+
+    issues_parser.add_argument(
+        "--labels",
+        type=str,
+        default=None,
+        help="Additional labels to add (comma-separated)",
+    )
+
+    issues_parser.add_argument(
+        "--assignee",
+        type=str,
+        default=None,
+        help="GitHub username to assign issues to",
+    )
+
+    issues_parser.add_argument(
+        "--repo",
+        type=str,
+        default=None,
+        help="Target repository (owner/repo format)",
+    )
+
+    issues_parser.add_argument(
+        "--from-report",
+        type=str,
+        default=None,
+        help="Process only this specific analysis report file",
+    )
+
+    return issues_parser
+
+
 async def run_analysis(args):
     """Exécute l'analyse de code"""
     log_print("=" * 60)
@@ -337,6 +403,34 @@ Exemples:
     )
 
     return fix_parser
+
+
+async def run_issues(args):
+    """Create GitHub issues from analysis reports."""
+    from src.services.issue_creator import IssueCreator, IssueOptions
+
+    console = Console()
+    console.print()
+    console.rule("[bold blue]🎫 Aetheris Issues - Create GitHub Issues from Analysis")
+    console.print()
+
+    # Parse custom labels
+    custom_labels = []
+    if args.labels:
+        custom_labels = [label.strip() for label in args.labels.split(",") if label.strip()]
+
+    # Create options
+    options = IssueOptions(
+        dry_run=args.dry_run,
+        labels=custom_labels,
+        assignee=args.assignee,
+        repo=args.repo,
+        from_report=args.from_report,
+    )
+
+    # Run issue creator
+    creator = IssueCreator(repo=args.repo)
+    await creator.run(options)
 
 
 async def run_fix(args):
@@ -1313,6 +1407,9 @@ Exemples:
     # Ajouter la sous-commande pr (review-pr)
     setup_pr_parser(subparsers)
 
+    # Ajouter la sous-commande issues
+    setup_issues_parser(subparsers)
+
     return parser
 
 
@@ -1333,6 +1430,8 @@ def main():
         asyncio.run(run_user_story(args))
     elif args.command in ["pr", "review-pr"]:
         asyncio.run(run_pr(args))
+    elif args.command == "issues":
+        asyncio.run(run_issues(args))
     else:
         parser.print_help()
         sys.exit(1)
