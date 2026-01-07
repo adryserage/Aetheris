@@ -5,6 +5,14 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Actions](https://img.shields.io/github/actions/workflow/status/adryserage/aetheris/auto-release.yml?label=CI)](https://github.com/adryserage/aetheris/actions)
 
+---
+
+> **We Want Your Input!** Help shape the future of Aetheris - vote on whether it should become fully open source.
+>
+> **[Cast Your Vote Now](https://adryanserage.ca/poll/aetheris)**
+
+---
+
 ### 📊 Download Stats
 
 | Total Downloads | Monthly | Weekly | Daily |
