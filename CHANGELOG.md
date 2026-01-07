@@ -5,6 +5,13 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.5.5] - 2025-01-07
+
+### 📝 Documentation
+
+- **Badges README** : Ajout de badges compatibles (PyPI status, black, mypy, platform)
+- Suppression du badge CI (incompatible avec repo privé)
+
 ## [2.5.4] - 2025-01-07
 
 ### 📝 Documentation
