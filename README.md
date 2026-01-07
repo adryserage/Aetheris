@@ -1,1194 +1,167 @@
-# Aetheris by Adryan - Système d'Analyse de Code Multi-Agents
+# Aetheris by Adryan - Multi-Agent Code Analysis System
 
 [![PyPI version](https://badge.fury.io/py/adryserage-aetheris.svg)](https://badge.fury.io/py/adryserage-aetheris)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Actions](https://img.shields.io/github/actions/workflow/status/adryserage/code_reviewer/code-review.yml?label=CI)](https://github.com/adryserage/code_reviewer/actions)
 [![PyPI downloads](https://img.shields.io/pypi/dm/adryserage-aetheris.svg)](https://pypi.org/project/adryserage-aetheris/)
-[![GitHub stars](https://img.shields.io/github/stars/adryserage/code_reviewer.svg?style=social&label=Star)](https://github.com/adryserage/code_reviewer)
 
-Système d'analyse de code automatisé utilisant plusieurs agents coopérants pour fournir une analyse complète de la qualité, de la sécurité et de l'architecture de votre codebase.
+Automated code analysis system using multiple cooperating AI agents to provide comprehensive quality, security, and architecture analysis of your codebase.
 
-## 🎯 Fonctionnalités
-
-### 🔍 Commandes Principales
-
-| Commande | Description |
-|----------|-------------|
-| `aetheris analysis` | Analyse complète du code (qualité, sécurité, architecture) |
-| `aetheris pr` | Review de Pull Requests GitHub avec AI multi-provider |
-| `aetheris fix` | Correction automatique des bugs avec Claude Code |
-| `aetheris user-story` | Analyse des flux utilisateur frontend ↔ backend |
-
-### 🤖 Multi-Provider AI
-
-- **Providers supportés** : Gemini, Claude (Anthropic), OpenAI
-- **Mode consensus** : Ne reporte que les issues trouvées par TOUS les providers
-- **Matching intelligent** : Corrélation des issues par fichier, type et proximité de ligne (±3)
-- **Structured Outputs** : Réponses JSON validées via Pydantic
-
-### 📋 PR Review (`aetheris pr`)
-
-- Support URL (`--url`) et repo+numéro (`--repo`/`--pr`)
-- Commentaires inline sur les lignes du diff
-- Commentaire résumé avec tableau des issues
-- Détection automatique si la PR vous appartient
-- Option `--auto-fix` pour corriger avec Claude Code
-- Mode `--dry-run` pour prévisualiser sans poster
-
-### 🔧 Correction de Bugs (`aetheris fix`)
-
-- Correction automatique via Claude Code CLI
-- **Mode parallèle** : `--batch-size 10` pour 10 corrections simultanées (~5x plus rapide)
-- **Détection rate limit** : Arrêt automatique avec temps d'attente affiché
-- **Suivi des échecs** : `--retry-failed` pour relancer les bugs échoués
-- IDs uniques par bug (`BUG-A1B2C3D4`)
-- Analyse d'impact : fichiers affectés par chaque bug
-
-### 📖 User Story Analysis (`aetheris user-story`)
-
-- Traçage bidirectionnel frontend ↔ backend
-- Détection d'endpoints orphelins et appels sans handler
-- Diagrammes Mermaid/PlantUML automatiques
-- Multi-framework : Express, Next.js, FastAPI, Flask, Django, NestJS, etc.
-
-### ⚡ Performance & Optimisation
-
-- **Cache intelligent** : Réduction des coûts API de 60-80% (basé sur git SHA)
-- **Parallélisation** : Analyse des fichiers indépendants en parallèle
-- **Context Caching Gemini** : -50% de coûts API
-- **Batch API** : Traitement en lot à -50% du prix
-- **Analyse incrémentale** : Détection automatique des fichiers modifiés
-
-### 🛡️ Sécurité & Qualité
-
-- Détection de vulnérabilités (injections SQL/XSS, secrets codés en dur, crypto faible)
-- Identifiants CWE et catégories OWASP
-- Analyse des dépendances via API OSV (npm, PyPI, Pub)
-- Circuit breaker et backoff exponentiel pour la résilience
-
-### 🧠 Fonctionnalités AI Avancées
-
-- **Thinking/Reasoning** : Processus de raisonnement visible
-- **Code Execution** : Sandbox Python pour métriques AST
-- **Function Calling** : Appel automatique de fonctions
-- **Google Search** : Recherche web intégrée (grounding)
-- **Gemini 2.0** : Support 1M tokens entrée, 65K sortie
-
-### 🔌 Extensibilité
-
-- **Système de hooks** : Points d'extension personnalisables
-- **Orchestrateur dédié** : Workflow à étapes avec dépendances
-- **Export métriques** : JSON avec performances par étape
-
-### Architecture du Système
-
-Le système utilise un **orchestrateur dédié** (`AnalysisOrchestrator`) qui coordonne l'exécution du workflow d'analyse avec :
-
-- **Workflow à étapes** : Chaque étape (scan, analyse, rapports) est gérée indépendamment
-- **Gestion des dépendances** : Les étapes s'exécutent dans l'ordre respectant leurs dépendances
-- **Système de hooks** : Points d'extension pour personnaliser le comportement
-- **Gestion d'erreurs** : Retry automatique et gestion des erreurs non critiques
-- **Collecte de métriques** : Suivi automatique des performances à chaque étape
-
-### Agents d'Analyse
-
-Le système utilise **6 agents spécialisés** qui travaillent ensemble pour analyser votre code :
-
-1. **Code Analysis Expert (CAE)**
-   - Analyse chaque fichier individuellement
-   - Identifie les objectifs et fonctions principales
-   - Détecte les points forts et bonnes pratiques
-   - Signale les risques et dettes techniques
-   - Propose des suggestions d'amélioration
-   - Analyse les dépendances entre fichiers
-
-2. **Architect Analysis Agent (AAA)**
-   - Produit une vue d'ensemble de l'architecture
-   - Identifie les patterns architecturaux
-   - Évalue la cohérence inter-modules
-   - Détecte les redondances et couplages excessifs
-   - Propose un plan de refactoring
-
-3. **Security Analysis Agent (SSA)**
-   - Détecte les vulnérabilités de sécurité
-   - Identifie les injections (SQL, XSS, etc.)
-   - Signale les secrets codés en dur
-   - Vérifie la cryptographie faible
-   - Analyse les problèmes d'authentification
-
-4. **Code Metrics Agent (CMA)**
-   - Calcule les métriques de code (complexité cyclomatique, etc.)
-   - Détecte le code dupliqué
-   - Mesure la profondeur d'imbrication
-   - Calcule l'indice de maintenabilité
-
-5. **Dependency Vulnerability Agent (DVA)**
-   - Analyse les vulnérabilités des dépendances via l'API OSV
-   - Supporte npm, PyPI, Pub (Dart)
-   - Identifie les CVE et vulnérabilités connues
-   - Propose les versions corrigées
-
-6. **Quality Assurance Agent (QAA)**
-   - Synthétise toutes les analyses
-   - Génère un score de qualité global
-   - Crée un plan d'action priorisé
-   - Propose une roadmap d'amélioration
-
-## 🚀 Installation
-
-### Prérequis
-
-- Python 3.8 ou supérieur
-- Clé API pour l'un des fournisseurs supportés :
-  - **Gemini** : [Obtenir une clé](https://makersuite.google.com/app/apikey)
-  - **OpenAI** : [Obtenir une clé](https://platform.openai.com/api-keys)
-  - **Claude** : [Obtenir une clé](https://console.anthropic.com/)
-
-### Installation depuis PyPI (Recommandé)
-
-Aetheris est disponible sur PyPI sous le nom `adryserage-aetheris`. Installation simple :
+## Quick Start
 
 ```bash
+# Install
 pip install adryserage-aetheris
+
+# Configure
+echo "GEMINI_API_KEY=your_key_here" > .env
+
+# Analyze
+aetheris analysis
 ```
 
-C'est tout ! Le package est maintenant installé et la commande `aetheris` est disponible.
+## Commands
 
-**Note** : Après l'installation, la commande CLI `aetheris` est disponible dans votre terminal.
+| Command | Description | Documentation |
+|---------|-------------|---------------|
+| `aetheris analysis` | Full codebase analysis | [analysis.md](docs/commands/analysis.md) |
+| `aetheris fix` | Fix bugs with Claude Code | [fix.md](docs/commands/fix.md) |
+| `aetheris pr` | Review GitHub Pull Requests | [pr-review.md](docs/commands/pr-review.md) |
+| `aetheris user-story` | Analyze user flows | [user-story.md](docs/commands/user-story.md) |
+| `aetheris issues` | Create GitHub issues from analysis | [issues.md](docs/commands/issues.md) |
+| `aetheris pr-gen` | Generate PRs with AI fixes | [pr-gen.md](docs/commands/pr-gen.md) |
 
-### Installation depuis les sources
+## Features
 
-Si vous préférez installer depuis les sources :
+### Multi-Provider AI
+- **Providers**: Gemini, Claude (Anthropic), OpenAI
+- **Consensus Mode**: Only report issues found by ALL providers
+- **Structured Outputs**: JSON responses validated via Pydantic
 
-```bash
-git clone https://github.com/adryserage/aetheris.git
-cd aetheris
-pip install -r requirements.txt
-```
+### Analysis Capabilities
+- Security vulnerabilities (injections, secrets, weak crypto)
+- Code quality and metrics
+- Architecture review
+- Dependency CVE scanning via OSV API
+- CWE/OWASP classifications
 
-Ou installez le package en mode développement :
+### Performance
+- **Smart Cache**: 60-80% API cost reduction (git SHA based)
+- **Parallelization**: Dependency graph-based
+- **Context Caching**: 50% cost reduction (Gemini)
+- **Batch API**: 50% price reduction (Gemini)
 
-```bash
-git clone https://github.com/adryserage/aetheris.git
-cd aetheris
-pip install -e .
-```
+### Automation
+- GitHub Actions integration
+- Auto-fix with Claude Code
+- GitHub issue creation
+- PR generation with fixes
 
-### Dépendances
+## Documentation
 
-- `google-genai` - Nouveau SDK Gemini avec Structured Outputs, Thinking, Code Execution (v2.2.0+)
-- `pydantic` - Validation des schémas JSON pour les Structured Outputs (v2.2.0+)
-- `openai` - API OpenAI pour l'analyse de code
-- `anthropic` - API Claude (Anthropic) pour l'analyse de code
-- `pathspec` - Gestion des patterns .gitignore
-- `requests` - Requêtes HTTP pour l'API OSV (version >=2.32.0 pour corriger les vulnérabilités CVE-2024-47081 et CVE-2024-35195)
-- `pyyaml` - Parsing des fichiers YAML (pubspec.yaml pour Dart/Flutter)
-- `ddgs` - Recherche web pour enrichir les analyses (anciennement duckduckgo-search)
+| Topic | Link |
+|-------|------|
+| Installation | [docs/installation.md](docs/installation.md) |
+| Configuration | [docs/configuration.md](docs/configuration.md) |
+| AI Providers | [docs/ai-providers.md](docs/ai-providers.md) |
+| Commands Reference | [docs/commands/README.md](docs/commands/README.md) |
+| Analysis Agents | [docs/agents.md](docs/agents.md) |
+| Features | [docs/features.md](docs/features.md) |
+| GitHub Actions | [docs/github-actions.md](docs/github-actions.md) |
+| Extensibility | [docs/PLUGINS.md](docs/PLUGINS.md) |
+| Troubleshooting | [docs/troubleshooting.md](docs/troubleshooting.md) |
 
-## 🏗️ Structure du Projet
+## Analysis Agents
 
-Le projet est organisé en modules pour une meilleure maintenabilité :
+Aetheris uses **6 specialized agents**:
 
-```text
-aetheris/
-├── src/
-│   ├── core/              # Modules principaux
-│   │   ├── config.py      # Configuration (AnalysisConfig, load_env_file)
-│   │   ├── logger.py     # Logging et encodage UTF-8
-│   │   ├── analyzer.py   # Analyseur principal (CodeAnalyzer)
-│   │   ├── orchestrator.py  # Orchestrateur avec système de workflow
-│   │   ├── ai_providers.py  # Providers AI (Gemini, OpenAI, Claude) avec fonctionnalités avancées
-│   │   ├── gemini_config.py  # Configuration des fonctionnalités avancées Gemini (v2.2.0+)
-│   │   ├── cache.py      # Système de cache pour réduire les coûts API
-│   │   ├── error_handler.py  # Gestion d'erreurs avec circuit breaker
-│   │   ├── parallel_analyzer.py  # Parallélisation intelligente
-│   │   ├── priority_manager.py  # Gestionnaire de priorités
-│   │   ├── metrics.py    # Collecteur de métriques de performance
-│   │   └── progress.py    # Gestionnaire de progression
-│   ├── models/           # Modèles de données
-│   │   ├── data_models.py  # Dataclasses (FileAnalysis, SecurityIssue, etc.)
-│   │   └── analysis_schemas.py  # Schémas Pydantic pour Structured Outputs (v2.2.0+)
-│   ├── agents/           # Agents d'analyse
-│   │   ├── base_agent.py  # Classe de base pour tous les agents
-│   │   ├── code_analysis_expert.py
-│   │   ├── architect_analysis_agent.py
-│   │   ├── security_analysis_agent.py
-│   │   ├── code_metrics_agent.py
-│   │   ├── dependency_vulnerability_agent.py
-│   │   └── quality_assurance_agent.py
-│   └── services/         # Services utilitaires
-│       ├── code_generator.py
-│       ├── documentation_searcher.py
-│       └── dependency_analyzer.py
-├── docs/                 # Documentation
-│   └── PLUGINS.md        # Documentation du système de plugins/hooks
-├── main.py               # Point d'entrée principal (pour développement)
-├── src/
-│   └── cli.py           # Interface CLI avec sous-commandes
-├── scripts/              # Scripts utilitaires
-│   ├── analyze_changes.py  # Analyse des fichiers modifiés
-│   ├── extract_release_notes.py  # Extraction des notes de release
-│   ├── create_missing_releases.py  # Création de releases GitHub
-│   └── README.md
-├── pyproject.toml        # Configuration du package Python
-├── requirements.txt      # Dépendances Python
-└── README.md            # Documentation
-```
+1. **Code Analysis Expert** - Individual file analysis
+2. **Architect Analysis Agent** - Architecture overview
+3. **Security Analysis Agent** - Vulnerability detection
+4. **Code Metrics Agent** - Complexity and duplication
+5. **Dependency Vulnerability Agent** - CVE scanning
+6. **Quality Assurance Agent** - Final synthesis
 
-### Architecture Modulaire
+## Basic Configuration
 
-- **`src/core/`** : Contient l'analyseur principal (`CodeAnalyzer`), l'orchestrateur (`AnalysisOrchestrator`), le cache, la gestion d'erreurs, la parallélisation, les priorités, les métriques et les utilitaires de configuration
-- **`src/models/`** : Définit les structures de données utilisées pour échanger des informations entre les composants
-- **`src/agents/`** : Chaque agent est un module indépendant héritant de `BaseAgent` pour la logique commune
-- **`src/services/`** : Services utilitaires réutilisables (génération de code, recherche web, analyse de dépendances)
-- **`docs/`** : Documentation du système, notamment le guide des plugins/hooks
-
-Cette structure modulaire facilite :
-
-- La maintenance et l'extension du code
-- La réutilisation des composants
-- Les tests unitaires
-- La compréhension de l'architecture
-- L'extensibilité via le système de hooks/plugins
-
-## ⚙️ Configuration
-
-### Choix du fournisseur AI
-
-Aetheris supporte maintenant **trois fournisseurs AI** : Google Gemini, OpenAI et Anthropic Claude. Vous pouvez choisir le fournisseur et le modèle qui convient le mieux à vos besoins et à votre budget.
-
-#### Configuration du fournisseur
-
-Créez un fichier `.env` à la racine du projet :
+Create `.env` file:
 
 ```env
-# Choisir le fournisseur (gemini, openai, claude)
+# AI Provider (gemini, openai, claude)
 AI_PROVIDER=gemini
+GEMINI_API_KEY=your_key_here
 
-# Clé API selon le fournisseur choisi
-GEMINI_API_KEY=votre_cle_api_ici        # Pour Gemini
-# OU
-OPENAI_API_KEY=votre_cle_api_ici         # Pour OpenAI
-# OU
-ANTHROPIC_API_KEY=votre_cle_api_ici      # Pour Claude
-
-# Modèle à utiliser (optionnel, défaut selon provider)
-AI_MODEL=gemini-3-pro-preview
+# Optional
+AI_MODEL=gemini-2.5-pro
+BATCH_SIZE=10
+ENABLE_CACHE=true
 ```
 
-Ou définissez les variables d'environnement :
+See [Configuration Guide](docs/configuration.md) for all options.
 
-**Windows (PowerShell):**
+## Example Workflows
 
-```powershell
-$env:AI_PROVIDER='openai'
-$env:OPENAI_API_KEY='votre_cle_api_ici'
-```
-
-**Linux/Mac:**
-
-```bash
-export AI_PROVIDER=claude
-export ANTHROPIC_API_KEY=votre_cle_api_ici
-```
-
-#### Modèles supportés
-
-##### Modèles avec reasoning (affichage du processus de raisonnement disponible via l'API)
-
-| Fournisseur | Modèles avec reasoning  | Modèle par défaut | Notes                                                                                                            |
-| ----------- | ----------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **OpenAI**  | `o1-preview`, `o1-mini` | `o1-preview`      | Ces modèles exposent leur processus de raisonnement étape par étape via le champ `reasoning` dans la réponse API |
-
-> **Note** : Seuls les modèles OpenAI `o1-preview` et `o1-mini` exposent actuellement leur reasoning via l'API. D'autres modèles (comme o3, GPT-5) peuvent avoir des capacités de reasoning internes mais ne l'exposent pas via l'API de la même manière.
-
-##### Modèles sans reasoning (affichage standard)
-
-| Fournisseur | Modèles disponibles                                                                                                                           | Modèle par défaut            | Notes                             |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | --------------------------------- |
-| **Gemini**  | `gemini-3-pro-preview` ⭐, `gemini-2.5-pro`, `gemini-2.0-flash-exp`, `gemini-1.5-pro`, `gemini-1.5-flash`, `gemini-pro` | `gemini-3-pro-preview`       | Thinking disponible pour gemini-2.5+ |
-| **OpenAI**  | `gpt-4o`, `gpt-4-turbo`, `gpt-4`, `gpt-3.5-turbo`, `gpt-4-turbo-preview`                                                                      | `gpt-4o`                     | Pas de reasoning exposé via l'API |
-| **Claude**  | `claude-3-5-sonnet-20241022`, `claude-3-opus-20240229`, `claude-3-haiku-20240307`                                                             | `claude-3-5-sonnet-20241022` | Pas de reasoning exposé via l'API |
-
-##### Gemini 3 Pro Preview - Fonctionnalités Avancées (v2.2.0+)
-
-Le modèle `gemini-3-pro-preview` offre des capacités uniques :
-
-| Fonctionnalité | Description | Activation |
-|----------------|-------------|------------|
-| **Structured Outputs** | Réponses JSON validées via Pydantic | `ENABLE_STRUCTURED_OUTPUTS=true` |
-| **Thinking** | Affichage du processus de raisonnement | `ENABLE_THINKING=true` |
-| **Code Execution** | Exécution Python en sandbox | `ENABLE_CODE_EXECUTION=true` |
-| **Context Caching** | Cache de contexte (-50% coût) | `ENABLE_CONTEXT_CACHING=true` |
-| **Batch API** | Traitement en lot (-50% coût) | `ENABLE_BATCH_MODE=true` |
-
-**Limites du modèle :**
-- Input : 1 048 576 tokens (1M)
-- Output : 65 536 tokens (65K)
-
-> **Note** : Pour utiliser le mode reasoning avec les modèles OpenAI `o1-preview` ou `o1-mini`, définissez `AI_MODEL=o1-preview` (ou `o1-mini`) et `SHOW_REASONING=true`. Le reasoning s'affichera dans un panneau dédié pendant l'analyse.
-
-**Note importante** :
-
-- **Codex (OpenAI)** : Le modèle Codex original a été déprécié. Pour l'analyse de code, utilisez **GPT-4o** ou **GPT-4 Turbo** qui offrent d'excellentes performances pour le code.
-- Certains modèles spécialisés (comme GPT-5 Codex pour OpenAI ou Claude Opus 4.1) peuvent nécessiter un accès spécial ou ne pas être disponibles via l'API standard. Consultez la documentation officielle de chaque fournisseur pour les modèles les plus récents et leur disponibilité.
-
-#### Obtenir les clés API
-
-- **Gemini** : [Google AI Studio](https://makersuite.google.com/app/apikey)
-- **OpenAI** : [OpenAI Platform](https://platform.openai.com/api-keys)
-- **Claude** : [Anthropic Console](https://console.anthropic.com/)
-
-### Options de configuration
-
-Vous pouvez personnaliser le comportement via des variables d'environnement ou le fichier `.env` :
-
-| Variable                          | Description                                                  | Défaut                          |
-| --------------------------------- | ------------------------------------------------------------ | ------------------------------- |
-| `AI_PROVIDER`                     | Fournisseur AI à utiliser                                    | `gemini`                        |
-| `AI_MODEL`                        | Modèle AI à utiliser                                         | Défaut selon provider           |
-| `GEMINI_API_KEY`                  | Clé API Gemini (si provider=gemini)                          | -                               |
-| `OPENAI_API_KEY`                  | Clé API OpenAI (si provider=openai)                          | -                               |
-| `ANTHROPIC_API_KEY`               | Clé API Claude (si provider=claude)                          | -                               |
-| `BATCH_SIZE`                      | Nombre de fichiers analysés en parallèle                     | `10`                            |
-| `MAX_RETRIES`                     | Nombre de tentatives en cas d'erreur                         | `3`                             |
-| `TIMEOUT_SECONDS`                 | Timeout pour chaque requête (secondes)                       | `60`                            |
-| `OUTPUT_DIR`                      | Répertoire de sortie des analyses                            | `docs/analyses`                 |
-| `ARCHITECTURE_REPORT`             | Chemin du rapport d'architecture                             | `docs/architecture_overview.md` |
-| `ROOT_DIR`                        | Répertoire racine à analyser                                 | `.`                             |
-| `ENABLE_WEB_SEARCH`               | Activer la recherche web                                     | `true`                          |
-| `MAX_WEB_RESULTS`                 | Nombre max de résultats de recherche                         | `3`                             |
-| `ENABLE_SECURITY_ANALYSIS`        | Activer l'analyse de sécurité                                | `true`                          |
-| `ENABLE_METRICS_ANALYSIS`         | Activer l'analyse de métriques                               | `true`                          |
-| `ENABLE_DEPENDENCY_VULNERABILITY` | Activer l'analyse des vulnérabilités                         | `true`                          |
-| `ENABLE_CODE_GENERATION`          | Permettre la génération de code d'analyse                    | `true`                          |
-| `SHOW_REASONING`                  | Afficher le processus de reasoning du modèle (si disponible) | `false`                         |
-| `ENABLE_CACHE`                    | Activer le cache des analyses (réduit les coûts API)         | `true`                          |
-| `CACHE_TTL_DAYS`                  | Durée de vie du cache en jours                               | `7`                             |
-| `ANALYZE_DEPENDENT_FILES`         | Analyser les fichiers dépendants des fichiers modifiés       | `true`                          |
-| `MAX_DEPENDENCY_DEPTH`            | Profondeur maximale pour l'analyse des dépendances            | `2`                             |
-| `ENABLE_METRICS`                  | Activer la collecte de métriques de performance              | `true`                          |
-| `ENABLE_PRIORITY_ANALYSIS`        | Activer l'analyse par priorité (PR files = HIGH)             | `true`                          |
-| `ENABLE_EXPORT_ANALYSIS`          | Activer l'extraction des exports                             | `true`                          |
-| `ENABLE_REVERSE_DEPENDENCY`       | Activer le graphe de dépendances inverses                    | `true`                          |
-| `ENABLE_IMPACT_ANALYSIS`          | Activer l'analyse d'impact des bugs                          | `true`                          |
-| `MAX_IMPACT_DEPTH`                | Profondeur maximale pour l'analyse d'impact                  | `3`                             |
-| `ENABLE_CLAUDE_CODE_FIX`          | Activer l'intégration Claude Code pour la correction         | `true`                          |
-| `FIX_SEVERITY_THRESHOLD`          | Seuil de sévérité minimale pour les corrections              | `medium`                        |
-| `ENABLE_STRUCTURED_OUTPUTS`       | Activer les Structured Outputs Gemini (JSON validé Pydantic) | `true`                          |
-| `ENABLE_THINKING`                 | Activer le mode Thinking/Reasoning de Gemini                 | `false`                         |
-| `THINKING_BUDGET`                 | Budget de tokens pour le Thinking (min 128)                  | `1024`                          |
-| `ENABLE_CODE_EXECUTION`           | Activer l'exécution de code Python en sandbox                | `false`                         |
-| `ENABLE_FUNCTION_CALLING`         | Activer l'appel automatique de fonctions                     | `false`                         |
-| `ENABLE_CONTEXT_CACHING`          | Activer le cache de contexte Gemini (-50% coût)              | `true`                          |
-| `CONTEXT_CACHE_TTL_SECONDS`       | Durée de vie du cache de contexte (secondes)                 | `3600`                          |
-| `ENABLE_BATCH_MODE`               | Activer le mode Batch API (-50% coût)                        | `false`                         |
-
-### 💰 Coûts d'analyse
-
-Les coûts d'analyse dépendent du fournisseur, du modèle choisi et de la taille de votre codebase. Voici des estimations pour différents scénarios :
-
-#### Estimation des tokens
-
-- **1 ligne de code** ≈ 10-20 tokens (input)
-- **1 fichier** ≈ 500-2000 tokens selon la taille
-- **Rapport généré** ≈ 1000-5000 tokens (output) par fichier analysé
-
-#### Tableau des coûts estimés
-
-| Scénario              | Fichiers | Lignes | Tokens Input | Tokens Output | **Gemini Pro** | **GPT-4** | **GPT-3.5 Turbo** | **Claude 3.5 Sonnet** | **Claude 3 Opus** |
-| --------------------- | -------- | ------ | ------------ | ------------- | -------------- | --------- | ----------------- | --------------------- | ----------------- |
-| **Petit projet**      | 10       | 1 000  | ~15 000      | ~15 000       | $0.10          | $0.75     | $0.05             | $0.27                 | $1.35             |
-| **Projet moyen**      | 50       | 5 000  | ~75 000      | ~75 000       | $0.52          | $3.75     | $0.23             | $1.35                 | $6.75             |
-| **Grand projet**      | 100      | 10 000 | ~150 000     | ~150 000      | $1.03          | $7.50     | $0.45             | $2.70                 | $13.50            |
-| **Très grand projet** | 500      | 50 000 | ~750 000     | ~750 000      | $5.16          | $37.50    | $2.25             | $13.50                | $67.50            |
-
-_Note : Les coûts sont approximatifs et peuvent varier selon la complexité du code et la longueur des réponses générées._
-
-#### Tarifs par million de tokens (2024)
-
-| Fournisseur | Modèle        | Input (par M tokens) | Output (par M tokens) |
-| ----------- | ------------- | -------------------- | --------------------- |
-| **Gemini**  | 3 Pro Preview | ~$3.50               | ~$10.50               |
-| **Gemini**  | 2.5 Pro       | ~$3.50               | ~$10.50               |
-| **Gemini**  | 1.5 Pro       | $3.50                | $10.50                |
-| **Gemini**  | 1.5 Flash     | $0.35                | $1.05                 |
-| **OpenAI**  | GPT-4o        | $2.50                | $10.00                |
-| **OpenAI**  | GPT-4 Turbo   | $10.00               | $30.00                |
-| **OpenAI**  | GPT-4         | $30.00               | $60.00                |
-| **OpenAI**  | GPT-3.5 Turbo | $0.50                | $1.50                 |
-| **Claude**  | 3.5 Sonnet    | $3.00                | $15.00                |
-| **Claude**  | 3 Opus        | $15.00               | $75.00                |
-| **Claude**  | 3 Haiku       | $0.25                | $1.25                 |
-
-_Note : Les tarifs peuvent varier. Consultez les pages de tarification officielles pour les tarifs les plus récents._
-
-#### Recommandations selon le budget
-
-- **Budget serré** : Utilisez **Gemini 1.5 Flash** ou **GPT-3.5 Turbo** pour des analyses rapides et économiques
-- **Équilibre qualité/prix** : Utilisez **Gemini 1.5 Pro**, **GPT-4o** ou **Claude 3.5 Sonnet** pour une bonne qualité à un prix raisonnable
-- **Qualité maximale** : Utilisez **GPT-4**, **Claude 3 Opus** ou **Gemini 2.5 Pro** pour les analyses les plus approfondies
-- **Spécialisé code** : Pour l'analyse de code, **GPT-4o** et **Claude 3.5 Sonnet** offrent d'excellentes performances
-
-_Note : Consultez les pages de tarification officielles pour les tarifs les plus récents :_
-
-- [Tarification Gemini](https://ai.google.dev/gemini-api/docs/pricing)
-- [Tarification OpenAI](https://openai.com/api/pricing/)
-- [Tarification Claude](https://www.anthropic.com/pricing)
-
-## 📖 Utilisation
-
-### Commande principale
-
-Une fois installé, utilisez la commande `aetheris` :
-
-```bash
-# Afficher la version
-aetheris --version
-
-# Afficher l'aide
-aetheris --help
-
-# Afficher l'aide pour la sous-commande analysis
-aetheris analysis --help
-
-# Afficher l'aide pour la sous-commande fix
-aetheris fix --help
-
-# Afficher l'aide pour la sous-commande pr
-aetheris pr --help
-```
-
-### Analyse de base
-
+### Full Analysis
 ```bash
 aetheris analysis
 ```
 
-La commande va :
-
-1. Scanner tous les fichiers du répertoire courant
-2. Analyser chaque fichier avec les agents appropriés
-3. Générer des rapports détaillés dans `docs/analyses/`
-4. Créer un rapport d'architecture global
-5. Générer un rapport d'assurance qualité
-
-### Analyse d'un répertoire spécifique
-
+### Analyze and Fix Bugs
 ```bash
-ROOT_DIR=./mon_projet aetheris analysis
+aetheris fix --analyze-first --auto --batch-size 10
 ```
 
-### Analyse des fichiers modifiés uniquement
-
-Pour analyser uniquement les fichiers modifiés (utile pour les PR/commits) :
-
+### PR Review with Multiple Providers
 ```bash
-# Avec une liste de fichiers (séparés par virgules)
-aetheris analysis --changed-files-only --files src/file1.py,src/file2.py
-
-# Avec une liste JSON (depuis GitHub Actions)
-aetheris analysis --changed-files-only --files '["src/file1.py", "src/file2.py"]'
-
-# Avec un numéro de PR (pour information)
-aetheris analysis --changed-files-only --files src/file1.py --pr-number 123
+aetheris pr --url https://github.com/owner/repo/pull/123 --providers gemini,claude
 ```
 
-### Utilisation depuis les sources (sans installation)
-
-Si vous avez cloné le repository et installé les dépendances :
-
+### Create Issues and Generate Fix PRs
 ```bash
-# Utiliser directement main.py
-python main.py
-
-# Ou utiliser le module CLI
-python -m src.cli analysis
+aetheris issues
+aetheris pr-gen --link-issues
 ```
 
-### Correction de bugs avec Claude Code (v2.1.0+, amélioré en v2.2.7)
+## Project Structure
 
-La commande `aetheris fix` permet de corriger automatiquement les bugs détectés en utilisant Claude Code.
-
-#### Prérequis
-
-- **Claude Code** doit être installé sur votre machine :
-  ```bash
-  npm install -g @anthropic-ai/claude-code
-  ```
-
-#### Commande fix
-
-```bash
-# Tester la connexion à Claude Code
-aetheris fix --test
-
-# Corriger les bugs depuis le cache existant (mode arrière-plan)
-aetheris fix
-
-# Mode automatique (sans confirmations entre les bugs)
-aetheris fix --auto
-
-# Ouvrir Claude Code dans une fenêtre terminal
-aetheris fix --terminal
-
-# Corriger uniquement les bugs critiques et high
-aetheris fix --severity high
-
-# Lancer une analyse puis corriger
-aetheris fix --analyze-first
+```
+aetheris/
+├── src/
+│   ├── core/           # Main modules (analyzer, orchestrator, cache)
+│   ├── models/         # Data models
+│   ├── agents/         # AI agents
+│   └── services/       # Utilities
+├── docs/               # Documentation
+├── scripts/            # Utility scripts
+└── main.py            # Entry point
 ```
 
-#### Mode parallèle (v2.4.0+) - RECOMMANDÉ pour beaucoup de bugs
+## Supported Languages
 
-Le mode parallèle permet de corriger plusieurs bugs simultanément, accélérant significativement le processus :
+Python, TypeScript, JavaScript, Dart/Flutter, Java, Kotlin, Swift, Go, Rust, C/C++, C#, PHP, Ruby, and more.
 
-```bash
-# Corriger 10 bugs en parallèle (recommandé)
-aetheris fix --auto --batch-size 10
+## Output
 
-# Avec timeout personnalisé (5 minutes par bug)
-aetheris fix --auto -b 10 --timeout 300
+Reports generated in `docs/analyses/`:
+- Individual file reports
+- Architecture overview
+- Quality assurance report
+- Vulnerabilities report
+- Performance metrics (JSON)
 
-# Combiner avec filtre de sévérité
-aetheris fix --auto --batch-size 10 --severity high
-```
+## License
 
-**Performance estimée :**
-| Bugs | Mode séquentiel | Mode parallèle (10) | Gain |
-|------|-----------------|---------------------|------|
-| 10   | ~10 min         | ~2 min              | 5x   |
-| 50   | ~50 min         | ~10 min             | 5x   |
-| 100  | ~1h40           | ~20 min             | 5x   |
+MIT License
 
-#### Options disponibles
+## Contributing
 
-| Option | Description |
-|--------|-------------|
-| `--test` | Tester la connexion à Claude Code sans corriger de bugs |
-| `--auto` | Mode automatique sans confirmations entre les bugs |
-| `--batch-size`, `-b` | Nombre de corrections en parallèle (défaut: 1, recommandé: 10) |
-| `--timeout` | Timeout par bug en secondes (défaut: 300) |
-| `--terminal` | Ouvrir Claude Code dans une fenêtre terminal (mode séquentiel uniquement) |
-| `--severity` | Sévérité minimale des bugs à corriger (`critical`, `high`, `medium`, `low`) |
-| `--analyze-first` | Lancer une analyse avant de corriger |
+Contributions welcome! Please open an issue or pull request.
 
-#### Modes d'exécution (v2.2.7+)
+## Resources
 
-| Mode | Description | Utilisation |
-|------|-------------|-------------|
-| **Direct (défaut)** | Claude Code s'exécute en arrière-plan | `aetheris fix` |
-| **Terminal** | Claude Code s'ouvre dans une nouvelle fenêtre | `aetheris fix --terminal` |
-
-Le mode **direct** (par défaut) est plus fiable car il évite les problèmes d'échappement de caractères dans le terminal.
-
-#### Fonctionnement
-
-1. **Test de Claude Code** : Vérifie si Claude Code est installé et fonctionnel
-2. **Chargement des bugs** : Lit le cache `.bugs_cache.json` ou lance une analyse
-3. **Filtrage par sévérité** : Filtre les bugs selon le seuil choisi
-4. **Affichage du tableau** : Montre un récapitulatif des bugs à corriger
-5. **Correction séquentielle** : Pour chaque bug :
-   - Affiche les détails du bug avec spinner de progression
-   - Exécute Claude Code en arrière-plan (ou dans une fenêtre si `--terminal`)
-   - Affiche le résultat de la correction
-   - Passe au bug suivant
-
-#### Support multi-plateforme (mode terminal)
-
-La commande détecte automatiquement le système d'exploitation et lance Claude Code dans le terminal approprié :
-
-| OS | Terminal utilisé |
-|----|------------------|
-| **Windows** | `cmd` avec `start` |
-| **macOS** | Terminal.app via AppleScript |
-| **Linux** | `gnome-terminal`, `konsole`, `xfce4-terminal`, `xterm`, ou `x-terminal-emulator` |
-
-### Revue de Pull Request avec AI (v2.4.0+)
-
-La commande `aetheris pr` permet d'analyser des Pull Requests GitHub avec un ou plusieurs providers AI et de poster des commentaires directement sur la PR.
-
-#### Prérequis
-
-- **GitHub CLI (`gh`)** doit être installé et authentifié :
-  ```bash
-  # Installation
-  brew install gh        # macOS
-  sudo apt install gh    # Ubuntu/Debian
-  winget install gh      # Windows
-
-  # Authentification
-  gh auth login
-  ```
-
-#### Usage basique
-
-```bash
-# Analyser une PR via URL
-aetheris pr --url https://github.com/owner/repo/pull/123
-
-# Analyser via repo + numéro
-aetheris pr --repo owner/repo --pr 123
-
-# Mode dry-run (prévisualiser sans poster de commentaires)
-aetheris pr --url https://github.com/owner/repo/pull/123 --dry-run
-```
-
-#### Multi-Provider et Consensus
-
-```bash
-# Analyser avec Gemini et Claude (mode consensus par défaut)
-aetheris pr --url https://... --providers gemini,claude
-
-# Analyser avec les 3 providers
-aetheris pr --url https://... --providers gemini,claude,openai
-
-# Désactiver le consensus (reporter toutes les issues)
-aetheris pr --url https://... --providers gemini,claude --no-consensus
-```
-
-Le **mode consensus** (par défaut) ne reporte que les issues trouvées par TOUS les providers. Cela réduit les faux positifs et augmente la confiance dans les résultats.
-
-#### Options de filtrage et sortie
-
-```bash
-# Filtrer par sévérité minimale
-aetheris pr --url https://... --severity high
-
-# Ne pas poster de commentaires inline (résumé uniquement)
-aetheris pr --url https://... --no-inline
-
-# Sauvegarder le rapport dans un fichier
-aetheris pr --url https://... --output review.md
-```
-
-#### Auto-fix pour vos PRs
-
-Si la PR vous appartient (comparaison email git), vous pouvez demander à corriger automatiquement les issues :
-
-```bash
-# Proposer de corriger avec Claude Code
-aetheris pr --url https://... --auto-fix
-```
-
-#### Options disponibles
-
-| Option | Description |
-|--------|-------------|
-| `--url URL` | URL complète de la PR GitHub |
-| `--repo REPO` | Repository au format `owner/repo` |
-| `--pr NUM` | Numéro de la PR (avec `--repo`) |
-| `--providers LIST` | Providers AI séparés par virgule (défaut: `gemini`) |
-| `--consensus` | Mode consensus - issues de TOUS les providers (défaut) |
-| `--no-consensus` | Reporter toutes les issues de chaque provider |
-| `--dry-run` | Analyser sans poster de commentaires |
-| `--severity LEVEL` | Sévérité minimale (`critical`, `high`, `medium`, `low`, `info`) |
-| `--no-inline` | Pas de commentaires inline, résumé uniquement |
-| `--output FILE` | Sauvegarder le rapport markdown |
-| `--auto-fix` | Proposer de corriger si c'est votre PR |
-
-#### Types d'issues détectées
-
-| Type | Description |
-|------|-------------|
-| `security` | Vulnérabilités de sécurité (injection, XSS, etc.) |
-| `bug` | Bugs potentiels et erreurs logiques |
-| `performance` | Problèmes de performance |
-| `logic` | Erreurs de logique métier |
-| `style` | Non-respect des conventions de code |
-| `documentation` | Documentation manquante ou incorrecte |
-| `test` | Tests manquants ou insuffisants |
-| `best_practice` | Non-respect des bonnes pratiques |
-
-### Analyse de User Stories (v2.3.0+)
-
-La commande `aetheris user-story` permet d'analyser les flux utilisateur et de tracer les appels frontend ↔ backend.
-
-#### Usage
-
-```bash
-# Depuis une description textuelle
-aetheris user-story --text "Quand l'utilisateur clique sur Login, il est redirigé vers le dashboard"
-
-# Depuis un fichier markdown avec des user stories
-aetheris user-story --file docs/user-stories.md
-
-# Depuis un point d'entrée code (composant UI)
-aetheris user-story --entry src/components/LoginButton.tsx
-
-# Auto-détection de tous les flux utilisateur
-aetheris user-story --auto
-```
-
-#### Options de sortie
-
-```bash
-# Format de sortie (défaut: both)
-aetheris user-story --auto --output-format markdown
-aetheris user-story --auto --output-format json
-aetheris user-story --auto --output-format both
-
-# Format de diagramme (défaut: mermaid)
-aetheris user-story --auto --diagram mermaid
-aetheris user-story --auto --diagram plantuml
-aetheris user-story --auto --diagram none
-
-# Filtrer par sévérité minimale
-aetheris user-story --auto --severity high
-```
-
-#### Problèmes détectés
-
-| Type | Description |
-|------|-------------|
-| `orphan_endpoint` | Endpoint défini mais jamais appelé |
-| `missing_handler` | Appel API sans endpoint correspondant |
-| `missing_error_handling` | Appel API sans try/catch ou .catch() |
-| `race_condition` | Appels concurrents sur même state |
-| `missing_auth` | Endpoint sensible sans authentification |
-| `dead_code` | Code jamais exécuté dans le flux |
-
-#### Frameworks supportés
-
-**Frontend** : fetch, axios, SWR, React Query, dio (Dart), requests, httpx
-
-**Backend** : Express.js, Next.js API Routes, FastAPI, Flask, Django, NestJS
-
-## 🔄 GitHub Actions
-
-Le projet inclut un workflow GitHub Actions pour automatiser l'analyse de code directement dans votre repository.
-
-### Configuration
-
-1. **Ajouter le secret GitHub** :
-   - Allez dans votre repository → Settings → Secrets and variables → Actions
-   - Cliquez sur "New repository secret"
-   - Nom : `GEMINI_API_KEY`, `OPENAI_API_KEY` ou `ANTHROPIC_API_KEY` selon le provider choisi
-   - Valeur : Votre clé API correspondante
-   - Cliquez sur "Add secret"
-   - Optionnel : Ajoutez `AI_PROVIDER` et `AI_MODEL` pour personnaliser le provider et le modèle
-
-2. **Le workflow est déjà configuré** dans `.github/workflows/code-review.yml`
-
-### Déclencheurs disponibles
-
-Le workflow s'exécute automatiquement dans les cas suivants :
-
-- **Push vers main/master** : Analyse complète de la codebase
-- **Pull Request** : Analyse uniquement des fichiers modifiés dans la PR
-- **Exécution manuelle** : Via l'onglet Actions de GitHub avec options :
-  - Mode `full` : Analyse complète
-  - Mode `changed` : Analyse des fichiers modifiés (peut spécifier un numéro de PR)
-
-### Résultats
-
-Les rapports d'analyse sont disponibles en tant qu'**artifacts GitHub** :
-
-- Allez dans l'onglet Actions
-- Sélectionnez l'exécution du workflow
-- Téléchargez l'artifact "code-analysis-reports"
-- Les rapports incluent :
-  - Rapports individuels par fichier (`docs/analyses/*.md`)
-  - Rapport d'architecture (`docs/architecture_overview.md`)
-  - Rapport d'assurance qualité (`docs/analyses/quality_assurance_report.md`)
-  - Rapport de vulnérabilités (`docs/analyses/vulnerabilities_report.md`)
-
-### Exemple d'utilisation
-
-1. Créez ou modifiez une Pull Request
-2. Le workflow s'exécute automatiquement
-3. Consultez les résultats dans l'onglet Actions
-4. Téléchargez les rapports depuis les artifacts
-
-### Personnalisation
-
-Vous pouvez personnaliser le workflow en modifiant `.github/workflows/code-review.yml` :
-
-- Changer les branches déclencheuses
-- Modifier les chemins exclus (`paths-ignore`)
-- Ajuster les options d'analyse
-- Ajouter des notifications (email, Slack, etc.)
-
-## 🚀 Nouvelles Fonctionnalités v2.0.0
-
-### Cache Intelligent
-
-Le système de cache réduit significativement les coûts API en évitant les ré-analyses inutiles :
-
-- **Cache basé sur git SHA** : Invalidation automatique si le fichier est modifié
-- **Stockage disque** : Cache persistant dans `.cache/aetheris/`
-- **TTL configurable** : Durée de vie du cache ajustable (défaut: 7 jours)
-- **Réduction des coûts** : 60-80% de réduction des appels API
-
-```bash
-# Désactiver le cache si nécessaire
-ENABLE_CACHE=false aetheris analysis
-```
-
-### Parallélisation Intelligente
-
-Analyse optimisée basée sur le graphe de dépendances :
-
-- **Détection automatique** : Identification des fichiers indépendants
-- **Analyse parallèle** : Fichiers du même niveau analysés simultanément
-- **Respect des dépendances** : Les fichiers dépendants sont analysés après leurs dépendances
-- **Performance améliorée** : Réduction significative du temps d'analyse
-
-### Système de Priorités
-
-Optimisation des PR reviews avec priorisation automatique :
-
-- **HIGH** : Fichiers modifiés dans la PR
-- **MEDIUM** : Dépendances directes des fichiers PR
-- **LOW** : Autres fichiers
-- **Ordre d'analyse** : HIGH → MEDIUM → LOW pour des résultats plus rapides
-
-### Métriques et Monitoring
-
-Collecte complète de métriques de performance :
-
-- **Métriques par étape** : Temps d'exécution, taux de succès, fichiers traités
-- **Métriques par agent** : Appels, durées, tokens estimés
-- **Export JSON** : Métriques sauvegardées dans `docs/metrics/`
-- **Statistiques agrégées** : Cache hit rate, success rate, coûts estimés
-
-### Analyse Incrémentale Améliorée
-
-Détection automatique des fichiers impactés :
-
-- **Dépendances transitives** : Analyse jusqu'à N niveaux de profondeur
-- **Configuration flexible** : Profondeur maximale ajustable (défaut: 2)
-- **Optimisation PR** : Analyse uniquement des fichiers impactés par les changements
-
-### Gestion d'Erreurs Robuste
-
-Système de résilience amélioré :
-
-- **Circuit breaker** : Évite les appels répétés en cas d'erreur
-- **Backoff exponentiel** : Retry intelligent avec délais croissants
-- **Classification d'erreurs** : Temporaire/permanente/critique
-- **Logging structuré** : Contexte complet pour le débogage
-
-### Système de Plugins
-
-Extensibilité via hooks personnalisés :
-
-- **Hooks par étape** : Exécution de code avant/après chaque étape
-- **Contexte partagé** : Accès aux données du workflow
-- **Documentation complète** : Guide dans `docs/PLUGINS.md`
-
-## 🧠 Nouvelles Fonctionnalités v2.2.0
-
-### Structured Outputs (Gemini)
-
-Les Structured Outputs garantissent des réponses JSON validées via Pydantic :
-
-```python
-# Exemple d'utilisation interne
-from src.models.analysis_schemas import SecurityAnalysisResult
-
-result = await agent._call_ai_structured(prompt, SecurityAnalysisResult)
-# result est un objet Pydantic validé avec des types stricts
-```
-
-**Avantages :**
-- Réponses JSON garanties (pas de parsing manuel)
-- Validation automatique des types
-- Schémas Pydantic réutilisables
-- Meilleure fiabilité des analyses
-
-### Thinking/Reasoning Mode (Gemini 2.5+)
-
-Le mode Thinking affiche le processus de raisonnement du modèle :
-
-```bash
-# Activer le mode Thinking
-ENABLE_THINKING=true THINKING_BUDGET=2048 aetheris analysis
-```
-
-**Utilisation :**
-- Déboguer les analyses complexes
-- Comprendre les décisions du modèle
-- Améliorer la transparence
-- Budget minimum : 128 tokens
-
-### Code Execution (Gemini)
-
-Exécution de code Python en sandbox pour des analyses dynamiques :
-
-```bash
-# Activer l'exécution de code
-ENABLE_CODE_EXECUTION=true aetheris analysis
-```
-
-**Cas d'usage :**
-- Parsing AST pour métriques avancées
-- Calculs de complexité
-- Détection de patterns via code
-- Analyse dynamique du code source
-
-### Context Caching (Gemini)
-
-Réduction des coûts API de ~50% via le cache de contexte :
-
-```bash
-# Activer le cache de contexte (1 heure)
-ENABLE_CONTEXT_CACHING=true CONTEXT_CACHE_TTL_SECONDS=3600 aetheris analysis
-```
-
-**Avantages :**
-- Réduction des coûts de 50%
-- Réutilisation du contexte entre requêtes
-- TTL configurable
-- Idéal pour les analyses volumineuses
-
-### Batch API (Gemini)
-
-Traitement en lot à -50% du prix :
-
-```bash
-# Activer le mode batch
-ENABLE_BATCH_MODE=true aetheris analysis
-```
-
-**Cas d'usage :**
-- Analyses de gros projets
-- Traitement non-urgent
-- Optimisation des coûts
-
-### Sécurité Améliorée
-
-Les rapports de sécurité incluent maintenant :
-
-- **CWE ID** : Identifiants Common Weakness Enumeration (ex: CWE-79 pour XSS)
-- **Catégories OWASP** : Classification OWASP Top 10 (ex: A01:2021)
-- **Recommandations détaillées** : Corrections spécifiques par vulnérabilité
-
-## 📊 Rapports générés
-
-### Rapports individuels
-
-Chaque fichier analysé génère un rapport Markdown dans `docs/analyses/` avec :
-
-- Objectif et fonction principale
-- Points forts et bonnes pratiques
-- Relations et dépendances
-- Risques et dettes techniques
-- Suggestions d'amélioration
-- Problèmes de sécurité détectés
-- Métriques de code
-
-### Rapport d'architecture
-
-`docs/architecture_overview.md` contient :
-
-- Vue d'ensemble de l'architecture
-- Patterns identifiés
-- Cohérence inter-modules
-- Redondances et dépendances
-- Recommandations d'optimisation
-- Plan de refactoring
-- Gouvernance du code
-
-### Rapport d'assurance qualité
-
-`docs/analyses/quality_assurance_report.md` contient :
-
-- Score de qualité global (sur 100)
-- Analyse par dimension (Sécurité, Maintenabilité, Architecture, etc.)
-- Plan d'action priorisé
-- Roadmap d'amélioration
-
-### Rapport des vulnérabilités
-
-`docs/analyses/vulnerabilities_report.md` contient :
-
-- Liste des vulnérabilités détectées dans les dépendances
-- Répartition par sévérité (critical, high, medium, low)
-- CVE et identifiants de vulnérabilités
-- Versions corrigées disponibles
-
-### Métriques de performance
-
-`docs/metrics/metrics_YYYYMMDD_HHMMSS.json` contient :
-
-- Durée totale d'exécution
-- Métriques par étape du workflow
-- Métriques par agent (appels, succès, durées)
-- Statistiques de cache (hit rate)
-- Taux de succès global
-- Tokens estimés et coûts API
-
-## 🔍 Langages supportés
-
-Le système détecte automatiquement et analyse :
-
-- **Dart/Flutter** (`.dart`)
-- **TypeScript/JavaScript** (`.ts`, `.tsx`, `.js`, `.jsx`)
-- **Python** (`.py`)
-- **Java** (`.java`)
-- **Kotlin** (`.kt`)
-- **Swift** (`.swift`)
-- **Go** (`.go`)
-- **Rust** (`.rs`)
-- **C/C++** (`.c`, `.cpp`, `.h`)
-- **C#** (`.cs`)
-- **PHP** (`.php`)
-- **Ruby** (`.rb`)
-- Et autres langages de programmation
-
-## 🛡️ Fichiers exclus
-
-Le système exclut automatiquement :
-
-- Dossiers de build (`build/`, `dist/`, `node_modules/`, etc.)
-- Fichiers générés (`.g.dart`, `.d.ts`, `.pyc`, etc.)
-- Fichiers de lock (`package-lock.json`, `yarn.lock`, etc.)
-- Fichiers binaires (> 1MB)
-- Dossiers cachés (`.git/`, `.venv/`, etc.)
-
-Les règles `.gitignore` sont respectées automatiquement.
-
-## 📝 Exemple de sortie
-
-### Avec barre de progression (terminal interactif)
-
-Lorsque vous exécutez Aetheris dans un terminal interactif, vous verrez des barres de progression modernes avec Rich :
-
-```text
-🚀 Aetheris by Adryan - Démarrage de l'analyse de code
-============================================================
-
-📁 Répertoire racine: .
-📂 Répertoire de sortie: docs/analyses
-🤖 Provider AI: GEMINI
-🤖 Modèle: gemini-1.5-flash
-
-🌐 Recherche web activée pour les documentations
-
-🔍 Scan des fichiers...                    ████████████████████ 100% 0:00:01
-✅ 25 fichiers trouvés à analyser
-
-🔗 Initialisation de l'analyseur de dépendances...  ████████████████████ 100%
-
-📦 Analyse des fichiers...                 ████████████████████ 100% 0:02:15
-  📦 Batch 1/3 (10 fichiers)...
-  📦 Analyse: main.py ✅
-  📦 Analyse: utils.py ✅
-  ...
-
-✅ Analyse de 25 fichiers terminée
-
-🔄 Analyse des dépendances et détection des cycles...  ████████████████████ 100%
-✅ Aucun cycle de dépendances détecté
-
-🏗️  Génération du rapport d'architecture...  ████████████████████ 100%
-✅ Rapport d'architecture sauvegardé: docs/architecture_overview.md
-
-🔒 Analyse des vulnérabilités des dépendances via OSV API...  ████████████████████ 100%
-✅ Analyse terminée: 15 package(s) vérifié(s), 2 vulnérabilité(s) trouvée(s)
-
-📋 Génération du rapport d'assurance qualité...  ████████████████████ 100%
-✅ Rapport d'assurance qualité sauvegardé: docs/analyses/quality_assurance_report.md
-
-📊 Statistiques:
-  - Fichiers analysés: 25
-  - Succès: 25
-  - Échecs: 0
-
-  Répartition par langage:
-    - Python: 15
-    - TypeScript: 8
-    - Markdown: 2
-
-============================================================
-✅ Analyse terminée avec succès!
-============================================================
-```
-
-### Mode non-interactif
-
-Si vous exécutez Aetheris dans un environnement non-interactif (CI/CD, redirection de sortie), le système utilise automatiquement des logs simples sans barres de progression.
-
-## 🤔 Affichage du Reasoning (v1.1.0+)
-
-Certains modèles AI (comme OpenAI o1-preview, o1-mini) exposent leur processus de raisonnement. Vous pouvez activer l'affichage du reasoning pour voir comment le modèle arrive à ses conclusions.
-
-### Activation
-
-Définissez la variable d'environnement `SHOW_REASONING=true` :
-
-```env
-SHOW_REASONING=true
-```
-
-Ou via la ligne de commande :
-
-```bash
-SHOW_REASONING=true aetheris analysis
-```
-
-### Modèles avec reasoning disponibles
-
-- **OpenAI o1-preview** : Affiche le reasoning complet
-- **OpenAI o1-mini** : Affiche le reasoning complet
-- **Autres modèles** : Le reasoning n'est pas disponible via l'API
-
-Le reasoning s'affiche dans un panneau dédié pendant l'analyse, particulièrement utile pour les analyses d'architecture et d'assurance qualité.
-
-## 🐛 Dépannage
-
-### Erreur: "Variable d'environnement [API_KEY] non définie"
-
-Créez un fichier `.env` avec votre clé API selon le provider choisi :
-
-- `GEMINI_API_KEY` pour Gemini
-- `OPENAI_API_KEY` pour OpenAI
-- `ANTHROPIC_API_KEY` pour Claude
-
-Ou définissez la variable d'environnement correspondante.
-
-### Erreur: "ModuleNotFoundError"
-
-Installez les dépendances :
-
-```bash
-pip install -r requirements.txt
-```
-
-### Les logs ne s'affichent pas
-
-Le script utilise `log_print()` avec flush automatique. Si les logs ne s'affichent toujours pas, vérifiez que votre terminal supporte UTF-8.
-
-### Analyse lente
-
-Réduisez `BATCH_SIZE` ou augmentez `TIMEOUT_SECONDS` dans votre `.env`.
-
-## 📄 Licence
-
-Ce projet est fourni tel quel, sans garantie.
-
-## 🤝 Contribution
-
-Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou une pull request.
-
-## 🔌 Extensibilité
-
-Aetheris v2.0.0 inclut un système de plugins/hooks pour étendre le comportement du système. Consultez `docs/PLUGINS.md` pour :
-
-- Guide complet du système de hooks
-- Exemples d'utilisation
-- Création de plugins personnalisés
-- Liste des hooks disponibles
-
-## 📚 Ressources
-
-- [Documentation Google Gemini](https://ai.google.dev/docs)
-- [Documentation OpenAI](https://platform.openai.com/docs)
-- [Documentation Claude](https://docs.anthropic.com)
-- [API OSV (Open Source Vulnerabilities)](https://osv.dev/)
-- [Documentation pathspec](https://github.com/cpburnz/python-pathspec)
-- [Repository GitHub](https://github.com/adryserage/aetheris)
-- [Package PyPI](https://pypi.org/project/adryserage-aetheris/)
-- [Documentation Plugins](docs/PLUGINS.md)
+- [Repository](https://github.com/adryserage/aetheris)
+- [PyPI Package](https://pypi.org/project/adryserage-aetheris/)
+- [Gemini API](https://ai.google.dev/docs)
+- [OpenAI API](https://platform.openai.com/docs)
+- [Claude API](https://docs.anthropic.com)
