@@ -3,8 +3,13 @@
 [![PyPI version](https://badge.fury.io/py/adryserage-aetheris.svg)](https://badge.fury.io/py/adryserage-aetheris)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/adryserage/code_reviewer/code-review.yml?label=CI)](https://github.com/adryserage/code_reviewer/actions)
-[![PyPI downloads](https://img.shields.io/pypi/dm/adryserage-aetheris.svg)](https://pypi.org/project/adryserage-aetheris/)
+[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/adryserage/aetheris/auto-release.yml?label=CI)](https://github.com/adryserage/aetheris/actions)
+
+### 📊 Download Stats
+
+| Total Downloads | Monthly | Weekly | Daily |
+|:---------------:|:-------:|:------:|:-----:|
+| [![Downloads](https://static.pepy.tech/badge/adryserage-aetheris)](https://pepy.tech/project/adryserage-aetheris) | [![Downloads/Month](https://static.pepy.tech/badge/adryserage-aetheris/month)](https://pepy.tech/project/adryserage-aetheris) | [![Downloads/Week](https://static.pepy.tech/badge/adryserage-aetheris/week)](https://pepy.tech/project/adryserage-aetheris) | [![Downloads/Day](https://img.shields.io/pypi/dd/adryserage-aetheris?label=downloads)](https://pypistats.org/packages/adryserage-aetheris) |
 
 Automated code analysis system using multiple cooperating AI agents to provide comprehensive quality, security, and architecture analysis of your codebase.
 

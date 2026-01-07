@@ -5,6 +5,16 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.5.2] - 2025-01-07
+
+### 📝 Documentation
+
+- **Statistiques de téléchargements** : Ajout de badges dans le README
+  - Total des téléchargements (all-time) via pepy.tech
+  - Téléchargements mensuels, hebdomadaires, quotidiens
+  - Table visuelle avec badges dynamiques
+- **Correction du badge GitHub Actions** : URL corrigée vers le bon repository
+
 ## [2.5.1] - 2025-01-07
 
 ### 📝 Documentation
