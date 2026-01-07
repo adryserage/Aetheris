@@ -23,14 +23,134 @@ aetheris analysis
 
 ## Commands
 
-| Command | Description | Documentation |
-|---------|-------------|---------------|
-| `aetheris analysis` | Full codebase analysis | [analysis.md](docs/commands/analysis.md) |
-| `aetheris fix` | Fix bugs with Claude Code | [fix.md](docs/commands/fix.md) |
-| `aetheris pr` | Review GitHub Pull Requests | [pr-review.md](docs/commands/pr-review.md) |
-| `aetheris user-story` | Analyze user flows | [user-story.md](docs/commands/user-story.md) |
-| `aetheris issues` | Create GitHub issues from analysis | [issues.md](docs/commands/issues.md) |
-| `aetheris pr-gen` | Generate PRs with AI fixes | [pr-gen.md](docs/commands/pr-gen.md) |
+### `aetheris analysis` — [Full docs](docs/commands/analysis.md)
+Full codebase analysis with multi-agent AI.
+
+```bash
+aetheris analysis                                    # Full analysis
+aetheris analysis --changed-files-only --files "src/a.py,src/b.py"
+aetheris analysis --changed-files-only --pr-number 123
+```
+
+| Option | Description |
+|--------|-------------|
+| `--changed-files-only` | Analyze only modified files |
+| `--files` | Files to analyze (JSON array or comma-separated) |
+| `--pr-number` | PR number for context |
+
+---
+
+### `aetheris fix` — [Full docs](docs/commands/fix.md)
+Fix bugs automatically with Claude Code.
+
+```bash
+aetheris fix --test                     # Test Claude Code connection
+aetheris fix --auto --batch-size 10     # Parallel mode (recommended)
+aetheris fix --analyze-first            # Analyze then fix
+aetheris fix --severity high            # Only critical/high bugs
+aetheris fix --retry-failed             # Retry failed fixes
+```
+
+| Option | Description |
+|--------|-------------|
+| `--test` | Test Claude Code connection |
+| `--analyze-first` | Run analysis before fixing |
+| `--auto` | Automatic mode (no confirmations) |
+| `--batch-size`, `-b` | Parallel fixes count (default: 1, max: 10) |
+| `--timeout` | Timeout per bug in seconds (default: 300) |
+| `--severity` | Minimum severity: `critical`, `high`, `medium`, `low` |
+| `--terminal` | Open Claude Code in terminal window |
+| `--retry-failed` | Retry only previously failed bugs |
+
+---
+
+### `aetheris pr` — [Full docs](docs/commands/pr-review.md)
+Review GitHub Pull Requests with AI.
+
+```bash
+aetheris pr --url https://github.com/owner/repo/pull/123
+aetheris pr --repo owner/repo --pr 123
+aetheris pr --url ... --providers gemini,claude      # Multi-provider
+aetheris pr --url ... --dry-run --output review.md
+```
+
+| Option | Description |
+|--------|-------------|
+| `--url` | PR URL |
+| `--repo` | Repository (owner/repo format) |
+| `--pr` | PR number (required with `--repo`) |
+| `--providers` | AI providers, comma-separated (default: gemini) |
+| `--consensus` | Report only issues found by ALL providers (default) |
+| `--no-consensus` | Report all issues from all providers |
+| `--dry-run` | Analyze without posting comments |
+| `--severity` | Minimum severity to report |
+| `--no-inline` | Don't post inline comments |
+| `--output` | Save report to file |
+| `--auto-fix` | Propose to fix with Claude Code (own PRs) |
+
+---
+
+### `aetheris user-story` — [Full docs](docs/commands/user-story.md)
+Analyze user flows and detect frontend↔backend inconsistencies.
+
+```bash
+aetheris user-story --auto                          # Auto-detect flows
+aetheris user-story --text "When user clicks..."   # From description
+aetheris user-story --file user-stories.md         # From file
+aetheris user-story --entry src/LoginButton.tsx    # From code entry
+```
+
+| Option | Description |
+|--------|-------------|
+| `--text` | User story as text description |
+| `--file` | Path to markdown file with stories |
+| `--entry` | Code file as entry point |
+| `--auto` | Auto-detect all user flows |
+| `--output-format` | `markdown`, `json`, or `both` (default) |
+| `--diagram` | `mermaid`, `plantuml`, `both`, or `none` |
+| `--output-file` | Output file path |
+| `--severity` | Minimum severity for issues |
+
+---
+
+### `aetheris issues` — [Full docs](docs/commands/issues.md)
+Create GitHub issues from analysis reports.
+
+```bash
+aetheris issues                                     # Create all issues
+aetheris issues --dry-run                           # Preview only
+aetheris issues --labels security,sprint-42
+aetheris issues --assignee username --repo owner/repo
+```
+
+| Option | Description |
+|--------|-------------|
+| `--dry-run` | Preview issues without creating |
+| `--labels` | Additional labels (comma-separated) |
+| `--assignee` | GitHub username to assign |
+| `--repo` | Target repository (owner/repo) |
+| `--from-report` | Process specific report file only |
+
+---
+
+### `aetheris pr-gen` — [Full docs](docs/commands/pr-gen.md)
+Generate PRs with AI-generated fixes for bugs.
+
+```bash
+aetheris pr-gen --dry-run                          # Preview PRs
+aetheris pr-gen --link-issues                      # Link to GitHub issues
+aetheris pr-gen --base-branch develop
+aetheris pr-gen --bug-index 0                      # Single bug
+```
+
+| Option | Description |
+|--------|-------------|
+| `--dry-run` | Preview PRs without creating |
+| `--base-branch` | Target base branch for PRs |
+| `--from-report` | Process specific report file only |
+| `--bug-index` | Process only bug at this index (0-based) |
+| `--link-issues` | Link PRs to matching GitHub issues |
+| `--issue-number` | Link all PRs to this issue number |
 
 ## Features
 
