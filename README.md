@@ -70,7 +70,9 @@ Aetheris uses **6 specialized AI agents** working together — like having a sen
 | Provider | Model | Input $/1M | Output $/1M | Est. Cost (1000 files) | With 70% Cache |
 |----------|-------|------------|-------------|------------------------|----------------|
 | **Gemini** | 2.0 Flash | $0.075 | $0.30 | **~$4** | **~$1.20** |
+| Gemini | 3 Flash Preview | $0.50 | $3.00 | ~$30 | ~$9 |
 | Gemini | 1.5 Pro | $1.25 | $5.00 | ~$60 | ~$18 |
+| Gemini | 3 Pro Preview | $2.00 | $12.00 | ~$120 | ~$36 |
 | OpenAI | GPT-4o-mini | $0.15 | $0.60 | ~$8 | ~$2.40 |
 | OpenAI | GPT-4o | $2.50 | $10.00 | ~$120 | ~$36 |
 | Anthropic | Claude Haiku | $0.25 | $1.25 | ~$12 | ~$3.60 |
