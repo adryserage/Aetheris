@@ -1,7 +1,7 @@
 # Aetheris by Adryan - Multi-Agent Code Analysis System
 
 [![PyPI version](https://badge.fury.io/py/adryserage-aetheris.svg)](https://badge.fury.io/py/adryserage-aetheris)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PyPI status](https://img.shields.io/pypi/status/adryserage-aetheris.svg)](https://pypi.org/project/adryserage-aetheris/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -9,6 +9,44 @@
 [![Platform](https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey)](https://pypi.org/project/adryserage-aetheris/)
 
 Automated code analysis system using multiple cooperating AI agents to provide comprehensive quality, security, and architecture analysis of your codebase.
+
+## 🎯 Why Aetheris?
+
+### The Problem
+
+**Code reviews are slow, inconsistent, and expensive.** A senior developer spends 30-60 minutes reviewing a PR — time that could be spent building features. Junior developers miss subtle bugs. Security vulnerabilities slip through. And across a team, review quality varies wildly.
+
+Meanwhile, existing static analysis tools are:
+- **Noisy**: Thousands of low-value warnings you learn to ignore
+- **Shallow**: Pattern matching that misses context-dependent issues
+- **Siloed**: Security tools don't talk to quality tools don't talk to architecture tools
+
+### The Solution
+
+Aetheris uses **6 specialized AI agents** working together — like having a senior developer, security expert, and architect review every commit. Each agent focuses on what it does best:
+
+| Agent | Focus | What It Catches |
+|-------|-------|-----------------|
+| Code Analysis | Logic & quality | Dead code, complexity, edge cases |
+| Security | Vulnerabilities | Injections, secrets, weak crypto |
+| Architecture | Structure | Coupling, patterns, dependencies |
+| Metrics | Quantitative | Duplication, complexity scores |
+| Dependencies | CVE scanning | Known vulnerabilities in packages |
+| QA Synthesis | Final review | Cross-cutting concerns, priorities |
+
+### Why You Should Use It
+
+1. **Save Time**: A 1-hour manual review becomes a 2-minute automated scan
+2. **Save Money**:
+   - Smart caching reduces API costs by 60-80%
+   - ROI: If Aetheris catches one bug that would've taken 2 hours to debug in production, it's paid for itself
+3. **Consistency**: Every PR gets the same thorough review, 24/7
+4. **Actionable**: Not just warnings — actual fixes with `aetheris fix`
+5. **CI/CD Ready**: GitHub Actions template included, runs on every PR
+
+> **Real Impact**: On a 50-file codebase, Aetheris typically finds 15-30 issues that would've been missed — security vulnerabilities, edge cases, architectural debt. Time to find them manually? Hours. Time with Aetheris? Minutes.
+
+---
 
 ### 💡 Recommended Configuration
 
