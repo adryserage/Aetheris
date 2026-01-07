@@ -54,7 +54,7 @@ Aetheris uses **6 specialized AI agents** working together — like having a sen
 
 | Feature | SaaS Platforms | IDE Plugins | Aetheris |
 |---------|----------------|-------------|----------|
-| **Pricing** | $20-500/month | Free-$20/month | **Pay-per-use** (~$0.01-0.05/file) |
+| **Pricing** | $20-500/month | Free-$20/month | **Pay-per-use** (see cost table below) |
 | **Data Privacy** | Code on their servers | Code on their servers | **Your API keys only** |
 | **Vendor Lock-in** | Single provider | Single IDE | **Multi-provider** |
 | **Auto-Fix** | Suggestions only | Limited | **Full auto-fix** with Claude Code |
@@ -63,14 +63,28 @@ Aetheris uses **6 specialized AI agents** working together — like having a sen
 | **Offline Mode** | No | Limited | **Yes** - run anywhere |
 | **Custom Agents** | No | No | **Yes** - add your own |
 
-#### Cost Comparison (1000 files/month)
+#### Cost Estimation (1000 files, full analysis)
+
+**Assumptions**: ~200 lines/file avg, 6 agents, ~4K tokens input + ~1K tokens output per file per agent
+
+| Provider | Model | Input $/1M | Output $/1M | Est. Cost (1000 files) | With 70% Cache |
+|----------|-------|------------|-------------|------------------------|----------------|
+| **Gemini** | 2.0 Flash | $0.075 | $0.30 | **~$4** | **~$1.20** |
+| Gemini | 1.5 Pro | $1.25 | $5.00 | ~$60 | ~$18 |
+| OpenAI | GPT-4o-mini | $0.15 | $0.60 | ~$8 | ~$2.40 |
+| OpenAI | GPT-4o | $2.50 | $10.00 | ~$120 | ~$36 |
+| Anthropic | Claude Haiku | $0.25 | $1.25 | ~$12 | ~$3.60 |
+| Anthropic | Claude Sonnet | $3.00 | $15.00 | ~$162 | ~$49 |
+
+> **Recommended**: Gemini 2.0 Flash for best cost/performance ratio. With smart caching (unchanged files skipped), expect 60-80% cost reduction on repeat analyses.
+
+#### vs. SaaS Platforms
 
 | Solution | Monthly Cost | Notes |
 |----------|-------------|-------|
-| Enterprise SaaS | $200-500 | Per-seat licensing |
+| Enterprise SaaS | $200-500 | Per-seat licensing, fixed |
 | Team SaaS | $50-100 | Limited features |
-| IDE Plugin Pro | $10-20 | Single IDE only |
-| **Aetheris** | **$5-15** | With smart caching |
+| **Aetheris + Gemini Flash** | **$1-5** | Pay-per-use, scales with usage |
 
 #### Analysis Depth
 
