@@ -78,7 +78,7 @@
 - [X] T022 [US2] Configure skip patterns (32-bit, musllinux, PyPy) in `pyproject.toml` [tool.cibuildwheel]
 - [X] T023 [US2] Add test-command to verify wheel works in `pyproject.toml` [tool.cibuildwheel]
 - [X] T024 [US2] Configure artifact upload for wheels in `build-wheels.yml`
-- [ ] T025 [US2] Test workflow manually (push to test branch)
+- [X] T025 [US2] Test workflow manually (push to test branch)
 
 **Checkpoint**: CI builds wheels for all 4 platform targets across 6 Python versions
 
@@ -98,8 +98,8 @@
 - [X] T029 [US3] Download all wheel artifacts in publish job in `publish-wheels.yml`
 - [X] T030 [US3] Configure PyPI trusted publisher action in `publish-wheels.yml`
 - [X] T031 [US3] Remove sdist build from publish workflow (wheels only) in `publish-wheels.yml`
-- [ ] T032 [US3] Update existing `.github/workflows/publish.yml` to use new wheel workflow
-- [ ] T033 [US3] Add build status badge to README.md
+- [X] T032 [US3] Update existing `.github/workflows/publish.yml` to use new wheel workflow
+- [X] T033 [US3] Add build status badge to README.md
 
 **Checkpoint**: Tag push triggers full build and PyPI publish automatically
 
@@ -109,15 +109,15 @@
 
 **Purpose**: Final verification and documentation
 
-- [ ] T034 [P] Update CHANGELOG.md with v2.6.0 entry for binary distribution
-- [ ] T035 [P] Update README.md installation section (note: binary-only distribution)
-- [ ] T036 Bump version to 2.6.0 in `pyproject.toml`
-- [ ] T037 Create and push tag v2.6.0 to trigger release
-- [ ] T038 Verify all wheels appear on PyPI
-- [ ] T039 Test pip install on clean Linux system
-- [ ] T040 Test pip install on clean macOS system
-- [ ] T041 Test pip install on clean Windows system
-- [ ] T042 Verify `aetheris analysis` works on all platforms
+- [X] T034 [P] Update CHANGELOG.md with v2.6.0 entry for binary distribution
+- [X] T035 [P] Update README.md installation section (note: binary-only distribution)
+- [X] T036 Bump version to 2.6.0 in `pyproject.toml`
+- [X] T037 Create and push tag v2.6.0 to trigger release
+- [X] T038 Verify all wheels appear on PyPI
+- [X] T039 Test pip install on clean Linux system
+- [X] T040 Test pip install on clean macOS system
+- [X] T041 Test pip install on clean Windows system
+- [X] T042 Verify `aetheris analysis` works on all platforms
 
 ---
 
