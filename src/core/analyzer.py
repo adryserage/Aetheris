@@ -175,7 +175,7 @@ class CodeAnalyzer:
             AnalysisCache(
                 root_dir=config.root_dir,
                 cache_dir=".cache/aetheris",
-                ttl_days=config.cache_ttl_days,
+                ttl_seconds=config.cache_ttl_seconds,
             )
             if config.enable_cache
             else None
@@ -283,8 +283,8 @@ class CodeAnalyzer:
         for part in path_parts:
             if part in excluded_dirs:
                 return False
-            # Exclure tous les dossiers cachés sauf .github
-            if part.startswith(".") and part != "." and part != ".." and part != ".github":
+            # Exclure TOUS les dossiers cachés (commençant par .)
+            if part.startswith(".") and part != "." and part != "..":
                 return False
             # Exclure les dossiers de build même s'ils ne sont pas dans la liste
             if part in {"build", "dist", "out", "target", "bin", "obj", "generated"}:
@@ -357,7 +357,7 @@ class CodeAnalyzer:
 
         # Autoriser tous les fichiers de code source, peu importe leur emplacement
         # On accepte tous les fichiers de code sauf ceux dans les dossiers exclus
-        # Autoriser les fichiers de configuration importants
+        # Autoriser les fichiers de configuration importants (pas de fichiers cachés .*)
         allowed_config_patterns = [
             "package.json",
             "pubspec.yaml",
@@ -366,7 +366,6 @@ class CodeAnalyzer:
             "tailwind.config",
             "vercel.json",
             "README.md",
-            ".gitignore",
             "analysis_options.yaml",
             "pyproject.toml",
             "requirements.txt",
@@ -379,19 +378,15 @@ class CodeAnalyzer:
         filename_lower = filename.lower()
         is_config_file = any(pattern in filename_lower for pattern in allowed_config_patterns)
 
-        # Autoriser les fichiers dans .github (workflows CI/CD)
-        if relative_path.startswith(".github/"):
-            pass  # Autoriser
-        elif is_config_file:
+        # Vérifier si c'est un fichier de config autorisé
+        if is_config_file:
             pass  # Autoriser les fichiers de config
         # Sinon, on continue - on accepte tous les fichiers de code source
 
-        # Exclure les fichiers cachés (commençant par .)
-        # Sauf les fichiers de config explicitement autorisés
-        if filename.startswith(".") and filename not in {".gitignore", ".github"}:
-            # Vérifier si ce n'est pas un fichier de config autorisé
-            if filename not in allowed_config_patterns:
-                return False
+        # Exclure TOUS les fichiers cachés (commençant par .)
+        # Pas d'exceptions - aucun fichier .* ne doit être analysé
+        if filename.startswith("."):
+            return False
 
         # Exclure les fichiers binaires et trop volumineux
         try:
@@ -509,7 +504,7 @@ class CodeAnalyzer:
             dirs[:] = [
                 d
                 for d in dirs
-                if d not in excluded_dirs and not d.startswith(".") or d in {".github"}
+                if d not in excluded_dirs and not d.startswith(".")
             ]
 
             # Vérifier si le dossier racine actuel est exclu
@@ -940,6 +935,9 @@ class CodeAnalyzer:
         else:
             self.progress_manager.print(f"\n✅ Analyse de {len(all_analyses)} fichiers terminée\n")
 
+        # Message de transition vers les étapes suivantes
+        self.progress_manager.print("⏳ Traitement des résultats en cours...\n")
+
         context.analyses = all_analyses
         return context
 
@@ -1051,8 +1049,11 @@ class CodeAnalyzer:
 
         impact_by_severity = impact_analyzer.generate_impact_report(context.analyses)
 
-        # Stocker dans le metadata
-        context.metadata["impact_analysis"] = impact_by_severity
+        # Stocker dans le metadata (convertir en dict pour la sérialisation JSON)
+        context.metadata["impact_analysis"] = {
+            severity: [impact.to_dict() for impact in impacts]
+            for severity, impacts in impact_by_severity.items()
+        }
         context.metadata["total_bugs"] = sum(
             len(impacts) for impacts in impact_by_severity.values()
         )
