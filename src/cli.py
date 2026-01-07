@@ -994,6 +994,106 @@ async def run_user_story(args):
     console.rule("[bold green]✅ Analyse terminée")
 
 
+def setup_pr_generator_parser(subparsers):
+    """Configure le parser pour la sous-commande pr-gen (generate PRs from bugs)"""
+    pr_gen_parser = subparsers.add_parser(
+        "pr-gen",
+        aliases=["generate-prs"],
+        help="Generate PRs with AI-fixed code from analysis reports",
+        description="Generate GitHub Pull Requests with AI-generated fixes for bugs found in analysis",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Preview PRs without creating them
+  aetheris pr-gen --dry-run
+
+  # Generate all PRs from analysis reports
+  aetheris pr-gen
+
+  # Generate PRs with issue linking
+  aetheris pr-gen --link-issues
+
+  # Target specific base branch
+  aetheris pr-gen --base-branch develop
+
+  # Process only a specific report
+  aetheris pr-gen --from-report docs/analyses/analyzer.md
+
+  # Process a single bug by index
+  aetheris pr-gen --bug-index 0
+
+  # Link to a specific issue
+  aetheris pr-gen --issue-number 42
+        """,
+    )
+
+    pr_gen_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview PRs and fixes without creating them",
+    )
+
+    pr_gen_parser.add_argument(
+        "--base-branch",
+        type=str,
+        default=None,
+        help="Target base branch for PRs (defaults to repo default branch)",
+    )
+
+    pr_gen_parser.add_argument(
+        "--from-report",
+        type=str,
+        default=None,
+        help="Process only this specific analysis report file",
+    )
+
+    pr_gen_parser.add_argument(
+        "--bug-index",
+        type=int,
+        default=None,
+        help="Process only the bug at this index (0-based)",
+    )
+
+    pr_gen_parser.add_argument(
+        "--link-issues",
+        action="store_true",
+        help="Automatically link PRs to matching GitHub issues",
+    )
+
+    pr_gen_parser.add_argument(
+        "--issue-number",
+        type=int,
+        default=None,
+        help="Explicitly link all PRs to this issue number",
+    )
+
+    return pr_gen_parser
+
+
+async def run_pr_generator(args):
+    """Generate PRs with AI-fixed code from analysis reports."""
+    from src.services.pr_generator import PRGenerator, PROptions
+
+    console = Console()
+    console.print()
+    console.rule("[bold blue]🚀 Aetheris PR Generator - Create PRs with AI Fixes")
+    console.print()
+
+    # Create options
+    options = PROptions(
+        dry_run=args.dry_run,
+        base_branch=args.base_branch,
+        from_report=args.from_report,
+        bug_index=args.bug_index,
+        link_issues=args.link_issues,
+        issue_number=args.issue_number,
+    )
+
+    # Run PR generator
+    generator = PRGenerator()
+    await generator.run(options)
+
+
 def setup_pr_parser(subparsers):
     """Configure le parser pour la sous-commande pr (review-pr)"""
     pr_parser = subparsers.add_parser(
@@ -1407,6 +1507,9 @@ Exemples:
     # Ajouter la sous-commande pr (review-pr)
     setup_pr_parser(subparsers)
 
+    # Ajouter la sous-commande pr-gen (generate PRs from bugs)
+    setup_pr_generator_parser(subparsers)
+
     # Ajouter la sous-commande issues
     setup_issues_parser(subparsers)
 
@@ -1430,6 +1533,8 @@ def main():
         asyncio.run(run_user_story(args))
     elif args.command in ["pr", "review-pr"]:
         asyncio.run(run_pr(args))
+    elif args.command in ["pr-gen", "generate-prs"]:
+        asyncio.run(run_pr_generator(args))
     elif args.command == "issues":
         asyncio.run(run_issues(args))
     else:
