@@ -48,6 +48,33 @@ Aetheris uses **6 specialized AI agents** working together — like having a sen
 
 ---
 
+### 🆚 How Aetheris Compares
+
+| Feature | Other Platforms | Aetheris |
+|---------|-----------------|----------|
+| **Pricing** | $20-100+/month subscription | **Pay only for API usage** (~$0.01-0.05/file) |
+| **Data Privacy** | Code sent to third-party servers | **Your API keys, your control** — no intermediaries |
+| **Vendor Lock-in** | Tied to one provider | **Multi-provider** (Gemini, Claude, OpenAI) |
+| **Auto-Fix** | Suggestions only | **Actual fixes** via `aetheris fix` with Claude Code |
+| **CI/CD** | Extra setup required | **GitHub Actions template included** |
+| **Offline/Self-hosted** | Cloud-only | **Run locally** or in your own CI |
+| **Customization** | Limited | **Open architecture** — add your own agents |
+| **Caching** | None | **Smart caching** — 60-80% cost reduction |
+
+**What others do well** (and we don't try to replace):
+- IDE plugins with real-time feedback — use ESLint/Pylint for that
+- Project management dashboards — use Jira/Linear for that
+- Team collaboration features — use GitHub/GitLab for that
+
+**What Aetheris does better**:
+- **Deep analysis**: 6 specialized agents vs. generic single-model analysis
+- **Actionable output**: Not just warnings — actual PR-ready fixes
+- **Cost efficiency**: Smart caching + batch API = lowest cost per insight
+- **Privacy-first**: Your code never touches third-party servers (except your chosen AI provider)
+- **No lock-in**: Switch between Gemini/Claude/OpenAI anytime
+
+---
+
 ### 💡 Recommended Configuration
 
 | Task | Provider | Why |
