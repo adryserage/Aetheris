@@ -1,96 +1,77 @@
-PROPRIETARY LICENSE WITH GPL ELEMENTS
+AETHERIS PROPRIETARY LICENSE
+Version 1.0
 
-Copyright (c) 2025 [Votre Nom/Organisation]
-All rights reserved.
+Copyright (c) 2025 Adryan Serage / Allowebs
+All Rights Reserved.
 
-This software and associated documentation files (the "Software") are the 
-proprietary and confidential property of the copyright holder.
+================================================================================
 
-RESTRICTIONS:
+NOTICE: This is proprietary software. By installing, copying, or using this
+software, you agree to be bound by the terms of this license.
 
-1. PROPRIETARY USE:
-   - This Software is provided for use by authorized users only.
-   - You may NOT copy, modify, distribute, or create derivative works of 
-     this Software without explicit written permission from the copyright holder.
+================================================================================
 
-2. NO REDISTRIBUTION:
-   - You may NOT redistribute this Software in any form, including but not 
-     limited to source code, compiled binaries, or modified versions.
-   - You may NOT publish, share, or make available this Software to any 
-     third party without prior written consent.
+1. GRANT OF LICENSE
 
-3. NO COMMERCIAL USE:
-   - Commercial use, including but not limited to selling, licensing, or 
-     incorporating this Software into commercial products, is strictly 
-     prohibited without a separate commercial license agreement.
+Subject to the terms of this license, the copyright holder grants you a
+limited, non-exclusive, non-transferable, revocable license to:
 
-4. REVERSE ENGINEERING:
-   - Reverse engineering, decompilation, or disassembly of this Software 
-     is prohibited.
+  a) Install and use the Software for your personal or business purposes
+  b) Use the Software on multiple machines within your organization
+  c) Make backup copies for archival purposes only
 
-5. GPL COMPONENTS:
-   - Portions of this Software may incorporate or be derived from works 
-     licensed under the GNU General Public License (GPL).
-   - For any GPL-licensed components:
-     a) You may use, modify, and distribute those specific components 
-        under the terms of the GPL version 3.0 or later.
-     b) Any modifications to GPL components must be released under the 
-        same GPL license.
-     c) The GPL components remain subject to the GPL's copyleft provisions.
-   - The GPL components are clearly identified in the source code and 
-     documentation.
+2. RESTRICTIONS
 
-6. TERMINATION:
-   - Any violation of these terms will result in immediate termination of 
-     your right to use this Software.
-   - Upon termination, you must destroy all copies of the Software in your 
-     possession.
+You may NOT:
 
-7. NO WARRANTY:
-   - THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
-     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
-     MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-   - IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
-     CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
-     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
-     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  a) Copy, modify, adapt, translate, or create derivative works of the Software
+  b) Reverse engineer, decompile, disassemble, or attempt to derive source code
+  c) Redistribute, sublicense, rent, lease, or lend the Software to third parties
+  d) Remove or alter any proprietary notices, labels, or marks
+  e) Use the Software to build a competing product or service
+  f) Share API keys, access credentials, or licensed components
 
-8. CONTACT:
-   - For licensing inquiries, permissions, or questions regarding this 
-     Software, please contact the copyright holder.
+3. INTELLECTUAL PROPERTY
 
-PERMISSIONS:
+The Software and all copies thereof are proprietary to the copyright holder
+and title thereto remains exclusively with the copyright holder. All rights
+in the Software not specifically granted in this license are reserved.
 
-The following uses are explicitly permitted:
+4. TERMINATION
 
-- Personal or internal use by authorized individuals or organizations.
-- Educational use for learning and research purposes (non-commercial).
-- Use within the scope of a valid license agreement with the copyright holder.
+This license is effective until terminated. It will terminate automatically
+without notice if you fail to comply with any term of this license. Upon
+termination, you must destroy all copies of the Software in your possession.
 
-This license does not grant you any rights to use the copyright holder's 
-trademarks, service marks, or other intellectual property.
+5. DISCLAIMER OF WARRANTIES
 
----
+THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. THE COPYRIGHT HOLDER
+DOES NOT WARRANT THAT THE SOFTWARE WILL BE ERROR-FREE OR UNINTERRUPTED.
 
-GPL COMPONENTS NOTICE:
+6. LIMITATION OF LIABILITY
 
-This Software includes components licensed under the GNU General Public 
-License (GPL) version 3.0 or later. The GPL is a copyleft license that 
-requires derivative works to be licensed under the same terms.
+IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING BUT NOT LIMITED TO
+LOSS OF PROFITS, DATA, OR BUSINESS INTERRUPTION) ARISING OUT OF THE USE OR
+INABILITY TO USE THE SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+DAMAGES.
 
-For the GPL-licensed components:
-- You have the right to use, modify, and distribute those components 
-  under the GPL.
-- If you distribute GPL components, you must make the source code 
-  available under the GPL.
-- Any modifications to GPL components must be released under the GPL.
+7. GOVERNING LAW
 
-The full text of the GPL version 3.0 can be found at:
-https://www.gnu.org/licenses/gpl-3.0.html
+This license shall be governed by and construed in accordance with applicable
+laws, without regard to conflicts of law principles.
 
----
+8. CONTACT
 
-By using this Software, you acknowledge that you have read this license, 
-understand it, and agree to be bound by its terms. If you do not agree 
-to these terms, you must not use this Software.
+For licensing inquiries, enterprise agreements, or permissions:
+  Email: adryan@allowebs.com
+  Website: https://github.com/adryserage/aetheris
 
+================================================================================
+
+By using Aetheris, you acknowledge that you have read this license, understand
+it, and agree to be bound by its terms.
+
+================================================================================

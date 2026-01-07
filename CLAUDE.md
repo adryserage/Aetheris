@@ -116,6 +116,9 @@ Reports are generated in `docs/analyses/`:
 ## Active Technologies
 - Python 3.8+ (matches existing project) + Rich (terminal UI), subprocess (gh CLI), re/pathlib (parsing) (001-github-issues-cli)
 - N/A (reads existing markdown files, writes to GitHub via gh) (001-github-issues-cli)
+- Python 3.9+ (matches existing project) + dataclasses, typer (CLI), rich (progress/output), pydantic (validation) (010-safety-profiles)
+- Local filesystem (audit logs, allowlist config) (010-safety-profiles)
+- Markdown + None (documentation only) (011-readme-safety-docs)
 
 ## Recent Changes
 - 001-github-issues-cli: Added Python 3.8+ (matches existing project) + Rich (terminal UI), subprocess (gh CLI), re/pathlib (parsing)

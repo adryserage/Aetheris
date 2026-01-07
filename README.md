@@ -2,11 +2,11 @@
 
 [![PyPI version](https://badge.fury.io/py/adryserage-aetheris.svg)](https://badge.fury.io/py/adryserage-aetheris)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PyPI status](https://img.shields.io/pypi/status/adryserage-aetheris.svg)](https://pypi.org/project/adryserage-aetheris/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Checked with mypy](https://img.shields.io/badge/mypy-checked-blue.svg)](http://mypy-lang.org/)
 [![Platform](https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey)](https://pypi.org/project/adryserage-aetheris/)
+[![License](https://img.shields.io/badge/license-Proprietary-red.svg)](LICENSE)
 
 Automated code analysis system using multiple cooperating AI agents to provide comprehensive quality, security, and architecture analysis of your codebase.
 
@@ -444,14 +444,6 @@ Reports generated in `docs/analyses/`:
 - Quality assurance report
 - Vulnerabilities report
 - Performance metrics (JSON)
-
-## License
-
-MIT License
-
-## Contributing
-
-Contributions welcome! Please open an issue or pull request.
 
 ## Resources
 
