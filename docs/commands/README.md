@@ -33,26 +33,31 @@ aetheris analysis
 
 ### Analyze and Fix
 ```bash
+# --analyze-first: Run analysis before fixing (skips if recent analysis exists)
+# --auto: Automatically apply fixes without confirmation prompts
 aetheris fix --analyze-first --auto
 ```
 
 ### PR Review
 ```bash
+# --url: GitHub PR URL to review (required)
 aetheris pr --url https://github.com/owner/repo/pull/123
 ```
 
 ### Create Issues from Analysis
 ```bash
+# Creates GitHub issues from the latest analysis report
 aetheris issues
 ```
 
 ### Generate Fix PRs
 ```bash
+# --link-issues: Link generated PRs to existing GitHub issues
 aetheris pr-gen --link-issues
 ```
 
 ## Next Steps
 
-- [Installation](../installation.md) - Setup guide
-- [Configuration](../configuration.md) - Environment variables
-- [AI Providers](../ai-providers.md) - Provider configuration
+- [Installation](/docs/installation.md) - Setup guide
+- [Configuration](/docs/configuration.md) - Environment variables
+- [AI Providers](/docs/ai-providers.md) - Provider configuration

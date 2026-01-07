@@ -4,82 +4,99 @@
 
 Create a `.env` file in your project root or set environment variables.
 
+> ⚠️ **SECURITY WARNING**: Always add `.env` to your `.gitignore` file to prevent accidentally committing API keys (`GEMINI_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`) to version control. Exposed API keys can lead to unauthorized usage and significant costs.
+>
+> ```bash
+> echo ".env" >> .gitignore
+> ```
+
+### Type Reference
+
+| Type | Description | Examples |
+|------|-------------|----------|
+| `string` | Text value | `gemini-2.0-flash-exp`, `docs/analyses` |
+| `integer` | Whole number (constraints noted in parentheses) | `10`, `3600` |
+| `boolean` | True/false flag | `true`, `false` |
+| `enum` | Closed set of valid values (listed in description) | `gemini`, `medium` |
+
 ### Core Settings
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `AI_PROVIDER` | AI provider (`gemini`, `openai`, `claude`) | `gemini` |
-| `AI_MODEL` | Model to use | Provider default |
-| `GEMINI_API_KEY` | Gemini API key | - |
-| `OPENAI_API_KEY` | OpenAI API key | - |
-| `ANTHROPIC_API_KEY` | Claude API key | - |
+| Variable | Type | Description | Default |
+|----------|------|-------------|---------|
+| `AI_PROVIDER` | `enum` | AI provider. **Valid values**: `gemini`, `openai`, `claude` | `gemini` |
+| `AI_MODEL` | `string` | Model identifier (provider-specific) | Provider default |
+| `GEMINI_API_KEY` | `string` | Gemini API key | - |
+| `OPENAI_API_KEY` | `string` | OpenAI API key | - |
+| `ANTHROPIC_API_KEY` | `string` | Claude API key | - |
 
 ### Analysis Settings
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `ROOT_DIR` | Directory to analyze | `.` |
-| `OUTPUT_DIR` | Output directory for reports | `docs/analyses` |
-| `ARCHITECTURE_REPORT` | Architecture report path | `docs/architecture_overview.md` |
-| `BATCH_SIZE` | Files analyzed in parallel | `10` |
-| `MAX_RETRIES` | Retry attempts on error | `3` |
-| `TIMEOUT_SECONDS` | Request timeout | `60` |
+| Variable | Type | Description | Default |
+|----------|------|-------------|---------|
+| `ROOT_DIR` | `string` | Directory path to analyze | `.` |
+| `OUTPUT_DIR` | `string` | Output directory path for reports | `docs/analyses` |
+| `ARCHITECTURE_REPORT` | `string` | Architecture report file path | `docs/architecture_overview.md` |
+| `BATCH_SIZE` | `integer` | Number of files analyzed in parallel (≥1) | `10` |
+| `MAX_RETRIES` | `integer` | Retry attempts on error (≥0) | `3` |
+| `TIMEOUT_SECONDS` | `integer` | Request timeout in seconds (≥1) | `60` |
 
 ### Feature Toggles
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `ENABLE_WEB_SEARCH` | Enable documentation search | `true` |
-| `ENABLE_SECURITY_ANALYSIS` | Enable security analysis | `true` |
-| `ENABLE_METRICS_ANALYSIS` | Enable code metrics | `true` |
-| `ENABLE_DEPENDENCY_VULNERABILITY` | Enable CVE scanning | `true` |
-| `ENABLE_CODE_GENERATION` | Enable code analysis generation | `true` |
-| `SHOW_REASONING` | Show AI reasoning process | `false` |
+| Variable | Type | Description | Default |
+|----------|------|-------------|---------|
+| `ENABLE_WEB_SEARCH` | `boolean` | Enable documentation search | `true` |
+| `ENABLE_SECURITY_ANALYSIS` | `boolean` | Enable security analysis | `true` |
+| `ENABLE_METRICS_ANALYSIS` | `boolean` | Enable code metrics | `true` |
+| `ENABLE_DEPENDENCY_VULNERABILITY` | `boolean` | Enable CVE scanning | `true` |
+| `ENABLE_CODE_GENERATION` | `boolean` | Enable code analysis generation | `true` |
+| `SHOW_REASONING` | `boolean` | Show AI reasoning process | `false` |
 
 ### Cache Settings
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `ENABLE_CACHE` | Enable analysis caching | `true` |
-| `CACHE_TTL_DAYS` | Cache lifetime in days | `7` |
+| Variable | Type | Description | Default |
+|----------|------|-------------|---------|
+| `ENABLE_CACHE` | `boolean` | Enable analysis caching | `true` |
+| `CACHE_TTL_SECONDS` | `integer` | Cache lifetime in seconds (≥0) | `604800` (7 days) |
+
+> **Note**: All duration settings use seconds as the unit for consistency. Common values: 1 hour = `3600`, 1 day = `86400`, 7 days = `604800`.
 
 ### Dependency Analysis
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `ANALYZE_DEPENDENT_FILES` | Analyze dependent files | `true` |
-| `MAX_DEPENDENCY_DEPTH` | Max dependency depth | `2` |
-| `ENABLE_EXPORT_ANALYSIS` | Extract exports | `true` |
-| `ENABLE_REVERSE_DEPENDENCY` | Reverse dependency graph | `true` |
-| `ENABLE_IMPACT_ANALYSIS` | Bug impact analysis | `true` |
-| `MAX_IMPACT_DEPTH` | Max impact depth | `3` |
+| Variable | Type | Description | Default |
+|----------|------|-------------|---------|
+| `ANALYZE_DEPENDENT_FILES` | `boolean` | Analyze dependent files | `true` |
+| `MAX_DEPENDENCY_DEPTH` | `integer` | Max dependency depth (≥0) | `2` |
+| `ENABLE_EXPORT_ANALYSIS` | `boolean` | Extract exports | `true` |
+| `ENABLE_REVERSE_DEPENDENCY` | `boolean` | Reverse dependency graph | `true` |
+| `ENABLE_IMPACT_ANALYSIS` | `boolean` | Bug impact analysis | `true` |
+| `MAX_IMPACT_DEPTH` | `integer` | Max impact depth (≥0) | `3` |
 
 ### Gemini Advanced Features
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `ENABLE_STRUCTURED_OUTPUTS` | JSON validated via Pydantic | `true` |
-| `ENABLE_THINKING` | Show reasoning process | `false` |
-| `THINKING_BUDGET` | Thinking token budget | `1024` |
-| `ENABLE_CODE_EXECUTION` | Python sandbox execution | `false` |
-| `ENABLE_FUNCTION_CALLING` | Auto function calling | `false` |
-| `ENABLE_CONTEXT_CACHING` | Context cache (-50% cost) | `true` |
-| `CONTEXT_CACHE_TTL_SECONDS` | Context cache TTL | `3600` |
-| `ENABLE_BATCH_MODE` | Batch API (-50% cost) | `false` |
+| Variable | Type | Description | Default |
+|----------|------|-------------|---------|
+| `ENABLE_STRUCTURED_OUTPUTS` | `boolean` | JSON validated via Pydantic | `true` |
+| `ENABLE_THINKING` | `boolean` | Show reasoning process | `false` |
+| `THINKING_BUDGET` | `integer` | Thinking token budget (≥0) | `1024` |
+| `ENABLE_CODE_EXECUTION` | `boolean` | Python sandbox execution | `false` |
+| `ENABLE_FUNCTION_CALLING` | `boolean` | Auto function calling | `false` |
+| `ENABLE_CONTEXT_CACHING` | `boolean` | Context cache (-50% cost) | `true` |
+| `CONTEXT_CACHE_TTL_SECONDS` | `integer` | Context cache TTL in seconds (≥0) | `3600` |
+| `ENABLE_BATCH_MODE` | `boolean` | Batch API (-50% cost) | `false` |
 
 ### Bug Fixing
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `ENABLE_CLAUDE_CODE_FIX` | Enable Claude Code integration | `true` |
-| `FIX_SEVERITY_THRESHOLD` | Minimum severity to fix | `medium` |
+| Variable | Type | Description | Default |
+|----------|------|-------------|---------|
+| `ENABLE_CLAUDE_CODE_FIX` | `boolean` | Enable Claude Code integration | `true` |
+| `FIX_SEVERITY_THRESHOLD` | `enum` | Minimum severity to fix. **Valid values**: `low`, `medium`, `high`, `critical` | `medium` |
 
 ## Example `.env` File
 
 ```env
 # AI Provider
 AI_PROVIDER=gemini
-GEMINI_API_KEY=your_key_here
+GEMINI_API_KEY=   # Set via environment variable or secrets manager
 AI_MODEL=gemini-2.0-flash-exp
 
 # Analysis
@@ -94,12 +111,14 @@ ENABLE_DEPENDENCY_VULNERABILITY=true
 
 # Cache
 ENABLE_CACHE=true
-CACHE_TTL_DAYS=7
+CACHE_TTL_SECONDS=604800  # 7 days
 
 # Gemini Advanced
 ENABLE_STRUCTURED_OUTPUTS=true
 ENABLE_CONTEXT_CACHING=true
 ```
+
+> **Security Note**: Never commit API keys to version control. Use a `.env` file (added to `.gitignore`) or a secrets manager like HashiCorp Vault, AWS Secrets Manager, or Azure Key Vault.
 
 ## Setting Environment Variables
 
@@ -107,21 +126,26 @@ ENABLE_CONTEXT_CACHING=true
 
 ```bash
 export AI_PROVIDER=gemini
-export GEMINI_API_KEY=your_key_here
+export GEMINI_API_KEY="$GEMINI_API_KEY"  # Reference from secure source
+# Or load from a secrets manager:
+# export GEMINI_API_KEY=$(vault kv get -field=api_key secret/aetheris)
 ```
 
 ### Windows (PowerShell)
 
 ```powershell
-$env:AI_PROVIDER='gemini'
-$env:GEMINI_API_KEY='your_key_here'
+$env:AI_PROVIDER = 'gemini'
+$env:GEMINI_API_KEY = $env:GEMINI_API_KEY  # Reference from secure source
+# Or use PowerShell SecretManagement:
+# $env:GEMINI_API_KEY = Get-Secret -Name 'GeminiApiKey' -AsPlainText
 ```
 
 ### Windows (CMD)
 
 ```cmd
 set AI_PROVIDER=gemini
-set GEMINI_API_KEY=your_key_here
+set GEMINI_API_KEY=%GEMINI_API_KEY%
+rem Reference from another secure source or set interactively
 ```
 
 ## Next Steps
