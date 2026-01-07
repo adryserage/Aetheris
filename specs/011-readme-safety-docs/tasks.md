@@ -35,11 +35,12 @@
 
 - [ ] T004 [US1] Add "## 🔒 Safety & Execution Model" heading after Commands section in README.md
 - [ ] T005 [US1] Write "Local-Only by Default" subsection (no cloud, no telemetry) in README.md
-- [ ] T006 [US1] Write "Execution Boundaries" subsection describing fix command scope in README.md
-- [ ] T007 [US1] Write "--dangerously-skip-permissions" subsection explaining the flag in README.md
-- [ ] T008 [US1] Add warning emoji/formatting to dangerous flag documentation in README.md
+- [ ] T006 [US1] Write "Safety Profiles" subsection documenting --profile safe|ci|yolo in README.md
+- [ ] T007 [US1] Write "Execution Boundaries" subsection describing fix command scope in README.md
+- [ ] T008 [US1] Write "--dangerously-skip-permissions" subsection explaining the flag in README.md
+- [ ] T009 [US1] Add warning emoji/formatting to dangerous flag documentation in README.md
 
-**Checkpoint**: Safety section complete with execution model documented
+**Checkpoint**: Safety section complete with execution model and profiles documented
 
 ---
 
@@ -51,12 +52,13 @@
 
 ### Implementation for User Story 2
 
-- [ ] T009 [US2] Write "Running Safely" subsection in README.md
-- [ ] T010 [US2] Add Docker sandboxed execution example (copy-paste ready) in README.md
-- [ ] T011 [US2] Add restricted mode instructions (if available) in README.md
-- [ ] T012 [US2] Add recommended practices bullet points in README.md
+- [ ] T010 [US2] Write "Configuring Safety via config.json" subsection in README.md
+- [ ] T011 [US2] Document default_profile setting in config.json in README.md
+- [ ] T012 [US2] Write "Running Safely" subsection in README.md
+- [ ] T013 [US2] Add Docker sandboxed execution example (copy-paste ready) in README.md
+- [ ] T014 [US2] Add recommended practices bullet points in README.md
 
-**Checkpoint**: Safe usage examples complete and runnable
+**Checkpoint**: Safe usage examples complete with config.json reference
 
 ---
 
@@ -68,14 +70,14 @@
 
 ### Implementation for User Story 3
 
-- [ ] T013 [US3] Add "## ✅ Fix Guarantees" heading after Safety section in README.md
-- [ ] T014 [US3] Write "What We Guarantee" subsection with checkmarks in README.md
-- [ ] T015 [US3] Document guarantee: Never force-push to remote in README.md
-- [ ] T016 [US3] Document guarantee: Always run tests (unless disabled) in README.md
-- [ ] T017 [US3] Document guarantee: Creates branch per bug fix in README.md
-- [ ] T018 [US3] Write "What We Don't Guarantee" subsection with warnings in README.md
-- [ ] T019 [US3] Document limitation: May fail (won't silently continue) in README.md
-- [ ] T020 [US3] Document limitation: Not all bugs found/fixed in README.md
+- [ ] T015 [US3] Add "## ✅ Fix Guarantees" heading after Safety section in README.md
+- [ ] T016 [US3] Write "What We Guarantee" subsection with checkmarks in README.md
+- [ ] T017 [US3] Document guarantee: Never force-push to remote in README.md
+- [ ] T018 [US3] Document guarantee: Always run tests (unless disabled) in README.md
+- [ ] T019 [US3] Document guarantee: Creates branch per bug fix in README.md
+- [ ] T020 [US3] Write "What We Don't Guarantee" subsection with warnings in README.md
+- [ ] T021 [US3] Document limitation: May fail (won't silently continue) in README.md
+- [ ] T022 [US3] Document limitation: Not all bugs found/fixed in README.md
 
 **Checkpoint**: Guarantees section complete with clear promises and limitations
 
@@ -85,10 +87,10 @@
 
 **Purpose**: Final touches and version bump
 
-- [ ] T021 Review full Safety + Guarantees sections for clarity and consistency
-- [ ] T022 [P] Verify markdown renders correctly on GitHub
-- [ ] T023 [P] Update version to 3.0.4 in pyproject.toml
-- [ ] T024 Update CHANGELOG.md with v3.0.4 documentation improvements
+- [ ] T023 Review full Safety + Guarantees sections for clarity and consistency
+- [ ] T024 [P] Verify markdown renders correctly on GitHub
+- [ ] T025 [P] Update version to 3.0.4 in pyproject.toml
+- [ ] T026 Update CHANGELOG.md with v3.0.4 documentation improvements
 
 **Checkpoint**: README updated, version bumped, ready for release
 
@@ -129,8 +131,8 @@ T002 [P] Review fix command
 T003 [P] Review fix docs
 
 # Phase 5 parallel:
-T022 [P] Verify markdown rendering
-T023 [P] Update version
+T024 [P] Verify markdown rendering
+T025 [P] Update version
 ```
 
 ---
@@ -157,10 +159,10 @@ T023 [P] Update version
 
 | Metric | Value |
 |--------|-------|
-| Total Tasks | 24 |
+| Total Tasks | 26 |
 | Phase 1 (Setup) | 3 tasks |
-| US1 (Safety Model) | 5 tasks |
-| US2 (Safe Examples) | 4 tasks |
+| US1 (Safety Model) | 6 tasks |
+| US2 (Safe Examples) | 5 tasks |
 | US3 (Guarantees) | 8 tasks |
 | Phase 5 (Polish) | 4 tasks |
 | Parallel Opportunities | 5 tasks marked [P] |

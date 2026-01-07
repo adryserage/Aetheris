@@ -14,6 +14,39 @@ Enable selective agent execution and targeted fixes by category. Add presets for
 **Primary Dependencies**: Rich/Textual (interactive UI)
 **Testing**: Unit tests for selection logic, integration tests for CLI
 **Constraints**: Must be backward compatible (default = all agents)
+**Depends On**: v3.0 (Persistent Config) for config.json integration
+
+## Configuration Integration (v3.0)
+
+Presets and agent selection settings integrate with the config.json system:
+
+```json
+{
+  "analysis": {
+    "default_preset": "quick-scan",
+    "enabled_agents": ["all"],
+    "skip_agents": []
+  },
+  "presets": {
+    "custom-preset": {
+      "description": "My custom preset",
+      "agents": ["security", "performance"]
+    }
+  }
+}
+```
+
+### Configuration Hierarchy
+1. CLI flags (`--agents`, `--preset`)
+2. Local `config.json`
+3. Global `~/.aetheris/config.json`
+4. Built-in presets (`config/presets.json`)
+
+### Settings UI Integration
+Add "Presets" tab to `aetheris settings` command with:
+- Default preset selection
+- Custom preset creation
+- Agent enable/disable toggles
 
 ## Project Structure
 

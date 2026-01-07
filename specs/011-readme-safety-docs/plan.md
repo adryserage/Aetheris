@@ -19,6 +19,20 @@ Add two new sections to README.md to improve user trust: "Safety & Execution Mod
 **Performance Goals**: N/A
 **Constraints**: Must fit README structure; maintain readability
 **Scale/Scope**: ~100-150 lines of markdown
+**Depends On**: v3.0.3 (Safety Profiles), v3.0 (Persistent Config)
+
+## Configuration & Profile Integration
+
+The Safety documentation must reference:
+
+1. **Safety Profiles** (v3.0.3): `--profile safe|ci|yolo`
+2. **Config.json Settings** (v3.0): `safety.default_profile`, `safety.custom_allowlist`
+3. **Configuration Hierarchy**: CLI > config.json > defaults
+
+Document how users can:
+- Set default profile via config.json
+- Customize allowlist for safe mode
+- Configure audit logging path for CI mode
 
 ## Constitution Check
 
@@ -89,6 +103,11 @@ This placement ensures:
 - No telemetry
 - Your code never leaves your machine
 
+### Safety Profiles
+- `--profile safe` (default): Conservative guardrails
+- `--profile ci`: Strict CI/CD mode with audit logging
+- `--profile yolo`: Full autonomy (requires explicit confirmation)
+
 ### Execution Boundaries
 - What commands `fix` can run
 - Where they run (subprocess, same process)
@@ -99,9 +118,14 @@ This placement ensures:
 - Why it's dangerous: unrestricted command execution
 - When to use: never in production; only testing
 
+### Configuring Safety via config.json
+- Set default profile: `"safety": {"default_profile": "safe"}`
+- Custom allowlist for commands
+- Audit log path configuration
+
 ### Running Safely
 - Docker example (sandboxed)
-- Restricted mode (if available)
+- Using safe profile
 - Recommended practices
 ```
 

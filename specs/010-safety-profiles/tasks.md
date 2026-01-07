@@ -22,6 +22,7 @@
 - [ ] T003 Add profile field to AnalysisConfig in src/core/config.py
 - [ ] T004 [P] Add `--profile` CLI flag with choices (safe/ci/yolo) in src/cli.py
 - [ ] T005 Display active profile at analysis start in src/cli.py
+- [ ] T006 Add safety schema to ConfigSchema (default_profile, custom_allowlist, audit_log_path) in src/core/config_schema.py
 
 **Checkpoint**: Profile selection works, `--profile safe` accepted, profile displayed at start
 
@@ -33,10 +34,10 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T006 Create get_profile_config() function returning ProfileConfig for given ProfileType in src/core/profiles.py
-- [ ] T007 Add profile constraint check hooks to AnalysisOrchestrator in src/core/orchestrator.py
-- [ ] T008 [P] Create default_allowlist.json with safe command patterns in config/default_allowlist.json
-- [ ] T009 Implement profile validation (reject invalid profile names with helpful error) in src/cli.py
+- [ ] T007 Create get_profile_config() function returning ProfileConfig for given ProfileType in src/core/profiles.py
+- [ ] T008 Add profile constraint check hooks to AnalysisOrchestrator in src/core/orchestrator.py
+- [ ] T009 [P] Create default_allowlist.json with safe command patterns in config/default_allowlist.json
+- [ ] T010 Implement profile validation (reject invalid profile names with helpful error) in src/cli.py
 
 **Checkpoint**: Foundation ready - ProfileConfig accessible, orchestrator has hooks, CLI validates input
 
@@ -54,16 +55,16 @@
 
 ### Implementation for User Story 1
 
-- [ ] T010 [P] [US1] Create AllowlistConfig dataclass with is_allowed() method in src/core/allowlist.py
-- [ ] T011 [P] [US1] Create NetworkGuard context manager for network blocking in src/services/network_guard.py
-- [ ] T012 [US1] Implement load_allowlist() to read and merge default + user allowlists in src/core/allowlist.py
-- [ ] T013 [US1] Implement validate_command() to check command against allowlist in src/core/allowlist.py
-- [ ] T014 [US1] Add ALLOWED_HOSTS list for AI providers in src/services/network_guard.py
-- [ ] T015 [US1] Integrate NetworkGuard into orchestrator when profile=safe in src/core/orchestrator.py
-- [ ] T016 [US1] Add diff size check before applying changes in src/core/orchestrator.py
-- [ ] T017 [US1] Add repair loop counter with max=3 enforcement in src/core/orchestrator.py
-- [ ] T018 [US1] Add mandatory test step before applying changes in src/core/orchestrator.py
-- [ ] T019 [US1] Block changes if test step fails with clear error message in src/core/orchestrator.py
+- [ ] T011 [P] [US1] Create AllowlistConfig dataclass with is_allowed() method in src/core/allowlist.py
+- [ ] T012 [P] [US1] Create NetworkGuard context manager for network blocking in src/services/network_guard.py
+- [ ] T013 [US1] Implement load_allowlist() to read and merge default + user allowlists in src/core/allowlist.py
+- [ ] T014 [US1] Implement validate_command() to check command against allowlist in src/core/allowlist.py
+- [ ] T015 [US1] Add ALLOWED_HOSTS list for AI providers in src/services/network_guard.py
+- [ ] T016 [US1] Integrate NetworkGuard into orchestrator when profile=safe in src/core/orchestrator.py
+- [ ] T017 [US1] Add diff size check before applying changes in src/core/orchestrator.py
+- [ ] T018 [US1] Add repair loop counter with max=3 enforcement in src/core/orchestrator.py
+- [ ] T019 [US1] Add mandatory test step before applying changes in src/core/orchestrator.py
+- [ ] T020 [US1] Block changes if test step fails with clear error message in src/core/orchestrator.py
 
 **Checkpoint**: Safe mode fully functional - network blocked, allowlist enforced, limits applied
 
@@ -80,16 +81,16 @@
 
 ### Implementation for User Story 2
 
-- [ ] T020 [P] [US2] Create AuditLogEntry dataclass with to_jsonl() method in src/core/audit_log.py
-- [ ] T021 [P] [US2] Create AuditLogger class with log_event() and flush() methods in src/core/audit_log.py
-- [ ] T022 [US2] Implement is_ci_environment() detection function in src/core/profiles.py
-- [ ] T023 [US2] Add fail-fast error handling (sys.exit(1) on error) for CI profile in src/core/orchestrator.py
-- [ ] T024 [US2] Replace all interactive prompts with safe defaults when profile=ci in src/cli.py
-- [ ] T025 [US2] Integrate AuditLogger into orchestrator for CI profile in src/core/orchestrator.py
-- [ ] T026 [US2] Log analysis_started event with session_id at run start in src/core/orchestrator.py
-- [ ] T027 [US2] Log file_analyzed event for each processed file in src/core/orchestrator.py
-- [ ] T028 [US2] Log analysis_completed/analysis_failed at run end in src/core/orchestrator.py
-- [ ] T029 [US2] Add --output json flag for machine-readable output in src/cli.py
+- [ ] T021 [P] [US2] Create AuditLogEntry dataclass with to_jsonl() method in src/core/audit_log.py
+- [ ] T022 [P] [US2] Create AuditLogger class with log_event() and flush() methods in src/core/audit_log.py
+- [ ] T023 [US2] Implement is_ci_environment() detection function in src/core/profiles.py
+- [ ] T024 [US2] Add fail-fast error handling (sys.exit(1) on error) for CI profile in src/core/orchestrator.py
+- [ ] T025 [US2] Replace all interactive prompts with safe defaults when profile=ci in src/cli.py
+- [ ] T026 [US2] Integrate AuditLogger into orchestrator for CI profile in src/core/orchestrator.py
+- [ ] T027 [US2] Log analysis_started event with session_id at run start in src/core/orchestrator.py
+- [ ] T028 [US2] Log file_analyzed event for each processed file in src/core/orchestrator.py
+- [ ] T029 [US2] Log analysis_completed/analysis_failed at run end in src/core/orchestrator.py
+- [ ] T030 [US2] Add --output json flag for machine-readable output in src/cli.py
 
 **Checkpoint**: CI mode fully functional - no prompts, fail-fast, audit log generated
 
@@ -107,14 +108,14 @@
 
 ### Implementation for User Story 3
 
-- [ ] T030 [US3] Create display_yolo_warning() function with rich formatting in src/cli.py
-- [ ] T031 [US3] Add --yes flag to skip yolo confirmation in src/cli.py
-- [ ] T032 [US3] Require explicit confirmation before proceeding with yolo profile in src/cli.py
-- [ ] T033 [US3] Set max_repair_loops=10 for yolo profile in src/core/profiles.py
-- [ ] T034 [US3] Disable diff size limit for yolo profile in src/core/orchestrator.py
-- [ ] T035 [US3] Enable full network access (skip NetworkGuard) for yolo profile in src/core/orchestrator.py
-- [ ] T036 [US3] Log extended operations to audit log for yolo profile in src/core/orchestrator.py
-- [ ] T037 [US3] Emit warning if yolo used in CI environment in src/cli.py
+- [ ] T031 [US3] Create display_yolo_warning() function with rich formatting in src/cli.py
+- [ ] T032 [US3] Add --yes flag to skip yolo confirmation in src/cli.py
+- [ ] T033 [US3] Require explicit confirmation before proceeding with yolo profile in src/cli.py
+- [ ] T034 [US3] Set max_repair_loops=10 for yolo profile in src/core/profiles.py
+- [ ] T035 [US3] Disable diff size limit for yolo profile in src/core/orchestrator.py
+- [ ] T036 [US3] Enable full network access (skip NetworkGuard) for yolo profile in src/core/orchestrator.py
+- [ ] T037 [US3] Log extended operations to audit log for yolo profile in src/core/orchestrator.py
+- [ ] T038 [US3] Emit warning if yolo used in CI environment in src/cli.py
 
 **Checkpoint**: Yolo mode fully functional - warning shown, extended capabilities enabled
 
@@ -122,19 +123,19 @@
 
 ## Phase 6: User Story 4 - Default Profile Config (Priority: P3)
 
-**Goal**: Allow project-level default profile configuration
+**Goal**: Allow project-level default profile configuration via config.json
 
-**Independent Test**: Set `default_profile: ci` in .aetheris.json and verify profile used without --profile flag
+**Independent Test**: Set `"safety": {"default_profile": "ci"}` in config.json and verify profile used without --profile flag
 
 ### Implementation for User Story 4
 
-- [ ] T038 [US4] Add default_profile field to project config schema in src/core/config.py
-- [ ] T039 [US4] Implement load_project_config() to read .aetheris.json in src/core/config.py
-- [ ] T040 [US4] Apply default profile from config when --profile not specified in src/cli.py
+- [ ] T039 [US4] Load default_profile from ConfigHierarchy in src/core/config_file.py
+- [ ] T040 [US4] Apply default profile from config.json when --profile not specified in src/cli.py
 - [ ] T041 [US4] Ensure explicit --profile flag overrides config default in src/cli.py
 - [ ] T042 [US4] Fall back to safe profile when no default configured in src/cli.py
+- [ ] T043 [US4] Add "Safety" tab to settings UI in src/core/settings_ui.py
 
-**Checkpoint**: Default profile configuration works from project file
+**Checkpoint**: Default profile configuration works from config.json
 
 ---
 
@@ -142,11 +143,11 @@
 
 **Purpose**: Edge cases, documentation, and refinements
 
-- [ ] T043 Handle invalid profile name with clear error listing valid options in src/cli.py
-- [ ] T044 [P] Handle missing/malformed allowlist file gracefully (use defaults, warn) in src/core/allowlist.py
-- [ ] T045 [P] Add profile info to existing --help output in src/cli.py
-- [ ] T046 Validate all edge cases from spec.md work correctly
-- [ ] T047 Update pyproject.toml version to 3.0.3
+- [ ] T044 Handle invalid profile name with clear error listing valid options in src/cli.py
+- [ ] T045 [P] Handle missing/malformed allowlist file gracefully (use defaults, warn) in src/core/allowlist.py
+- [ ] T046 [P] Add profile info to existing --help output in src/cli.py
+- [ ] T047 Validate all edge cases from spec.md work correctly
+- [ ] T048 Update pyproject.toml version to 3.0.3
 
 ---
 
@@ -256,8 +257,8 @@ Developer C: T030-T037 (US3 Yolo Mode)
 
 | Metric | Value |
 |--------|-------|
-| Total Tasks | 47 |
-| Phase 1 (Setup) | 5 tasks |
+| Total Tasks | 48 |
+| Phase 1 (Setup) | 6 tasks |
 | Phase 2 (Foundation) | 4 tasks |
 | US1 (Safe Mode) | 10 tasks |
 | US2 (CI Mode) | 10 tasks |
@@ -265,7 +266,7 @@ Developer C: T030-T037 (US3 Yolo Mode)
 | US4 (Config) | 5 tasks |
 | Phase 7 (Polish) | 5 tasks |
 | Parallel Opportunities | 12 tasks marked [P] |
-| Files Modified | 7 |
+| Files Modified | 8 |
 | Files Created | 4 |
 
 ---

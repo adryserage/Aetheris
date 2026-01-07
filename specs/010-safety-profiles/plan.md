@@ -19,6 +19,35 @@ Add configurable safety profiles (`--profile safe|ci|yolo`) to control Aetheris 
 **Performance Goals**: No significant overhead from profile checks (<10ms per operation)
 **Constraints**: Must not break existing CLI commands; backward compatible
 **Scale/Scope**: ~500-700 LOC addition across 5-7 files
+**Depends On**: v3.0 (Persistent Config) for config.json integration
+
+## Configuration Integration (v3.0)
+
+Safety profile settings integrate with the config.json system from v3.0:
+
+```json
+{
+  "safety": {
+    "default_profile": "safe",
+    "custom_allowlist": [],
+    "audit_log_path": "aetheris-audit.jsonl",
+    "yolo_requires_flag": true
+  }
+}
+```
+
+### Configuration Hierarchy
+1. CLI flags (`--profile`)
+2. Local `config.json`
+3. Global `~/.aetheris/config.json`
+4. Built-in defaults (`safe` profile)
+
+### Settings UI Integration
+Add "Safety" tab to `aetheris settings` command with:
+- Default profile selection
+- Custom allowlist management
+- Audit log path configuration
+- Yolo confirmation toggle
 
 ## Constitution Check
 
