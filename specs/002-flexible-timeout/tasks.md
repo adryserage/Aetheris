@@ -80,8 +80,9 @@
 - [ ] T020 Handle negative timeout values with clear error message in src/core/config.py
 - [ ] T021 Handle invalid timeout format with helpful error in src/core/config.py
 - [ ] T022 Handle Ctrl+C graceful interruption during long analysis in src/core/orchestrator.py
-- [ ] T023 [P] Add timeout info to --help output in src/cli.py
-- [ ] T024 Update pyproject.toml version to 2.6.1
+- [ ] T023 Handle memory exhaustion before timeout (catch MemoryError, log and exit gracefully) in src/core/orchestrator.py
+- [ ] T024 [P] Add timeout info to --help output in src/cli.py
+- [ ] T025 Update pyproject.toml version to 2.6.1
 
 **Checkpoint**: All edge cases handled, ready for release
 
@@ -114,11 +115,11 @@ Phase 2: US1 (Default)              Phase 3: US2 (Custom)
 
 | Metric | Value |
 |--------|-------|
-| Total Tasks | 24 |
+| Total Tasks | 25 |
 | Phase 1 (Setup) | 4 tasks |
 | US1 (Default Timeout) | 4 tasks |
 | US2 (Custom Timeout) | 5 tasks |
 | US3 (Heartbeat) | 6 tasks |
-| Phase 5 (Polish) | 5 tasks |
+| Phase 5 (Polish) | 6 tasks |
 | Files Modified | 4 |
 | Files Created | 1 |

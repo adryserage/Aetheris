@@ -83,12 +83,15 @@
 
 ---
 
-## Phase 8: Polish
+## Phase 8: Polish & Edge Cases
 
 - [ ] T029 Handle malformed JSON with clear error in src/core/config_file.py
 - [ ] T030 Warn on unknown config keys (typos) in src/core/config_file.py
 - [ ] T031 Handle non-interactive terminals (skip settings UI) in src/core/settings_ui.py
-- [ ] T032 Update pyproject.toml version to 3.0
+- [ ] T032 Handle corrupted global config.json (reset to defaults with warning) in src/core/config_file.py
+- [ ] T033 Add `aetheris migrate-env` command to convert .env settings to config.json in src/cli.py
+- [ ] T034 Handle permission denied on global config.json (fallback to local with warning) in src/core/config_file.py
+- [ ] T035 Update pyproject.toml version to 3.0
 
 ---
 
@@ -96,6 +99,14 @@
 
 | Metric | Value |
 |--------|-------|
-| Total Tasks | 32 |
+| Total Tasks | 35 |
+| Phase 1 (Setup) | 4 tasks |
+| US1 (Config Cascade) | 5 tasks |
+| US2 (Init Command) | 4 tasks |
+| US3 (Complex Types) | 3 tasks |
+| US4 (Secrets Separation) | 3 tasks |
+| US5 (Interactive Settings) | 7 tasks |
+| US6 (Version Control) | 2 tasks |
+| Phase 8 (Polish) | 7 tasks |
 | Files Created | 4 |
 | Files Modified | 2 |

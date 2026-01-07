@@ -75,12 +75,16 @@
 
 ---
 
-## Phase 7: Polish
+## Phase 7: Polish & Edge Cases
 
 - [ ] T028 Add file/folder exclusion input in workflow
 - [ ] T029 Handle GitHub Actions timeout (6h limit) in workflow
 - [ ] T030 Add rate-limit retry logic in workflow
-- [ ] T031 Update pyproject.toml version to 2.9
+- [ ] T031 Add concurrency group to prevent parallel runs on same branch in workflow
+- [ ] T032 Add chmod +x step for setup scripts in workflow (Linux/macOS permissions)
+- [ ] T033 Handle existing docs/analyses/ folder in setup scripts (backup or merge)
+- [ ] T034 Check for AETHERIS_API_KEY in setup scripts and show instructions if missing
+- [ ] T035 Update pyproject.toml version to 2.9
 
 ---
 
@@ -88,5 +92,12 @@
 
 | Metric | Value |
 |--------|-------|
-| Total Tasks | 31 |
+| Total Tasks | 35 |
+| Phase 1 (Setup) | 3 tasks |
+| US1 (Auto Analysis) | 7 tasks |
+| US2 (Manual Trigger) | 4 tasks |
+| US3 (Easy Setup) | 4 tasks |
+| US4 (Artifacts) | 5 tasks |
+| US5 (Changed Files) | 4 tasks |
+| Phase 7 (Polish) | 8 tasks |
 | Files Created | 5 |

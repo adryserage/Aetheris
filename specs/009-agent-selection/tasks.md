@@ -81,12 +81,13 @@
 
 ---
 
-## Phase 7: Polish
+## Phase 7: Polish & Edge Cases
 
 - [ ] T034 Handle invalid preset name with list of valid options in src/cli.py
 - [ ] T035 Handle `--category` with no matching issues (warning, not error) in src/core/orchestrator.py
-- [ ] T036 Document all presets in README in README.md
-- [ ] T037 Update pyproject.toml version to 3.0.2
+- [ ] T036 Handle `--agents none` without `--compliance` (error with helpful message) in src/core/agent_selector.py
+- [ ] T037 Document all presets in README in README.md
+- [ ] T038 Update pyproject.toml version to 3.0.2
 
 ---
 
@@ -94,6 +95,13 @@
 
 | Metric | Value |
 |--------|-------|
-| Total Tasks | 37 |
+| Total Tasks | 38 |
+| Phase 1 (Setup) | 4 tasks |
+| US1 (Selective Agent) | 8 tasks |
+| US2 (Targeted Fix) | 6 tasks |
+| US3 (Presets) | 6 tasks |
+| US4 (Interactive) | 6 tasks |
+| US5 (Progress) | 3 tasks |
+| Phase 7 (Polish) | 5 tasks |
 | Files Created | 5 |
 | Files Modified | 3 |

@@ -90,12 +90,15 @@
 
 ---
 
-## Phase 8: Polish
+## Phase 8: Polish & Edge Cases
 
 - [ ] T036 Validate all internal links in documentation
 - [ ] T037 Update CHANGELOG.md with recent versions
 - [ ] T038 Verify examples are executable
-- [ ] T039 Update pyproject.toml version to 2.6.0
+- [ ] T039 Add doc version header to each doc file matching package version in docs/
+- [ ] T040 Remove obsolete sections from docs (compare with current CLI --help) in docs/
+- [ ] T041 Add cross-reference validation script to ensure README and docs/ are consistent in scripts/
+- [ ] T042 Update pyproject.toml version to 2.6.0
 
 ---
 
@@ -103,6 +106,14 @@
 
 | Metric | Value |
 |--------|-------|
-| Total Tasks | 39 |
+| Total Tasks | 42 |
+| Phase 1 (Setup) | 3 tasks |
+| US1 (README) | 5 tasks |
+| US2 (Command Docs) | 7 tasks |
+| US3 (Configuration) | 7 tasks |
+| US4 (Features) | 4 tasks |
+| US5 (GitHub Actions) | 4 tasks |
+| US6 (Troubleshooting) | 5 tasks |
+| Phase 8 (Polish) | 7 tasks |
 | Files Created | 3 |
 | Files Modified | 10+ |

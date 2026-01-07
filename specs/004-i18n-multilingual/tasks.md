@@ -63,12 +63,15 @@
 
 ---
 
-## Phase 6: Polish
+## Phase 6: Polish & Edge Cases
 
 - [ ] T023 Handle corrupted message files gracefully in src/i18n/loader.py
 - [ ] T024 Handle partial translations (fallback to French) in src/i18n/loader.py
-- [ ] T025 [P] Add language info to --help output in src/cli.py
-- [ ] T026 Update pyproject.toml version to 2.8
+- [ ] T025 Implement AI response language validation (retry with stronger instruction if wrong language) in src/core/ai_providers.py
+- [ ] T026 Define TECHNICAL_TERMS list (file names, commands, variables) that must not be translated in src/i18n/language.py
+- [ ] T027 Add post-processing to preserve technical terms in AI responses in src/core/ai_providers.py
+- [ ] T028 [P] Add language info to --help output in src/cli.py
+- [ ] T029 Update pyproject.toml version to 2.8
 
 ---
 
@@ -76,6 +79,12 @@
 
 | Metric | Value |
 |--------|-------|
-| Total Tasks | 26 |
+| Total Tasks | 29 |
+| Phase 1 (Setup) | 4 tasks |
+| US1 (Language Detection) | 5 tasks |
+| US2 (CLI Override) | 4 tasks |
+| US3 (AI Response) | 4 tasks |
+| US4 (Externalization) | 5 tasks |
+| Phase 6 (Polish) | 7 tasks |
 | Files Created | 5 |
 | Files Modified | 3 |
