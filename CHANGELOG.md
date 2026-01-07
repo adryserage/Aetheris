@@ -5,6 +5,14 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.5.6] - 2025-01-07
+
+### 📝 Documentation
+
+- **Configuration recommandée** : Ajout section conseils dans le README
+  - Gemini pour l'analyse (contexte 1M tokens)
+  - Claude Code pour la correction automatique des bugs
+
 ## [2.5.5] - 2025-01-07
 
 ### 📝 Documentation
