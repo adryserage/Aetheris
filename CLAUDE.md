@@ -6,6 +6,52 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Aetheris is a multi-agent code analysis system that uses AI (Gemini, OpenAI, or Claude) to analyze codebases for quality, security, architecture, and technical debt. It coordinates 6 specialized agents to produce comprehensive analysis reports.
 
+## SpecKit Cross-Spec Synchronization
+
+**IMPORTANT**: When modifying a spec that introduces cross-cutting changes (new systems, shared infrastructure, or features that affect later specs), you MUST review and update all dependent specs.
+
+### Dependency Chain (Current)
+
+```
+v2.5   001-github-issues-cli (implemented)
+v2.6   002-flexible-timeout
+v2.7   003-caching-optimization
+v2.8   004-i18n-multilingual
+v2.9   005-cicd-template
+v3.0   006-persistent-config ──────────────────┐
+v3.0.1 007-docs-update                         │
+v3.0.1 008-extended-agents ◄───────────────────┤ Uses config.json
+v3.0.2 009-agent-selection ◄───────────────────┤ Uses config.json
+v3.0.3 010-safety-profiles ◄───────────────────┤ Uses config.json
+v3.0.4 011-readme-safety-docs ◄────────────────┘ References config.json
+```
+
+### When to Sync Specs
+
+Review downstream specs when:
+1. **Adding a new system** (e.g., config.json) - Update all specs that should use it
+2. **Modifying data models** - Ensure schema changes propagate
+3. **Adding CLI flags** - Check if other specs should reference them
+4. **Changing architecture** - Verify dependent specs align
+
+### How to Sync
+
+1. Identify the spec introducing the change (e.g., 006-persistent-config)
+2. List all specs with higher version numbers
+3. For each downstream spec:
+   - Update `plan.md`: Add "Depends On" and integration section
+   - Update `tasks.md`: Add tasks for integration (ConfigSchema, Settings UI, etc.)
+   - Update task counts in Summary section
+4. Commit all updates together with descriptive message
+
+### Example: Config.json Integration
+
+When 006-persistent-config introduced `config.json`, all post-v3.0 specs needed:
+- `Depends On: v3.0 (Persistent Config)` in plan.md
+- Configuration Integration section showing JSON schema
+- Tasks for adding to ConfigSchema
+- Tasks for Settings UI tab (if applicable)
+
 ## Commands
 
 ### Running the CLI
