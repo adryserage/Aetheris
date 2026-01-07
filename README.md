@@ -5,6 +5,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Actions](https://img.shields.io/github/actions/workflow/status/adryserage/aetheris/auto-release.yml?label=CI)](https://github.com/adryserage/aetheris/actions)
 
+Automated code analysis system using multiple cooperating AI agents to provide comprehensive quality, security, and architecture analysis of your codebase.
+
 ---
 
 > **We Want Your Input!** Help shape the future of Aetheris - vote on whether it should become fully open source.
@@ -26,8 +28,6 @@
 [![Yes, open source it!](https://adryanserage.ca/api/poll/svg?pollId=aetheris&option=Yes%2C%20open%20source%20it!&color=%2322c55e)](https://adryanserage.ca/poll/aetheris?vote=Yes%2C%20open%20source%20it!)
 [![No, keep it private](https://adryanserage.ca/api/poll/svg?pollId=aetheris&option=No%2C%20keep%20it%20private&color=%23ef4444)](https://adryanserage.ca/poll/aetheris?vote=No%2C%20keep%20it%20private)
 [![I don't mind either way](https://adryanserage.ca/api/poll/svg?pollId=aetheris&option=I%20don%27t%20mind%20either%20way&color=%236366f1)](https://adryanserage.ca/poll/aetheris?vote=I%20don%27t%20mind%20either%20way)
-
-Automated code analysis system using multiple cooperating AI agents to provide comprehensive quality, security, and architecture analysis of your codebase.
 
 ## Quick Start
 
