@@ -112,3 +112,10 @@ Reports are generated in `docs/analyses/`:
 - Quality assurance report: `docs/analyses/quality_assurance_report.md`
 - Vulnerability report: `docs/analyses/vulnerabilities_report.md`
 - Performance metrics: `docs/metrics/metrics_<timestamp>.json`
+
+## Active Technologies
+- Python 3.8+ (matches existing project) + Rich (terminal UI), subprocess (gh CLI), re/pathlib (parsing) (001-github-issues-cli)
+- N/A (reads existing markdown files, writes to GitHub via gh) (001-github-issues-cli)
+
+## Recent Changes
+- 001-github-issues-cli: Added Python 3.8+ (matches existing project) + Rich (terminal UI), subprocess (gh CLI), re/pathlib (parsing)

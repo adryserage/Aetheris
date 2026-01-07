@@ -5,6 +5,14 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.5.4] - 2025-01-07
+
+### 📝 Documentation
+
+- **README amélioré** : Réorganisation pour meilleure lisibilité
+  - Description du projet déplacée en haut après les badges
+  - Bannière d'appel au vote ajoutée de manière proéminente
+
 ## [2.5.3] - 2025-01-07
 
 ### ✨ Nouvelles fonctionnalités
