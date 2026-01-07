@@ -93,7 +93,7 @@ class AnalysisConfig:
     pr_number: Optional[int] = None  # Numéro de PR (optionnel)
     show_reasoning: bool = False  # Afficher le processus de reasoning du modèle (si disponible)
     enable_cache: bool = True  # Activer le cache des analyses (réduit les coûts API)
-    cache_ttl_days: int = 7  # Durée de vie du cache en jours
+    cache_ttl_seconds: int = 604800  # Durée de vie du cache en secondes (7 jours)
     analyze_dependent_files: bool = True  # Analyser les fichiers dépendants des fichiers modifiés
     max_dependency_depth: int = 2  # Profondeur maximale pour l'analyse des dépendances
     enable_metrics: bool = True  # Activer la collecte de métriques
@@ -195,8 +195,10 @@ class AnalysisConfig:
         # Normaliser le provider
         self.ai_provider = self.ai_provider.lower()
 
-        # Si le modèle n'est pas spécifié, utiliser le défaut du provider
-        if not self.ai_model:
+        # Si le modèle n'est pas spécifié ou est "default", utiliser le défaut du provider
+        # Cela permet aux utilisateurs de spécifier "default" dans config.json/.env
+        # pour toujours utiliser le modèle recommandé sans hardcoder les noms de modèles
+        if not self.ai_model or self.ai_model.lower() == "default":
             self.ai_model = get_default_model(self.ai_provider)
 
         # Valider la combinaison provider/model
