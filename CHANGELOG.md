@@ -5,6 +5,60 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.5.0] - 2025-01-06
+
+### ✨ Nouvelles fonctionnalités
+
+- **Commande `aetheris issues`** : Création d'issues GitHub depuis les rapports d'analyse
+  - Parse les rapports d'analyse dans `docs/analyses/`
+  - Extrait les bugs et crée des issues GitHub pour chacun
+  - Format de titre : `[BugType] in filename - description`
+  - Sections dans le body : File, Bug Description, Issue Details, Recommended Solution, Code Context
+  - Labels automatiques : `bug`, `aetheris-analysis`, niveau de sévérité
+  - Options : `--dry-run`, `--labels`, `--assignee`, `--repo`, `--from-report`
+  - Déduplication automatique par titre
+
+- **Commande `aetheris pr-gen`** : Génération de PRs avec corrections AI
+  - Génère des Pull Requests avec des corrections générées par AI pour chaque bug
+  - Workflow : 1 bug = 1 PR avec fix AI
+  - Création automatique de branches `fix/<file>-<bug-type>-<id>`
+  - Linking automatique aux issues GitHub (`--link-issues`)
+  - Options : `--dry-run`, `--base-branch`, `--from-report`, `--bug-index`, `--issue-number`
+  - Corps de PR détaillé avec résumé, détails du bug, changements appliqués
+
+### 📝 Documentation
+
+- **Restructuration complète de la documentation**
+  - README condensé (~170 lignes vs ~1195) avec liens vers sous-documents
+  - Nouvelle structure `docs/commands/` avec documentation individuelle par commande
+  - `docs/installation.md` : Guide d'installation
+  - `docs/configuration.md` : Référence des variables d'environnement
+  - `docs/ai-providers.md` : Configuration des providers AI et pricing
+  - `docs/agents.md` : Vue d'ensemble des agents d'analyse
+  - `docs/features.md` : Documentation des fonctionnalités
+  - `docs/github-actions.md` : Intégration CI/CD
+  - `docs/troubleshooting.md` : Dépannage et erreurs courantes
+  - Documentation des nouvelles commandes `issues` et `pr-gen`
+
+### 📦 Nouveaux modules
+
+- `src/services/issue_creator.py` : Service de création d'issues GitHub
+  - `IssueCreator` : Classe principale pour créer des issues
+  - `IssueOptions` : Dataclass pour les options de configuration
+  - Parsing des rapports d'analyse markdown
+  - Gestion du rate limiting GitHub
+
+- `src/services/pr_generator.py` : Service de génération de PRs
+  - `PRGenerator` : Classe principale pour générer des PRs avec fixes
+  - `PROptions` : Dataclass pour les options de configuration
+  - Génération de fixes AI via les providers configurés
+  - Gestion des branches et commits automatiques
+
+### 🔧 Modifications
+
+- **CLI** : Ajout des sous-commandes `issues` et `pr-gen` (alias `generate-prs`)
+- **Workflow** : Intégration complète avec GitHub CLI (`gh`)
+
 ## [2.4.0] - 2025-01-05
 
 ### ✨ Nouvelles fonctionnalités
