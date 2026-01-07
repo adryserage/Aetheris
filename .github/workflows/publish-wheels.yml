@@ -47,11 +47,6 @@ jobs:
     name: Publish to PyPI
     needs: build_wheels
     runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/project/adryserage-aetheris/
-    permissions:
-      id-token: write  # Required for trusted publishing
 
     steps:
       - name: Download all wheel artifacts
@@ -68,5 +63,4 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
-          # Using trusted publishing - no token needed
-          # Repository must be configured on PyPI for trusted publishing
+          password: ${{ secrets.PYPI_API_TOKEN }}
