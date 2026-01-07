@@ -5,6 +5,15 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.5.3] - 2025-01-07
+
+### ✨ Nouvelles fonctionnalités
+
+- **Sondage communautaire** : Ajout d'un sondage "Should Aetheris become Open Source?"
+  - Badges SVG dynamiques dans le README avec vote en un clic
+  - Page de sondage dédiée sur adryanserage.ca/poll/aetheris
+  - Lien "Vote: Open Source?" ajouté sur la page PyPI
+
 ## [2.5.2] - 2025-01-07
 
 ### 📝 Documentation

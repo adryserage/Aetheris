@@ -11,6 +11,14 @@
 |:---------------:|:-------:|:------:|:-----:|
 | [![Downloads](https://static.pepy.tech/badge/adryserage-aetheris)](https://pepy.tech/project/adryserage-aetheris) | [![Downloads/Month](https://static.pepy.tech/badge/adryserage-aetheris/month)](https://pepy.tech/project/adryserage-aetheris) | [![Downloads/Week](https://static.pepy.tech/badge/adryserage-aetheris/week)](https://pepy.tech/project/adryserage-aetheris) | [![Downloads/Day](https://img.shields.io/pypi/dd/adryserage-aetheris?label=downloads)](https://pypistats.org/packages/adryserage-aetheris) |
 
+### 🗳️ Community Poll
+
+**Should Aetheris become Open Source?** [Vote here!](https://adryanserage.ca/poll/aetheris)
+
+[![Yes, open source it!](https://adryanserage.ca/api/poll/svg?pollId=aetheris&option=Yes%2C%20open%20source%20it!&color=%2322c55e)](https://adryanserage.ca/poll/aetheris?vote=Yes%2C%20open%20source%20it!)
+[![No, keep it private](https://adryanserage.ca/api/poll/svg?pollId=aetheris&option=No%2C%20keep%20it%20private&color=%23ef4444)](https://adryanserage.ca/poll/aetheris?vote=No%2C%20keep%20it%20private)
+[![I don't mind either way](https://adryanserage.ca/api/poll/svg?pollId=aetheris&option=I%20don%27t%20mind%20either%20way&color=%236366f1)](https://adryanserage.ca/poll/aetheris?vote=I%20don%27t%20mind%20either%20way)
+
 Automated code analysis system using multiple cooperating AI agents to provide comprehensive quality, security, and architecture analysis of your codebase.
 
 ## Quick Start
