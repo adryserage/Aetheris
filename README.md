@@ -50,28 +50,83 @@ Aetheris uses **6 specialized AI agents** working together — like having a sen
 
 ### 🆚 How Aetheris Compares
 
-| Feature | Other Platforms | Aetheris |
-|---------|-----------------|----------|
-| **Pricing** | $20-100+/month subscription | **Pay only for API usage** (~$0.01-0.05/file) |
-| **Data Privacy** | Code sent to third-party servers | **Your API keys, your control** — no intermediaries |
-| **Vendor Lock-in** | Tied to one provider | **Multi-provider** (Gemini, Claude, OpenAI) |
-| **Auto-Fix** | Suggestions only | **Actual fixes** via `aetheris fix` with Claude Code |
-| **CI/CD** | Extra setup required | **GitHub Actions template included** |
-| **Offline/Self-hosted** | Cloud-only | **Run locally** or in your own CI |
-| **Customization** | Limited | **Open architecture** — add your own agents |
-| **Caching** | None | **Smart caching** — 60-80% cost reduction |
+#### Feature Comparison
 
-**What others do well** (and we don't try to replace):
-- IDE plugins with real-time feedback — use ESLint/Pylint for that
-- Project management dashboards — use Jira/Linear for that
-- Team collaboration features — use GitHub/GitLab for that
+| Feature | SaaS Platforms | IDE Plugins | Aetheris |
+|---------|----------------|-------------|----------|
+| **Pricing** | $20-500/month | Free-$20/month | **Pay-per-use** (~$0.01-0.05/file) |
+| **Data Privacy** | Code on their servers | Code on their servers | **Your API keys only** |
+| **Vendor Lock-in** | Single provider | Single IDE | **Multi-provider** |
+| **Auto-Fix** | Suggestions only | Limited | **Full auto-fix** with Claude Code |
+| **CI/CD Native** | Extra setup | Not supported | **GitHub Actions included** |
+| **Batch Analysis** | Per-file pricing | Not supported | **Entire codebase** at once |
+| **Offline Mode** | No | Limited | **Yes** - run anywhere |
+| **Custom Agents** | No | No | **Yes** - add your own |
 
-**What Aetheris does better**:
-- **Deep analysis**: 6 specialized agents vs. generic single-model analysis
-- **Actionable output**: Not just warnings — actual PR-ready fixes
-- **Cost efficiency**: Smart caching + batch API = lowest cost per insight
-- **Privacy-first**: Your code never touches third-party servers (except your chosen AI provider)
-- **No lock-in**: Switch between Gemini/Claude/OpenAI anytime
+#### Cost Comparison (1000 files/month)
+
+| Solution | Monthly Cost | Notes |
+|----------|-------------|-------|
+| Enterprise SaaS | $200-500 | Per-seat licensing |
+| Team SaaS | $50-100 | Limited features |
+| IDE Plugin Pro | $10-20 | Single IDE only |
+| **Aetheris** | **$5-15** | With smart caching |
+
+#### Analysis Depth
+
+| Aspect | Traditional Tools | AI Platforms | Aetheris |
+|--------|-------------------|--------------|----------|
+| Pattern matching | ✅ | ✅ | ✅ |
+| Context awareness | ❌ | ✅ | ✅ |
+| Cross-file analysis | ❌ | Limited | ✅ **Full** |
+| Architecture review | ❌ | ❌ | ✅ **Dedicated agent** |
+| CVE scanning | Separate tool | ❌ | ✅ **Built-in** |
+| Auto-fix capability | ❌ | Suggestions | ✅ **Actual fixes** |
+
+**What others do well** (and we complement, not replace):
+- **IDE plugins**: Real-time feedback while typing — use ESLint/Pylint alongside Aetheris
+- **SaaS dashboards**: Team metrics & trends — Aetheris focuses on analysis, not dashboards
+- **GitHub native**: PR comments — Aetheris posts directly to your PRs
+
+**Where Aetheris excels**:
+- **Multi-agent deep analysis**: 6-10 specialized agents vs. single-model approach
+- **True auto-fix**: Not suggestions — actual code changes via Claude Code
+- **Cost efficiency**: Smart caching + batch API = 60-80% cost reduction
+- **Privacy-first**: Your code stays with your chosen AI provider only
+- **No lock-in**: Switch Gemini ↔ Claude ↔ OpenAI anytime
+- **Compliance-ready**: GDPR/HIPAA/PCI-DSS detection (coming in v3.0.1)
+
+---
+
+### 🗺️ Roadmap
+
+| Version | Status | Features |
+|---------|--------|----------|
+| **v2.5** | ✅ Released | 6 core agents, GitHub Actions, auto-fix with Claude Code |
+| **v3.0** | 🚧 In Progress | Persistent configuration system (`config.json`), config hierarchy |
+| **v3.0.1** | 📋 Planned | 4 new specialized agents (Performance, API Contract, Type Safety, Data Privacy) |
+| **v3.0.2** | 📋 Planned | Agent selection (`--agents`), targeted fix (`--category`), presets |
+
+#### Coming in v3.0 — Configuration System
+- Local and global `config.json` files
+- Config hierarchy: CLI > Local > Global > Env > Defaults
+- Custom analysis presets
+- Team-shareable configurations
+
+#### Coming in v3.0.1 — Extended Agents (6 → 10 agents)
+
+| New Agent | Focus | What It Catches |
+|-----------|-------|-----------------|
+| **Performance** | Runtime efficiency | O(n²) patterns, N+1 queries, memory leaks |
+| **API Contract** | REST/GraphQL consistency | Method misuse, breaking changes, undocumented endpoints |
+| **Type Safety** | Type discipline | `any` usage, unsafe casts, null safety violations |
+| **Data Privacy** | Compliance | PII in logs, missing encryption, GDPR/HIPAA/PCI-DSS violations |
+
+#### Coming in v3.0.2 — Agent Selection & Targeted Fix
+- `--agents performance,security` — Run only specific agents
+- `--category compliance` — Fix only compliance issues
+- `--preset security-audit` — Pre-configured agent combinations
+- `--interactive` — Visual agent selection menu
 
 ---
 
