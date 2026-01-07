@@ -2,6 +2,7 @@
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2025-01-07
+**Updated**: 2025-01-07 (reduced from 6 to 4 agents)
 **Feature**: [spec.md](../spec.md)
 
 ## Content Quality
@@ -29,11 +30,25 @@
 - [X] Feature meets measurable outcomes defined in Success Criteria
 - [X] No implementation details leak into specification
 
+## ROI Validation
+
+- [X] Each agent provides unique value (no duplicates)
+- [X] Removed agents documented in Out of Scope with rationale
+- [X] Cost vs benefit analyzed for each agent
+
 ## Notes
 
-- 7 User Stories covering selective activation and all 6 new agents
-- 27 Functional Requirements (FR-001 to FR-027)
+- 5 User Stories (agent activation + 4 agent-specific stories)
+- 20 Functional Requirements (FR-001 to FR-020)
 - 6 Success Criteria defined
 - Integrates with v3.0 config.json system
 - Compliance agents configurable separately via `compliance_agents` config
 - Edge cases documented for agent failures, unsupported languages, invalid configs
+
+## Scope Changes
+
+**Removed from original scope** (better ROI):
+- ~~Technical Debt Agent~~ → overlaps with Code Metrics (complexity) + Architect (circular deps)
+- ~~Documentation Agent~~ → ESLint/Pylint plugins do this better and free
+
+**Final agent count**: 6 core + 4 new = **10 total agents**
