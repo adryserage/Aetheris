@@ -7,7 +7,7 @@ name = "adryserage-aetheris"
 version = "2.5.7"
 description = "Aetheris - Multi-agent AI code analysis system with PR review, multi-provider consensus (Gemini/Claude/OpenAI), security analysis, and automatic bug fixing via Claude Code"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = {text = "MIT"}
 authors = [
     {name = "Adryan Serage", email = "adryan@allowebs.com"}
@@ -32,7 +32,6 @@ classifiers = [
     "Operating System :: MacOS",
     "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -79,8 +78,8 @@ packages = ["src", "src.agents", "src.core", "src.models", "src.services"]
 "*" = ["*.md", "*.txt", "*.yaml", "*.yml"]
 
 [tool.cibuildwheel]
-# Build for specific Python versions (3.8-3.13)
-build = "cp38-* cp39-* cp310-* cp311-* cp312-* cp313-*"
+# Build for specific Python versions (3.9-3.13, google-genai requires 3.9+)
+build = "cp39-* cp310-* cp311-* cp312-* cp313-*"
 
 # Skip 32-bit builds, musllinux, and PyPy
 skip = "*-win32 *-manylinux_i686 *musllinux* pp*"
@@ -105,7 +104,7 @@ archs = ["AMD64"]
 
 [tool.black]
 line-length = 100
-target-version = ["py38", "py39", "py310", "py311", "py312"]
+target-version = ["py39", "py310", "py311", "py312", "py313"]
 include = '\.pyi?$'
 extend-exclude = '''
 /(
