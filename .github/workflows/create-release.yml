@@ -20,43 +20,79 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0 # Nécessaire pour avoir accès à tous les commits et tags
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5.5.0
         with:
           python-version: "3.11"
 
       - name: Extract version from tag
         id: tag_version
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          TAG_INPUT: ${{ github.event.inputs.tag }}
         run: |
+          # Regex pour valider le format semver (avec support des pre-releases)
+          SEMVER_REGEX="^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*)?$"
+
           # Si déclenché manuellement, utiliser l'input tag, sinon utiliser GITHUB_REF
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            TAG="${{ github.event.inputs.tag }}"
-            # Enlever le préfixe 'v' si présent
-            VERSION=${TAG#v}
-            TAG_NAME=$TAG
+          if [ "$EVENT_NAME" == "workflow_dispatch" ]; then
+            TAG="$TAG_INPUT"
             # S'assurer que le tag commence par 'v'
-            if [[ ! $TAG_NAME =~ ^v ]]; then
-              TAG_NAME="v$VERSION"
+            if [[ ! $TAG =~ ^v ]]; then
+              TAG="v$TAG"
             fi
+            TAG_NAME=$TAG
+            VERSION=${TAG#v}
           else
             # Déclenché par push de tag
-            VERSION=${GITHUB_REF#refs/tags/v}
-            TAG_NAME="v$VERSION"
+            TAG_NAME=${GITHUB_REF#refs/tags/}
+            VERSION=${TAG_NAME#v}
           fi
+
+          # Valider le format semver
+          if [[ ! $TAG_NAME =~ $SEMVER_REGEX ]]; then
+            echo "❌ Erreur: Le tag '$TAG_NAME' ne respecte pas le format semver (ex: v1.0.0, v2.1.0-alpha.1)"
+            exit 1
+          fi
+
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
-          echo "Version extraite: $VERSION"
-          echo "Tag name: $TAG_NAME"
+          echo "✅ Version extraite: $VERSION"
+          echo "✅ Tag name: $TAG_NAME"
 
       - name: Extract release notes from CHANGELOG
         id: release_notes
+        env:
+          VERSION: ${{ steps.tag_version.outputs.version }}
+          TAG_NAME: ${{ steps.tag_version.outputs.tag_name }}
         run: |
-          python scripts/extract_release_notes.py "${{ steps.tag_version.outputs.version }}" > release_notes.md || echo "## Release ${{ steps.tag_version.outputs.tag_name }}" > release_notes.md
-          echo "✅ Notes de release extraites"
+          set +e
+          python scripts/extract_release_notes.py "$VERSION" > release_notes.md 2> extraction_error.log
+          EXIT_CODE=$?
+          set -e
+
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "::warning::L'extraction des notes de release a échoué (code: $EXIT_CODE)"
+            if [ -s extraction_error.log ]; then
+              echo "::warning::Erreur: $(cat extraction_error.log)"
+            fi
+            echo "extraction_failed=true" >> $GITHUB_OUTPUT
+            # Fallback avec indication claire du problème
+            cat > release_notes.md << EOF
+          ## Release $TAG_NAME
+
+          > ⚠️ **Note**: Les notes de release n'ont pas pu être extraites automatiquement du CHANGELOG.
+          > Veuillez consulter le fichier CHANGELOG.md pour les détails de cette version.
+          EOF
+            echo "⚠️ Fallback utilisé - notes génériques créées"
+          else
+            echo "extraction_failed=false" >> $GITHUB_OUTPUT
+            echo "✅ Notes de release extraites avec succès"
+          fi
 
       - name: Display release notes preview
         run: |
