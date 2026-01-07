@@ -47,6 +47,8 @@ jobs:
     name: Publish to PyPI
     needs: build_wheels
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # Required for trusted publishing
 
     steps:
       - name: Download all wheel artifacts
@@ -63,4 +65,3 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
-          password: ${{ secrets.PYPI_API_TOKEN }}
