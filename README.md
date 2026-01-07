@@ -1,454 +1,326 @@
-# Aetheris by Adryan - Multi-Agent Code Analysis System
+# Aetheris — AI Code Review That Actually Works
 
-[![PyPI version](https://badge.fury.io/py/adryserage-aetheris.svg)](https://badge.fury.io/py/adryserage-aetheris)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![PyPI status](https://img.shields.io/pypi/status/adryserage-aetheris.svg)](https://pypi.org/project/adryserage-aetheris/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Checked with mypy](https://img.shields.io/badge/mypy-checked-blue.svg)](http://mypy-lang.org/)
-[![Platform](https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey)](https://pypi.org/project/adryserage-aetheris/)
-[![License](https://img.shields.io/badge/license-Proprietary-red.svg)](LICENSE)
+<p align="center">
+  <strong>6 AI agents. 15+ vulnerabilities per codebase. 2 minutes instead of 2 hours.</strong>
+</p>
 
-Automated code analysis system using multiple cooperating AI agents to provide comprehensive quality, security, and architecture analysis of your codebase.
+<p align="center">
+  <a href="https://badge.fury.io/py/adryserage-aetheris"><img src="https://badge.fury.io/py/adryserage-aetheris.svg" alt="PyPI version"></a>
+  <a href="https://pepy.tech/project/adryserage-aetheris"><img src="https://static.pepy.tech/badge/adryserage-aetheris" alt="Downloads"></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.9+-blue.svg" alt="Python 3.9+"></a>
+  <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black"></a>
+  <a href="https://pypi.org/project/adryserage-aetheris/"><img src="https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey" alt="Platform"></a>
+</p>
 
-## 🎯 Why Aetheris?
-
-### The Problem
-
-**Code reviews are slow, inconsistent, and expensive.** A senior developer spends 30-60 minutes reviewing a PR — time that could be spent building features. Junior developers miss subtle bugs. Security vulnerabilities slip through. And across a team, review quality varies wildly.
-
-Meanwhile, existing static analysis tools are:
-- **Noisy**: Thousands of low-value warnings you learn to ignore
-- **Shallow**: Pattern matching that misses context-dependent issues
-- **Siloed**: Security tools don't talk to quality tools don't talk to architecture tools
-
-### The Solution
-
-Aetheris uses **6 specialized AI agents** working together — like having a senior developer, security expert, and architect review every commit. Each agent focuses on what it does best:
-
-| Agent | Focus | What It Catches |
-|-------|-------|-----------------|
-| Code Analysis | Logic & quality | Dead code, complexity, edge cases |
-| Security | Vulnerabilities | Injections, secrets, weak crypto |
-| Architecture | Structure | Coupling, patterns, dependencies |
-| Metrics | Quantitative | Duplication, complexity scores |
-| Dependencies | CVE scanning | Known vulnerabilities in packages |
-| QA Synthesis | Final review | Cross-cutting concerns, priorities |
-
-### Why You Should Use It
-
-1. **Save Time**: A 1-hour manual review becomes a 2-minute automated scan
-2. **Save Money**:
-   - Smart caching reduces API costs by 60-80%
-   - ROI: If Aetheris catches one bug that would've taken 2 hours to debug in production, it's paid for itself
-3. **Consistency**: Every PR gets the same thorough review, 24/7
-4. **Actionable**: Not just warnings — actual fixes with `aetheris fix`
-5. **CI/CD Ready**: GitHub Actions template included, runs on every PR
-
-> **Real Impact**: On a 50-file codebase, Aetheris typically finds 15-30 issues that would've been missed — security vulnerabilities, edge cases, architectural debt. Time to find them manually? Hours. Time with Aetheris? Minutes.
+<p align="center">
+  <a href="#-get-started-in-30-seconds">Quick Start</a> |
+  <a href="#-see-it-in-action">Demo</a> |
+  <a href="#-pricing-that-makes-sense">Pricing</a> |
+  <a href="docs/commands/README.md">Full Documentation</a>
+</p>
 
 ---
 
-### 🆚 How Aetheris Compares
+## Stop Shipping Bugs. Start Shipping Confidence.
 
-#### Feature Comparison
+**Your code reviews are broken.** Senior devs spend hours reviewing PRs. Junior devs miss critical bugs. Security vulnerabilities slip into production. Sound familiar?
 
-| Feature | SaaS Platforms | IDE Plugins | Aetheris |
-|---------|----------------|-------------|----------|
-| **Pricing** | $20-500/month | Free-$20/month | **Pay-per-use** (see cost table below) |
-| **Data Privacy** | Code on their servers | Code on their servers | **Your API keys only** |
-| **Vendor Lock-in** | Single provider | Single IDE | **Multi-provider** |
-| **Auto-Fix** | Suggestions only | Limited | **Full auto-fix** with Claude Code |
-| **CI/CD Native** | Extra setup | Not supported | **GitHub Actions included** |
-| **Batch Analysis** | Per-file pricing | Not supported | **Entire codebase** at once |
-| **Offline Mode** | No | Limited | **Yes** - run anywhere |
-| **Custom Agents** | No | No | **Yes** - add your own |
-
-#### Cost Estimation (1000 files, full analysis)
-
-**Assumptions**: ~200 lines/file avg, 6 agents, ~4K tokens input + ~1K tokens output per file per agent
-
-| Provider | Model | Input $/1M | Output $/1M | Est. Cost (1000 files) | With 70% Cache |
-|----------|-------|------------|-------------|------------------------|----------------|
-| **Gemini** | 2.0 Flash | $0.075 | $0.30 | **~$4** | **~$1.20** |
-| Gemini | 3 Flash Preview | $0.50 | $3.00 | ~$30 | ~$9 |
-| Gemini | 1.5 Pro | $1.25 | $5.00 | ~$60 | ~$18 |
-| Gemini | 3 Pro Preview | $2.00 | $12.00 | ~$120 | ~$36 |
-| OpenAI | GPT-4o-mini | $0.15 | $0.60 | ~$8 | ~$2.40 |
-| OpenAI | GPT-4o | $2.50 | $10.00 | ~$120 | ~$36 |
-| Anthropic | Claude Haiku | $0.25 | $1.25 | ~$12 | ~$3.60 |
-| Anthropic | Claude Sonnet | $3.00 | $15.00 | ~$162 | ~$49 |
-
-> **Recommended**: Gemini 2.0 Flash for best cost/performance ratio. With smart caching (unchanged files skipped), expect 60-80% cost reduction on repeat analyses.
-
-#### vs. SaaS Platforms
-
-| Solution | Monthly Cost | Notes |
-|----------|-------------|-------|
-| Enterprise SaaS | $200-500 | Per-seat licensing, fixed |
-| Team SaaS | $50-100 | Limited features |
-| **Aetheris + Gemini Flash** | **$1-5** | Pay-per-use, scales with usage |
-
-#### Analysis Depth
-
-| Aspect | Traditional Tools | AI Platforms | Aetheris |
-|--------|-------------------|--------------|----------|
-| Pattern matching | ✅ | ✅ | ✅ |
-| Context awareness | ❌ | ✅ | ✅ |
-| Cross-file analysis | ❌ | Limited | ✅ **Full** |
-| Architecture review | ❌ | ❌ | ✅ **Dedicated agent** |
-| CVE scanning | Separate tool | ❌ | ✅ **Built-in** |
-| Auto-fix capability | ❌ | Suggestions | ✅ **Actual fixes** |
-
-**What others do well** (and we complement, not replace):
-- **IDE plugins**: Real-time feedback while typing — use ESLint/Pylint alongside Aetheris
-- **SaaS dashboards**: Team metrics & trends — Aetheris focuses on analysis, not dashboards
-- **GitHub native**: PR comments — Aetheris posts directly to your PRs
-
-**Where Aetheris excels**:
-- **Multi-agent deep analysis**: 6-10 specialized agents vs. single-model approach
-- **True auto-fix**: Not suggestions — actual code changes via Claude Code
-- **Cost efficiency**: Smart caching + batch API = 60-80% cost reduction
-- **Privacy-first**: Your code stays with your chosen AI provider only
-- **No lock-in**: Switch Gemini ↔ Claude ↔ OpenAI anytime
-- **Compliance-ready**: GDPR/HIPAA/PCI-DSS detection (coming in v3.0.1)
-
----
-
-### 🗺️ Roadmap
-
-| Version | Status | Features |
-|---------|--------|----------|
-| **v2.5** | ✅ Released | 6 core agents, GitHub Actions, auto-fix with Claude Code |
-| **v3.0** | 🚧 In Progress | Persistent configuration system (`config.json`), config hierarchy |
-| **v3.0.1** | 📋 Planned | 4 new specialized agents (Performance, API Contract, Type Safety, Data Privacy) |
-| **v3.0.2** | 📋 Planned | Agent selection (`--agents`), targeted fix (`--category`), presets |
-
-#### Coming in v3.0 — Configuration System
-- Local and global `config.json` files
-- Config hierarchy: CLI > Local > Global > Env > Defaults
-- Custom analysis presets
-- Team-shareable configurations
-
-#### Coming in v3.0.1 — Extended Agents (6 → 10 agents)
-
-| New Agent | Focus | What It Catches |
-|-----------|-------|-----------------|
-| **Performance** | Runtime efficiency | O(n²) patterns, N+1 queries, memory leaks |
-| **API Contract** | REST/GraphQL consistency | Method misuse, breaking changes, undocumented endpoints |
-| **Type Safety** | Type discipline | `any` usage, unsafe casts, null safety violations |
-| **Data Privacy** | Compliance | PII in logs, missing encryption, GDPR/HIPAA/PCI-DSS violations |
-
-#### Coming in v3.0.2 — Agent Selection & Targeted Fix
-- `--agents performance,security` — Run only specific agents
-- `--category compliance` — Fix only compliance issues
-- `--preset security-audit` — Pre-configured agent combinations
-- `--interactive` — Visual agent selection menu
-
----
-
-### 💡 Recommended Configuration
-
-| Task | Provider | Why |
-|------|----------|-----|
-| **Analysis** | Gemini | 1M token context window - analyzes entire codebase at once |
-| **Bug Fixing** | Claude Code | Best-in-class for code editing and automated fixes |
+**Aetheris fixes this.** It's like having a senior developer, security expert, and architect review every commit — in 2 minutes, not 2 hours.
 
 ```bash
-# .env
-AI_PROVIDER=gemini
-GEMINI_API_KEY=your_key
+pip install adryserage-aetheris && aetheris analysis
 ```
 
-Then use `aetheris fix` to auto-fix bugs with Claude Code.
+---
+
+## What Makes Aetheris Different
+
+| Traditional Tools | Aetheris |
+|:-----------------|:---------|
+| Thousands of noisy warnings | **Actionable insights only** |
+| Pattern matching (shallow) | **Context-aware AI (deep)** |
+| Security OR quality OR architecture | **All 6 agents working together** |
+| Suggestions you ignore | **Auto-fix that actually works** |
 
 ---
 
-> **We Want Your Input!** Help shape the future of Aetheris - vote on whether it should become fully open source.
->
-> **[Cast Your Vote Now](https://adryanserage.ca/poll/aetheris)**
+## 6 Specialized AI Agents, One Command
+
+<table>
+<tr>
+<td width="50%">
+
+### Security Agent
+Finds injections, secrets in code, weak crypto, OWASP Top 10
+
+### Architecture Agent
+Detects coupling issues, circular dependencies, anti-patterns
+
+### Code Quality Agent
+Catches dead code, complexity hotspots, edge cases
+
+</td>
+<td width="50%">
+
+### Metrics Agent
+Measures duplication, cyclomatic complexity, maintainability
+
+### Dependency Agent
+Scans for CVEs in your packages via OSV database
+
+### QA Synthesis Agent
+Prioritizes findings, eliminates false positives
+
+</td>
+</tr>
+</table>
 
 ---
 
-### 📊 Download Stats
-
-| Total Downloads | Monthly | Weekly | Daily |
-|:---------------:|:-------:|:------:|:-----:|
-| [![Downloads](https://static.pepy.tech/badge/adryserage-aetheris)](https://pepy.tech/project/adryserage-aetheris) | [![Downloads/Month](https://static.pepy.tech/badge/adryserage-aetheris/month)](https://pepy.tech/project/adryserage-aetheris) | [![Downloads/Week](https://static.pepy.tech/badge/adryserage-aetheris/week)](https://pepy.tech/project/adryserage-aetheris) | [![Downloads/Day](https://img.shields.io/pypi/dd/adryserage-aetheris?label=downloads)](https://pypistats.org/packages/adryserage-aetheris) |
-
-### 🗳️ Community Poll
-
-**Should Aetheris become Open Source?** [Vote here!](https://adryanserage.ca/poll/aetheris)
-
-[![Yes, open source it!](https://adryanserage.ca/api/poll/svg?pollId=aetheris&option=Yes%2C%20open%20source%20it!&color=%2322c55e)](https://adryanserage.ca/poll/aetheris?vote=Yes%2C%20open%20source%20it!)
-[![No, keep it private](https://adryanserage.ca/api/poll/svg?pollId=aetheris&option=No%2C%20keep%20it%20private&color=%23ef4444)](https://adryanserage.ca/poll/aetheris?vote=No%2C%20keep%20it%20private)
-[![I don't mind either way](https://adryanserage.ca/api/poll/svg?pollId=aetheris&option=I%20don%27t%20mind%20either%20way&color=%236366f1)](https://adryanserage.ca/poll/aetheris?vote=I%20don%27t%20mind%20either%20way)
-
-## Quick Start
+## See It In Action
 
 ```bash
-# Install
+# Analyze your entire codebase
+$ aetheris analysis
+
+  Scanning 127 files...
+  Running 6 AI agents...
+
+  CRITICAL: SQL injection in user_service.py:45
+  HIGH: Hardcoded API key in config.py:12
+  HIGH: N+1 query pattern in orders.py:78-92
+  MEDIUM: Circular dependency: auth -> users -> auth
+
+  23 issues found | 4 critical | 8 high | 11 medium
+  Report: docs/analyses/quality_assurance_report.md
+
+# Auto-fix with Claude Code
+$ aetheris fix --analyze-first --auto
+  Fixed 19/23 issues automatically
+```
+
+---
+
+## Pricing That Makes Sense
+
+**No subscriptions. No per-seat licensing. Just pay for what you use.**
+
+| What You Get | Enterprise SaaS | Aetheris |
+|:-------------|:---------------:|:--------:|
+| Monthly cost (10 devs) | $200-500/mo | **$5-20/mo** |
+| Your code stays... | On their servers | **With your AI provider** |
+| Vendor lock-in | Yes | **Switch providers anytime** |
+| Auto-fix capability | Suggestions only | **Actual code changes** |
+
+### Real Cost Example (1,000 files)
+
+| Provider | Economy Model | With 70% Cache |
+|:---------|:-------------:|:--------------:|
+| **Gemini Flash** | ~$3-10 | **~$1-3** |
+| GPT-4o-mini | ~$5-15 | ~$2-5 |
+| Claude Haiku | ~$10-20 | ~$3-6 |
+
+> Smart caching skips unchanged files. Expect **60-80% cost reduction** on repeat analyses.
+>
+> **Pricing Note**: AI API pricing changes frequently. Check current rates: [Gemini](https://ai.google.dev/pricing) | [OpenAI](https://openai.com/api/pricing/) | [Anthropic](https://www.anthropic.com/pricing)
+
+---
+
+## Get Started in 30 Seconds
+
+```bash
+# 1. Install
 pip install adryserage-aetheris
 
-# Configure
-echo "GEMINI_API_KEY=your_key_here" > .env
+# 2. Configure (free Gemini API key: https://ai.google.dev)
+echo "GEMINI_API_KEY=your_key" > .env
+echo ".env" >> .gitignore  # IMPORTANT: Never commit API keys
 
-# Analyze
+# 3. Analyze
 aetheris analysis
 ```
 
-## Commands
-
-### `aetheris analysis` — [Full docs](docs/commands/analysis.md)
-Full codebase analysis with multi-agent AI.
-
-```bash
-aetheris analysis                                    # Full analysis
-aetheris analysis --changed-files-only --files "src/a.py,src/b.py"
-aetheris analysis --changed-files-only --pr-number 123
-```
-
-| Option | Description |
-|--------|-------------|
-| `--changed-files-only` | Analyze only modified files |
-| `--files` | Files to analyze (JSON array or comma-separated) |
-| `--pr-number` | PR number for context |
+**That's it.** No account creation. No credit card. No 30-minute setup call.
 
 ---
 
-### `aetheris fix` — [Full docs](docs/commands/fix.md)
-Fix bugs automatically with Claude Code.
+## Trusted By Developers
 
-```bash
-aetheris fix --test                     # Test Claude Code connection
-aetheris fix --auto --batch-size 10     # Parallel mode (recommended)
-aetheris fix --analyze-first            # Analyze then fix
-aetheris fix --severity high            # Only critical/high bugs
-aetheris fix --retry-failed             # Retry failed fixes
-```
-
-| Option | Description |
-|--------|-------------|
-| `--test` | Test Claude Code connection |
-| `--analyze-first` | Run analysis before fixing |
-| `--auto` | Automatic mode (no confirmations) |
-| `--batch-size`, `-b` | Parallel fixes count (default: 1, max: 10) |
-| `--timeout` | Timeout per bug in seconds (default: 300) |
-| `--severity` | Minimum severity: `critical`, `high`, `medium`, `low` |
-| `--terminal` | Open Claude Code in terminal window |
-| `--retry-failed` | Retry only previously failed bugs |
+<p align="center">
+  <a href="https://pepy.tech/project/adryserage-aetheris"><img src="https://static.pepy.tech/badge/adryserage-aetheris" alt="Total Downloads"></a>
+  <a href="https://pepy.tech/project/adryserage-aetheris"><img src="https://static.pepy.tech/badge/adryserage-aetheris/month" alt="Monthly Downloads"></a>
+  <a href="https://pepy.tech/project/adryserage-aetheris"><img src="https://static.pepy.tech/badge/adryserage-aetheris/week" alt="Weekly Downloads"></a>
+</p>
 
 ---
 
-### `aetheris pr` — [Full docs](docs/commands/pr-review.md)
-Review GitHub Pull Requests with AI.
+## Complete Command Suite
 
+### `aetheris analysis` — Deep Codebase Scan
+```bash
+aetheris analysis                           # Full analysis
+aetheris analysis --changed-files-only      # PR-focused (faster)
+```
+[Full documentation](docs/commands/analysis.md)
+
+### `aetheris fix` — Auto-Fix with Claude Code
+```bash
+aetheris fix --analyze-first --auto         # Analyze + fix
+aetheris fix --severity high                # Critical issues only
+```
+[Full documentation](docs/commands/fix.md) | [Safety guidelines](#-auto-fix-safety-guidelines)
+
+### `aetheris pr` — GitHub PR Reviews
 ```bash
 aetheris pr --url https://github.com/owner/repo/pull/123
-aetheris pr --repo owner/repo --pr 123
-aetheris pr --url ... --providers gemini,claude      # Multi-provider
-aetheris pr --url ... --dry-run --output review.md
+aetheris pr --providers gemini,claude       # Multi-provider consensus
 ```
+[Full documentation](docs/commands/pr-review.md)
 
-| Option | Description |
-|--------|-------------|
-| `--url` | PR URL |
-| `--repo` | Repository (owner/repo format) |
-| `--pr` | PR number (required with `--repo`) |
-| `--providers` | AI providers, comma-separated (default: gemini) |
-| `--consensus` | Report only issues found by ALL providers (default) |
-| `--no-consensus` | Report all issues from all providers |
-| `--dry-run` | Analyze without posting comments |
-| `--severity` | Minimum severity to report |
-| `--no-inline` | Don't post inline comments |
-| `--output` | Save report to file |
-| `--auto-fix` | Propose to fix with Claude Code (own PRs) |
+### `aetheris issues` — Create GitHub Issues
+```bash
+aetheris issues                             # From analysis report
+aetheris issues --labels security,urgent    # With custom labels
+```
+[Full documentation](docs/commands/issues.md)
+
+### `aetheris user-story` — Flow Analysis
+```bash
+aetheris user-story --auto                  # Auto-detect user flows
+aetheris user-story --entry LoginButton.tsx # From entry point
+```
+[Full documentation](docs/commands/user-story.md)
+
+### `aetheris pr-gen` — Generate Fix PRs
+```bash
+aetheris pr-gen --link-issues               # Link to GitHub issues
+aetheris pr-gen --dry-run                   # Preview first
+```
+[Full documentation](docs/commands/pr-gen.md)
 
 ---
 
-### `aetheris user-story` — [Full docs](docs/commands/user-story.md)
-Analyze user flows and detect frontend↔backend inconsistencies.
+## Works With Your Stack
 
-```bash
-aetheris user-story --auto                          # Auto-detect flows
-aetheris user-story --text "When user clicks..."   # From description
-aetheris user-story --file user-stories.md         # From file
-aetheris user-story --entry src/LoginButton.tsx    # From code entry
-```
+<p align="center">
+  <strong>Python</strong> | <strong>TypeScript</strong> | <strong>JavaScript</strong> | <strong>Go</strong> | <strong>Rust</strong> | <strong>Java</strong> | <strong>Kotlin</strong> | <strong>Swift</strong> | <strong>Dart/Flutter</strong> | <strong>C/C++</strong> | <strong>C#</strong> | <strong>PHP</strong> | <strong>Ruby</strong>
+</p>
 
-| Option | Description |
-|--------|-------------|
-| `--text` | User story as text description |
-| `--file` | Path to markdown file with stories |
-| `--entry` | Code file as entry point |
-| `--auto` | Auto-detect all user flows |
-| `--output-format` | `markdown`, `json`, or `both` (default) |
-| `--diagram` | `mermaid`, `plantuml`, `both`, or `none` |
-| `--output-file` | Output file path |
-| `--severity` | Minimum severity for issues |
+**AI Providers:** Gemini | OpenAI | Claude (Anthropic)
+
+**CI/CD:** GitHub Actions template included | GitLab CI | Jenkins
 
 ---
 
-### `aetheris issues` — [Full docs](docs/commands/issues.md)
-Create GitHub issues from analysis reports.
+## Why Teams Switch to Aetheris
 
-```bash
-aetheris issues                                     # Create all issues
-aetheris issues --dry-run                           # Preview only
-aetheris issues --labels security,sprint-42
-aetheris issues --assignee username --repo owner/repo
-```
-
-| Option | Description |
-|--------|-------------|
-| `--dry-run` | Preview issues without creating |
-| `--labels` | Additional labels (comma-separated) |
-| `--assignee` | GitHub username to assign |
-| `--repo` | Target repository (owner/repo) |
-| `--from-report` | Process specific report file only |
+| Before Aetheris | After Aetheris |
+|:----------------|:---------------|
+| "Code review takes forever" | **2-minute automated scans** |
+| "We keep shipping the same bugs" | **Consistent, thorough reviews 24/7** |
+| "Security audits are expensive" | **Built-in CVE + OWASP scanning** |
+| "Junior devs miss edge cases" | **AI catches what humans miss** |
+| "We're locked into [expensive tool]" | **Pay-per-use, switch providers anytime** |
 
 ---
 
-### `aetheris pr-gen` — [Full docs](docs/commands/pr-gen.md)
-Generate PRs with AI-generated fixes for bugs.
+## Coming Soon
 
-```bash
-aetheris pr-gen --dry-run                          # Preview PRs
-aetheris pr-gen --link-issues                      # Link to GitHub issues
-aetheris pr-gen --base-branch develop
-aetheris pr-gen --bug-index 0                      # Single bug
-```
+| Version | Status | What's New |
+|:--------|:------:|:-----------|
+| **v2.5** | Released | 6 core agents, GitHub Actions, auto-fix with Claude Code |
+| **v3.0** | In Progress | Persistent `config.json`, team-shareable settings |
+| **v3.0.1** | Planned | 4 new agents: Performance, API Contract, Type Safety, Data Privacy |
+| **v3.0.2** | Planned | Agent selection (`--agents`), analysis presets |
 
-| Option | Description |
-|--------|-------------|
-| `--dry-run` | Preview PRs without creating |
-| `--base-branch` | Target base branch for PRs |
-| `--from-report` | Process specific report file only |
-| `--bug-index` | Process only bug at this index (0-based) |
-| `--link-issues` | Link PRs to matching GitHub issues |
-| `--issue-number` | Link all PRs to this issue number |
+### New Agents in v3.0.1
 
-## Features
+| Agent | What It Catches |
+|:------|:----------------|
+| **Performance** | O(n^2) patterns, N+1 queries, memory leaks |
+| **API Contract** | REST/GraphQL inconsistencies, breaking changes |
+| **Type Safety** | `any` abuse, unsafe casts, null violations |
+| **Data Privacy** | PII in logs, GDPR/HIPAA/PCI-DSS violations |
 
-### Multi-Provider AI
-- **Providers**: Gemini, Claude (Anthropic), OpenAI
-- **Consensus Mode**: Only report issues found by ALL providers
-- **Structured Outputs**: JSON responses validated via Pydantic
+---
 
-### Analysis Capabilities
-- Security vulnerabilities (injections, secrets, weak crypto)
-- Code quality and metrics
-- Architecture review
-- Dependency CVE scanning via OSV API
-- CWE/OWASP classifications
+## Help Shape Aetheris
 
-### Performance
-- **Smart Cache**: 60-80% API cost reduction (git SHA based)
-- **Parallelization**: Dependency graph-based
-- **Context Caching**: 50% cost reduction (Gemini)
-- **Batch API**: 50% price reduction (Gemini)
+**Should Aetheris become Open Source?** [Cast your vote](https://adryanserage.ca/poll/aetheris)
 
-### Automation
-- GitHub Actions integration
-- Auto-fix with Claude Code
-- GitHub issue creation
-- PR generation with fixes
+<p align="center">
+  <a href="https://adryanserage.ca/poll/aetheris?vote=Yes%2C%20open%20source%20it!"><img src="https://adryanserage.ca/api/poll/svg?pollId=aetheris&option=Yes%2C%20open%20source%20it!&color=%2322c55e" alt="Yes, open source it!"></a>
+  <a href="https://adryanserage.ca/poll/aetheris?vote=No%2C%20keep%20it%20private"><img src="https://adryanserage.ca/api/poll/svg?pollId=aetheris&option=No%2C%20keep%20it%20private&color=%23ef4444" alt="No, keep it private"></a>
+  <a href="https://adryanserage.ca/poll/aetheris?vote=I%20don%27t%20mind%20either%20way"><img src="https://adryanserage.ca/api/poll/svg?pollId=aetheris&option=I%20don%27t%20mind%20either%20way&color=%236366f1" alt="I don't mind"></a>
+</p>
+
+---
 
 ## Documentation
 
-| Topic | Link |
-|-------|------|
-| Installation | [docs/installation.md](docs/installation.md) |
-| Configuration | [docs/configuration.md](docs/configuration.md) |
-| AI Providers | [docs/ai-providers.md](docs/ai-providers.md) |
-| Commands Reference | [docs/commands/README.md](docs/commands/README.md) |
-| Analysis Agents | [docs/agents.md](docs/agents.md) |
-| Features | [docs/features.md](docs/features.md) |
-| GitHub Actions | [docs/github-actions.md](docs/github-actions.md) |
-| Extensibility | [docs/PLUGINS.md](docs/PLUGINS.md) |
-| Troubleshooting | [docs/troubleshooting.md](docs/troubleshooting.md) |
+| Getting Started | Reference | Advanced |
+|:----------------|:----------|:---------|
+| [Installation](docs/installation.md) | [Commands](docs/commands/README.md) | [Extending Agents](docs/PLUGINS.md) |
+| [Configuration](docs/configuration.md) | [AI Providers](docs/ai-providers.md) | [GitHub Actions](docs/github-actions.md) |
+| [Troubleshooting](docs/troubleshooting.md) | [Analysis Agents](docs/agents.md) | [Features Deep Dive](docs/features.md) |
 
-## Analysis Agents
+---
 
-Aetheris uses **6 specialized agents**:
+## Important Safety Information
 
-1. **Code Analysis Expert** - Individual file analysis
-2. **Architect Analysis Agent** - Architecture overview
-3. **Security Analysis Agent** - Vulnerability detection
-4. **Code Metrics Agent** - Complexity and duplication
-5. **Dependency Vulnerability Agent** - CVE scanning
-6. **Quality Assurance Agent** - Final synthesis
+<details>
+<summary><strong>Data Privacy Notice</strong></summary>
 
-## Basic Configuration
+Aetheris sends your source code to third-party AI providers (Google Gemini, OpenAI, or Anthropic) for analysis. Before using on proprietary codebases:
 
-Create `.env` file:
+1. **Review your organization's data policies** — Some companies prohibit sending source code to external services
+2. **Use Enterprise/Zero Data Retention plans**:
+   - [Google Vertex AI](https://cloud.google.com/vertex-ai) — Data not used for training
+   - [OpenAI Enterprise](https://openai.com/enterprise) — Zero data retention
+   - [Anthropic API](https://www.anthropic.com/api) — Data not used for training by default
+3. **Check data residency requirements** — For regulated industries (healthcare, finance)
 
-```env
-# AI Provider (gemini, openai, claude)
-AI_PROVIDER=gemini
-GEMINI_API_KEY=your_key_here
+**Your API keys are never shared** — Aetheris connects directly to your chosen provider.
 
-# Optional
-AI_MODEL=gemini-2.5-pro
-BATCH_SIZE=10
-ENABLE_CACHE=true
-```
+</details>
 
-See [Configuration Guide](docs/configuration.md) for all options.
+<details>
+<summary><strong>Auto-Fix Safety Guidelines</strong></summary>
 
-## Example Workflows
+The `--auto` flag applies AI-generated code changes **without human review**. Risks include:
 
-### Full Analysis
+| Risk | Description |
+|:-----|:------------|
+| **Hallucinations** | LLMs may generate plausible but incorrect code |
+| **Security vulnerabilities** | Fixes may introduce new attack vectors |
+| **Business logic removal** | AI may delete critical code paths |
+
+**Safe workflow:**
 ```bash
-aetheris analysis
+aetheris fix --analyze-first --auto  # Run fixes
+git diff                              # Review ALL changes (mandatory)
+pytest                                # Run tests
+git add -p                            # Stage interactively
 ```
 
-### Analyze and Fix Bugs
+</details>
+
+---
+
+## Ready to Ship Better Code?
+
 ```bash
-aetheris fix --analyze-first --auto --batch-size 10
+pip install adryserage-aetheris && aetheris analysis
 ```
 
-### PR Review with Multiple Providers
-```bash
-aetheris pr --url https://github.com/owner/repo/pull/123 --providers gemini,claude
-```
+<p align="center">
+  <a href="https://pypi.org/project/adryserage-aetheris/"><strong>Install from PyPI</strong></a> |
+  <a href="https://github.com/adryserage/aetheris"><strong>View on GitHub</strong></a> |
+  <a href="https://ai.google.dev"><strong>Get Free Gemini API Key</strong></a>
+</p>
 
-### Create Issues and Generate Fix PRs
-```bash
-aetheris issues
-aetheris pr-gen --link-issues
-```
+---
 
-## Project Structure
-
-```
-aetheris/
-├── src/
-│   ├── core/           # Main modules (analyzer, orchestrator, cache)
-│   ├── models/         # Data models
-│   ├── agents/         # AI agents
-│   └── services/       # Utilities
-├── docs/               # Documentation
-├── scripts/            # Utility scripts
-└── main.py            # Entry point
-```
-
-## Supported Languages
-
-Python, TypeScript, JavaScript, Dart/Flutter, Java, Kotlin, Swift, Go, Rust, C/C++, C#, PHP, Ruby, and more.
-
-## Output
-
-Reports generated in `docs/analyses/`:
-- Individual file reports
-- Architecture overview
-- Quality assurance report
-- Vulnerabilities report
-- Performance metrics (JSON)
-
-## Resources
-
-- [Repository](https://github.com/adryserage/aetheris)
-- [PyPI Package](https://pypi.org/project/adryserage-aetheris/)
-- [Gemini API](https://ai.google.dev/docs)
-- [OpenAI API](https://platform.openai.com/docs)
-- [Claude API](https://docs.anthropic.com)
+<p align="center">
+  <sub>Built with care by <a href="https://adryanserage.ca">Adryan Serage</a></sub>
+</p>
