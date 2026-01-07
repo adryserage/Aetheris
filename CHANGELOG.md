@@ -5,6 +5,15 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.5.1] - 2025-01-07
+
+### 📝 Documentation
+
+- **README amélioré** : Section Commands étendue avec tous les arguments CLI
+  - Chaque commande inclut maintenant des exemples d'utilisation
+  - Tables complètes de toutes les options disponibles
+  - Liens vers la documentation détaillée de chaque commande
+
 ## [2.5.0] - 2025-01-06
 
 ### ✨ Nouvelles fonctionnalités
