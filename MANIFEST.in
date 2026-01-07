@@ -1,11 +1,29 @@
+# MANIFEST.in - Control what goes into source distribution
+# For Cython binary distribution, we exclude Python source files
+
+# Include essential files
 include README.md
 include LICENSE
-include requirements.txt
-include CHANGELOG.md
-recursive-include docs *.md
-recursive-include scripts *.py
-global-exclude __pycache__
-global-exclude *.py[co]
-global-exclude *.so
-global-exclude .DS_Store
+include pyproject.toml
+include setup.py
 
+# Include package __init__.py files (needed as stubs for imports)
+recursive-include src __init__.py
+
+# Exclude all Python source files from sdist
+global-exclude *.py
+global-exclude *.pyx
+global-exclude *.pxd
+
+# Re-include __init__.py files after global exclude
+recursive-include src __init__.py
+
+# Exclude build artifacts
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.so
+global-exclude *.pyd
+global-exclude __pycache__
+prune build
+prune dist
+prune *.egg-info
