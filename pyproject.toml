@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "adryserage-aetheris"
-version = "2.5.7"
+version = "2.5.8"
 description = "Aetheris - Multi-agent AI code analysis system with PR review, multi-provider consensus (Gemini/Claude/OpenAI), security analysis, and automatic bug fixing via Claude Code"
 readme = "README.md"
 requires-python = ">=3.9"
