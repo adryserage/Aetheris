@@ -10,6 +10,21 @@
 
 Automated code analysis system using multiple cooperating AI agents to provide comprehensive quality, security, and architecture analysis of your codebase.
 
+### 💡 Recommended Configuration
+
+| Task | Provider | Why |
+|------|----------|-----|
+| **Analysis** | Gemini | 1M token context window - analyzes entire codebase at once |
+| **Bug Fixing** | Claude Code | Best-in-class for code editing and automated fixes |
+
+```bash
+# .env
+AI_PROVIDER=gemini
+GEMINI_API_KEY=your_key
+```
+
+Then use `aetheris fix` to auto-fix bugs with Claude Code.
+
 ---
 
 > **We Want Your Input!** Help shape the future of Aetheris - vote on whether it should become fully open source.
