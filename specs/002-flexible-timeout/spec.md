@@ -104,7 +104,22 @@ En tant qu'utilisateur exécutant une analyse longue, je veux voir un indicateur
 
 ## Out of Scope
 
-- Configuration du timeout via fichier de configuration (sera traité dans v3.0)
+- Configuration du timeout via fichier de configuration → **Voir 006-persistent-config** (`ai.timeout`, `ai.heartbeat_interval`)
 - Interface graphique pour le monitoring
 - Notifications push ou email lors de la fin d'une analyse
 - Parallélisation des analyses pour réduire le temps d'exécution
+
+## Config Integration (v3.0+)
+
+À partir de v3.0, les options de timeout seront également configurables via `config.json`:
+
+```json
+{
+  "ai": {
+    "timeout": "60m",
+    "heartbeat_interval": "10m"
+  }
+}
+```
+
+La hiérarchie reste: CLI (`--timeout`) > config.json local > config.json global > défaut (60m)

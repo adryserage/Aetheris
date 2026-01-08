@@ -127,3 +127,18 @@ En tant que mainteneur, je veux que tous les textes statiques (messages d'erreur
 - Traduction automatique des messages
 - Localisation des formats de date/nombre
 - Support des langues RTL (right-to-left)
+- Stockage de la préférence de langue → **Voir 006-persistent-config** (section `i18n.language`)
+
+## Config Integration (v3.0+)
+
+À partir de v3.0, la préférence de langue sera configurable via `config.json`:
+
+```json
+{
+  "i18n": {
+    "language": "fr"
+  }
+}
+```
+
+La hiérarchie: CLI (`--lang`) > config.json local > config.json global > env `LANG` > défaut ("fr")

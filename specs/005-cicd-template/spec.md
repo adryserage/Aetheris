@@ -159,3 +159,19 @@ En tant que développeur, je veux que seuls les fichiers modifiés soient analys
 - Intégration avec les outils de code review tiers
 - Workflow de déploiement automatique des corrections
 - Support des repositories privés avec runners self-hosted
+- Stockage des patterns d'exclusion → **Voir 006-persistent-config** (section `analysis.*`)
+
+## Config Integration (v3.0+)
+
+À partir de v3.0, les options d'analyse seront configurables via `config.json`:
+
+```json
+{
+  "analysis": {
+    "exclude_patterns": ["**/node_modules/**", "**/.git/**"],
+    "changed_files_only": false
+  }
+}
+```
+
+Le workflow GitHub Actions peut lire ces options depuis le config.json du projet.

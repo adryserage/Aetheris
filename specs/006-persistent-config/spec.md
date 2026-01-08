@@ -9,6 +9,66 @@
 
 Migrer la configuration de l'outil depuis les variables d'environnement (`.env`) vers un fichier de configuration dédié et structuré (`config.json`). Cette migration permet une meilleure gestion des paramètres complexes, le versionnage des règles de projet et une séparation nette entre secrets et préférences.
 
+## Config.json Schema (Reference)
+
+Ce schema intègre toutes les options des specs pré-v3.0 (002-timeout, 003-stats, 004-i18n, 005-cicd):
+
+```json
+{
+  "ai": {
+    "provider": "gemini",
+    "model": "default",
+    "timeout": "60m",
+    "heartbeat_interval": "10m",
+    "max_retries": 3
+  },
+  "analysis": {
+    "exclude_patterns": ["**/node_modules/**", "**/.git/**", "**/__pycache__/**"],
+    "changed_files_only": false,
+    "default_preset": "full-scan"
+  },
+  "i18n": {
+    "language": "fr"
+  },
+  "stats": {
+    "hourly_rate": null,
+    "region": "auto",
+    "currency": "auto",
+    "heuristics": {
+      "bug_simple_minutes": 37.5,
+      "bug_moderate_minutes": 90,
+      "bug_complex_minutes": 240
+    }
+  },
+  "output": {
+    "format": "markdown",
+    "directory": "docs/analyses"
+  }
+}
+```
+
+### Options détaillées
+
+| Section | Clé | Type | Défaut | Description | Source |
+|---------|-----|------|--------|-------------|--------|
+| `ai` | `provider` | enum | `"gemini"` | Provider AI (gemini, openai, claude) | - |
+| `ai` | `model` | string | `"default"` | Modèle spécifique ou "default" | - |
+| `ai` | `timeout` | string | `"60m"` | Timeout par défaut (formats: 120, 30m, 1h, no-limit) | 002 |
+| `ai` | `heartbeat_interval` | string | `"10m"` | Intervalle des messages heartbeat | 002 |
+| `ai` | `max_retries` | int | `3` | Nombre de retries API | - |
+| `analysis` | `exclude_patterns` | string[] | `[...]` | Patterns glob à exclure | 005 |
+| `analysis` | `changed_files_only` | bool | `false` | Analyser uniquement fichiers modifiés | 005 |
+| `analysis` | `default_preset` | string | `"full-scan"` | Preset par défaut | - |
+| `i18n` | `language` | enum | `"fr"` | Langue interface (fr, en) | 004 |
+| `stats` | `hourly_rate` | float\|null | `null` | Taux horaire custom (null = régional) | 003 |
+| `stats` | `region` | enum | `"auto"` | Région pour taux (auto, EUR, CAD, USD) | 003 |
+| `stats` | `currency` | enum | `"auto"` | Devise affichage (auto, EUR, CAD, USD) | 003 |
+| `stats.heuristics` | `bug_simple_minutes` | float | `37.5` | Temps moyen bug simple | 003 |
+| `stats.heuristics` | `bug_moderate_minutes` | float | `90` | Temps moyen bug modéré | 003 |
+| `stats.heuristics` | `bug_complex_minutes` | float | `240` | Temps moyen bug complexe | 003 |
+| `output` | `format` | enum | `"markdown"` | Format de sortie (markdown, json) | - |
+| `output` | `directory` | string | `"docs/analyses"` | Dossier de sortie | - |
+
 ## User Scenarios & Testing
 
 ### User Story 1 - Configuration Cascade (Priority: P1)
@@ -87,7 +147,7 @@ En tant qu'utilisateur, je veux pouvoir modifier la configuration via une comman
 **Acceptance Scenarios**:
 
 1. **Given** la commande `aetheris settings`, **When** l'utilisateur l'exécute, **Then** une interface interactive s'affiche avec des onglets de catégories
-2. **Given** l'interface settings ouverte, **When** l'utilisateur navigue avec les flèches, **Then** il peut basculer entre les onglets (General, AI Provider, Analysis, Output, Advanced)
+2. **Given** l'interface settings ouverte, **When** l'utilisateur navigue avec les flèches, **Then** il peut basculer entre les onglets (AI, Analysis, I18n, Stats, Output)
 3. **Given** une option sélectionnée, **When** l'utilisateur appuie sur Entrée, **Then** il peut modifier la valeur
 4. **Given** une modification effectuée, **When** l'utilisateur sauvegarde, **Then** le config.json est mis à jour
 5. **Given** l'option `--global`, **When** l'utilisateur exécute `aetheris settings --global`, **Then** le config.json global est modifié
@@ -119,6 +179,12 @@ En tant que mainteneur de projet, je veux que le config.json soit versionnable p
 - Comment migrer les configurations .env existantes vers config.json?
 - Que se passe-t-il si le terminal ne supporte pas l'interface interactive (pipe, CI)?
 - Comment gérer les permissions d'écriture sur le config.json global?
+- Que se passe-t-il si `timeout` a un format invalide (ex: "abc", "-10m")?
+- Que se passe-t-il si `language` est une langue non supportée?
+- Que se passe-t-il si `hourly_rate` est négatif?
+- Que se passe-t-il si `region` est "auto" mais la locale système n'est pas reconnue?
+- Comment valider les patterns glob dans `exclude_patterns`?
+- Que se passe-t-il si `heuristics` contient des valeurs négatives?
 
 ## Requirements
 
@@ -144,13 +210,40 @@ En tant que mainteneur de projet, je veux que le config.json soit versionnable p
 - **FR-018**: Le système DOIT valider les valeurs en temps réel avant sauvegarde
 - **FR-019**: Le système DOIT afficher une description/aide pour chaque option
 
+#### Timeout (from 002-flexible-timeout)
+
+- **FR-020**: Le système DOIT supporter `ai.timeout` avec formats: secondes (entier), minutes (suffixe "m"), heures (suffixe "h")
+- **FR-021**: Le système DOIT supporter `ai.timeout: "no-limit"` ou `0` pour désactiver le timeout
+- **FR-022**: Le système DOIT supporter `ai.heartbeat_interval` pour configurer l'intervalle des messages heartbeat
+
+#### I18n (from 004-i18n-multilingual)
+
+- **FR-023**: Le système DOIT supporter `i18n.language` avec valeurs "fr" ou "en" (défaut: "fr")
+- **FR-024**: Le système DOIT valider que la langue est supportée et afficher un message d'erreur clair sinon
+
+#### Stats ROI (from 003-advanced-stats)
+
+- **FR-025**: Le système DOIT supporter `stats.hourly_rate` pour surcharger le taux horaire régional
+- **FR-026**: Le système DOIT supporter `stats.region` avec valeurs "auto", "EUR", "CAD", "USD"
+- **FR-027**: Le système DOIT détecter automatiquement la région via locale système si `stats.region: "auto"`
+- **FR-028**: Le système DOIT supporter `stats.heuristics` pour personnaliser les temps de bug estimation
+- **FR-029**: Le système DOIT utiliser les taux régionaux par défaut: 85€/h (EUR), 120$CAD/h (CAD), 95$USD/h (USD)
+
+#### Analysis (from 005-cicd-template)
+
+- **FR-030**: Le système DOIT supporter `analysis.exclude_patterns` comme tableau de patterns glob
+- **FR-031**: Le système DOIT supporter `analysis.changed_files_only` pour le mode analyse incrémentale
+
 ### Key Entities
 
 - **ConfigFile**: Fichier JSON de configuration (local ou global)
 - **ConfigHierarchy**: Ordre de priorité des sources de configuration
-- **ConfigSchema**: Structure et types des options de configuration
+- **ConfigSchema**: Structure et types des options de configuration (ai, analysis, i18n, stats, output)
 - **SecretKeys**: Liste des clés considérées comme secrets (API keys, tokens)
 - **SettingsUI**: Interface terminal interactive avec onglets (Rich/Textual)
+- **TimeoutParser**: Parser pour formats timeout (120, 30m, 1h, no-limit)
+- **RegionDetector**: Détection automatique région via locale système
+- **HeuristicsConfig**: Configuration des temps estimés par type de bug
 
 ## Success Criteria
 
@@ -168,8 +261,11 @@ En tant que mainteneur de projet, je veux que le config.json soit versionnable p
 
 - Le format JSON est suffisant pour tous les besoins de configuration
 - Les utilisateurs sont familiers avec l'édition de fichiers JSON
-- Le config.json global est stocké dans le répertoire d'installation du package
+- Le config.json global est stocké dans le répertoire d'installation du package (`~/.aetheris/config.json`)
 - Les secrets sont limités aux clés API des providers (GEMINI, OPENAI, ANTHROPIC)
+- La détection de région via locale système couvre les cas courants (fr_FR → EUR, en_CA → CAD, en_US → USD)
+- Les formats de timeout suivent la convention standard: entier (secondes), suffixe "m" (minutes), suffixe "h" (heures)
+- Les patterns glob dans `exclude_patterns` suivent la syntaxe standard (**, *, ?)
 
 ## Out of Scope
 
@@ -179,3 +275,18 @@ En tant que mainteneur de projet, je veux que le config.json soit versionnable p
 - Support d'autres formats (YAML, TOML)
 - Migration automatique des anciennes configurations
 - Validation de schéma JSON avancée
+- Logique métier du timeout (implémentée dans 002-flexible-timeout)
+- Logique métier des stats ROI (implémentée dans 003-advanced-stats)
+- Logique métier de l'i18n (implémentée dans 004-i18n-multilingual)
+- Logique métier de l'analyse incrémentale (implémentée dans 005-cicd-template)
+
+## Cross-Spec Dependencies
+
+Cette spec définit le **système de stockage** des configurations. La logique métier est implémentée dans les specs sources:
+
+| Option config.json | Logique implémentée dans |
+|--------------------|--------------------------|
+| `ai.timeout`, `ai.heartbeat_interval` | 002-flexible-timeout |
+| `stats.*` | 003-advanced-stats |
+| `i18n.language` | 004-i18n-multilingual |
+| `analysis.exclude_patterns`, `analysis.changed_files_only` | 005-cicd-template |

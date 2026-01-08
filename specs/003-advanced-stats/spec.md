@@ -175,3 +175,25 @@ coût = temps_humain × taux_horaire_régional
 - Comparaison avec des projets précédents
 - Dashboard web ou interface graphique
 - Intégration avec des outils de reporting externes
+- Stockage de la configuration → **Voir 006-persistent-config** (section `stats.*`)
+
+## Config Integration (v3.0+)
+
+À partir de v3.0, les options de stats seront configurables via `config.json`:
+
+```json
+{
+  "stats": {
+    "hourly_rate": null,
+    "region": "auto",
+    "currency": "auto",
+    "heuristics": {
+      "bug_simple_minutes": 37.5,
+      "bug_moderate_minutes": 90,
+      "bug_complex_minutes": 240
+    }
+  }
+}
+```
+
+La hiérarchie: config.json local > config.json global > détaut régional
