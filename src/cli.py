@@ -33,6 +33,8 @@ from src.core.analyzer import CodeAnalyzer
 # Import de la configuration depuis le module dédié
 from src.core.config import AnalysisConfig
 from src.core.config import load_env_file
+from src.core.config import TimeoutConfig
+from src.core.config import TimeoutParseError
 from src.core.progress import ProgressManager
 
 
@@ -92,6 +94,17 @@ Exemples:
 
     analysis_parser.add_argument(
         "--pr-number", type=int, default=None, help="Numéro de PR (optionnel, pour information)"
+    )
+
+    analysis_parser.add_argument(
+        "--timeout",
+        "-t",
+        type=str,
+        default=None,
+        help=(
+            "Timeout for the entire analysis. Formats: 3600 (seconds), 30m (minutes), "
+            "2h (hours), 0 or no-limit (unlimited). Default: 60m"
+        ),
     )
 
     return analysis_parser
@@ -254,6 +267,17 @@ async def run_analysis(args):
             except ValueError:
                 pass
 
+    # Parse timeout configuration (v2.6.1)
+    timeout_config = None
+    timeout_arg = getattr(args, "timeout", None)
+    if timeout_arg:
+        try:
+            timeout_config = TimeoutConfig.parse(timeout_arg)
+            log_print(f"⏱️  Timeout: {timeout_config.format_human()}")
+        except TimeoutParseError as e:
+            log_print(f"❌ {e}")
+            sys.exit(1)
+
     config = AnalysisConfig(
         ai_provider=ai_provider,
         ai_api_key=ai_api_key,
@@ -285,6 +309,8 @@ async def run_analysis(args):
         cache_ttl_seconds=int(os.getenv("CONTEXT_CACHE_TTL_SECONDS", "3600")),
         enable_batch_mode=os.getenv("ENABLE_BATCH_MODE", "false").lower() == "true",
         enable_google_search=os.getenv("ENABLE_GOOGLE_SEARCH", "false").lower() == "true",
+        # Timeout configuration (v2.6.1)
+        timeout_config=timeout_config,
     )
 
     log_print(f"📁 Répertoire racine: {config.root_dir}")

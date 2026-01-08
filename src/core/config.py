@@ -121,6 +121,7 @@ class TimeoutConfig:
         else:
             return f"{self.value}s"
 
+
 # Modèles par défaut par fournisseur
 DEFAULT_MODELS = {
     "gemini": "gemini-3-pro-preview",  # Nouveau modèle avec toutes les fonctionnalités
@@ -186,7 +187,12 @@ class AnalysisConfig:
     ai_model: str = ""  # Modèle à utiliser (défaut selon provider)
     batch_size: int = 15  # Optimal pour parallélisation + rate limits
     max_retries: int = 3
-    timeout_seconds: int = 60
+    timeout_seconds: int = 60  # Legacy: per-request timeout (kept for compatibility)
+
+    # === Timeout Configuration (v2.6.1) ===
+    # Global timeout for the entire analysis workflow
+    timeout_config: Optional[TimeoutConfig] = None  # Parsed from --timeout CLI flag
+    heartbeat_interval: int = HEARTBEAT_INTERVAL_SECONDS  # Heartbeat interval (default: 10 min)
     output_dir: str = "docs/analyses"
     architecture_report_path: str = "docs/architecture_overview.md"
     root_dir: str = "."
@@ -317,6 +323,10 @@ class AnalysisConfig:
         if not validate_provider_model(self.ai_provider, self.ai_model):
             # Avertir mais ne pas bloquer (certains modèles peuvent être valides mais pas dans la liste)
             pass
+
+        # Initialize timeout_config with default if not set (v2.6.1)
+        if self.timeout_config is None:
+            self.timeout_config = TimeoutConfig(value=DEFAULT_TIMEOUT_SECONDS, enabled=True)
 
 
 def load_env_file(env_path: str = ".env") -> Dict[str, str]:
