@@ -116,3 +116,7 @@ dist/
 # Package metadata
 MANIFEST
 .pypirc
+/.cache
+/docs
+/docs
+/docs

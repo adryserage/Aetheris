@@ -78,10 +78,9 @@ packages = ["src", "src.agents", "src.core", "src.models", "src.services"]
 "*" = ["*.md", "*.txt", "*.yaml", "*.yml"]
 
 [tool.cibuildwheel]
-# Build for specific Python versions (3.9-3.13, google-genai requires 3.9+)
-build = "cp39-* cp310-* cp311-* cp312-* cp313-*"
-
 # Skip 32-bit builds, musllinux, and PyPy
+# Python version selection is automatic based on requires-python (>=3.9)
+# cibuildwheel will build for all supported Python versions >= 3.9
 skip = "*-win32 *-manylinux_i686 *musllinux* pp*"
 
 # Test command to verify compiled package works

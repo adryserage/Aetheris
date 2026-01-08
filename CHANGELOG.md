@@ -5,7 +5,53 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
-## [2.5.7] - 2025-01-07
+## [Unreleased]
+
+### ✨ Nouvelles fonctionnalités
+
+### 🔧 Modifications
+
+### 🐛 Corrections
+
+### 📝 Documentation
+
+### 📦 Dépendances
+
+## [2.5.8] - 2025-01-07
+
+> **Note** : Cette version consolide plusieurs améliorations mineures (v2.5.1-v2.5.7) publiées le même jour pour réduire la "release fatigue".
+
+### 🔒 Sécurité
+
+- **CRITIQUE : Désactivation du mode `--auto` par défaut** (CVE potentiel, CWE-94)
+  - Le flag `--auto` de `aetheris fix` est maintenant désactivé par défaut
+  - **Risque identifié** : Injection de prompt permettant l'exécution de code malveillant
+  - **Vecteur d'attaque** : Code analysé contenant des instructions malveillantes pour l'agent IA
+  - **Impact** : Exécution de code arbitraire, exfiltration de données sur la machine du développeur
+  - **Mitigation** :
+    - Validation humaine obligatoire pour toute modification générée par l'IA
+    - Mode `--auto` requiert désormais le flag explicite `--i-accept-security-risks`
+    - Documentation des risques ajoutée dans le CHANGELOG et la documentation
+  - **Recommandation** : N'utilisez `--auto` que dans des environnements sandboxés (CI, containers éphémères)
+
+- **Protection contre l'injection de prompt indirecte via Google Search** (BUG-7A1985E1, CWE-74)
+  - **Risque identifié** : La fonctionnalité `enable_google_search` (v2.2.0) exposait l'application à des attaques par injection de prompt indirecte
+  - **Vecteur d'attaque** : Contenu web malveillant ingéré lors des recherches Google pouvait manipuler le comportement de l'IA
+  - **Impact** : Rapports d'analyse faussés, suggestions de code vulnérable, exfiltration potentielle de données
+  - **Mitigation implémentée** :
+    - Nouvelle méthode `_sanitize_web_content()` pour assainir tout contenu web récupéré
+    - Filtrage des patterns d'injection de prompt courants ("ignore previous instructions", "system:", etc.)
+    - Délimiteurs stricts (`<<<EXTERNAL_WEB_CONTENT_START>>>` / `<<<EXTERNAL_WEB_CONTENT_END>>>`) pour isoler les données externes
+    - Instruction système de sécurité automatique dans `_build_config()` lorsque Google Search est activé
+    - Limitation de la taille du contenu externe à 50KB (protection DoS)
+  - **Fichiers modifiés** : `src/core/ai_providers.py`
+
+### ✨ Nouvelles fonctionnalités
+
+- **Sondage communautaire** : Ajout d'un sondage "Should Aetheris become Open Source?"
+  - Badges SVG dynamiques dans le README avec vote en un clic
+  - Page de sondage dédiée sur adryanserage.ca/poll/aetheris
+  - Lien "Vote: Open Source?" ajouté sur la page PyPI
 
 ### 📦 Package
 
@@ -15,56 +61,16 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
   - Ajout keywords : ai, llm, devops, ci-cd, vulnerability-scanner
   - Support langues : Anglais, Français
 
-## [2.5.6] - 2025-01-07
-
-### 📝 Documentation
-
-- **Configuration recommandée** : Ajout section conseils dans le README
-  - Gemini pour l'analyse (contexte 1M tokens)
-  - Claude Code pour la correction automatique des bugs
-
-## [2.5.5] - 2025-01-07
-
-### 📝 Documentation
-
-- **Badges README** : Ajout de badges compatibles (PyPI status, black, mypy, platform)
-- Suppression du badge CI (incompatible avec repo privé)
-
-## [2.5.4] - 2025-01-07
-
-### 📝 Documentation
-
-- **README amélioré** : Réorganisation pour meilleure lisibilité
-  - Description du projet déplacée en haut après les badges
-  - Bannière d'appel au vote ajoutée de manière proéminente
-
-## [2.5.3] - 2025-01-07
-
-### ✨ Nouvelles fonctionnalités
-
-- **Sondage communautaire** : Ajout d'un sondage "Should Aetheris become Open Source?"
-  - Badges SVG dynamiques dans le README avec vote en un clic
-  - Page de sondage dédiée sur adryanserage.ca/poll/aetheris
-  - Lien "Vote: Open Source?" ajouté sur la page PyPI
-
-## [2.5.2] - 2025-01-07
-
-### 📝 Documentation
-
-- **Statistiques de téléchargements** : Ajout de badges dans le README
-  - Total des téléchargements (all-time) via pepy.tech
-  - Téléchargements mensuels, hebdomadaires, quotidiens
-  - Table visuelle avec badges dynamiques
-- **Correction du badge GitHub Actions** : URL corrigée vers le bon repository
-
-## [2.5.1] - 2025-01-07
-
 ### 📝 Documentation
 
 - **README amélioré** : Section Commands étendue avec tous les arguments CLI
   - Chaque commande inclut maintenant des exemples d'utilisation
   - Tables complètes de toutes les options disponibles
   - Liens vers la documentation détaillée de chaque commande
+- **Statistiques de téléchargements** : Ajout de badges dans le README (pepy.tech)
+- **Badges README** : Ajout de badges compatibles (PyPI status, black, mypy, platform)
+- **Configuration recommandée** : Gemini pour l'analyse, Claude Code pour la correction
+- **Correction du badge GitHub Actions** : URL corrigée vers le bon repository
 
 ## [2.5.0] - 2025-01-06
 
@@ -86,6 +92,25 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
   - Linking automatique aux issues GitHub (`--link-issues`)
   - Options : `--dry-run`, `--base-branch`, `--from-report`, `--bug-index`, `--issue-number`
   - Corps de PR détaillé avec résumé, détails du bug, changements appliqués
+
+> **⚠️ AVERTISSEMENT DE SÉCURITÉ - Supply Chain Risk**
+>
+> La commande `pr-gen` génère automatiquement des Pull Requests avec du code produit par IA. **Risques identifiés** :
+>
+> - **Supply Chain Attack** : Une analyse corrompue ou manipulée pourrait générer des PRs contenant du code malveillant
+> - **Spam de repository** : Sans contrôle, la commande pourrait créer un grand nombre de PRs indésirables
+> - **Injection de code vulnérable** : L'IA pourrait introduire des vulnérabilités non intentionnelles
+>
+> **Mitigations OBLIGATOIRES** :
+>
+> 1. **Permissions restrictives** : Le `GITHUB_TOKEN` utilisé doit avoir les permissions minimales (lecture seule par défaut)
+> 2. **Approbation humaine requise** : Les PRs générées automatiquement **DOIVENT** nécessiter une revue et approbation explicite d'un mainteneur humain avant tout merge
+> 3. **Protection de branche** : Activer les règles de protection sur les branches principales (require reviews, require status checks)
+> 4. **Mode `--dry-run`** : Toujours utiliser `--dry-run` en premier pour prévisualiser les PRs avant création
+> 5. **CI restreinte** : Ne pas exécuter de workflows CI avec permissions d'écriture sur les PRs automatiques non validées
+>
+> - **CWE-94** : Improper Control of Generation of Code ('Code Injection')
+> - **OWASP** : LLM01:2023 - Prompt Injection, A08:2021 - Software and Data Integrity Failures
 
 ### 📝 Documentation
 
@@ -313,6 +338,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
   - Nouvelle méthode `test_claude_code()` pour vérifier la connexion
   - Nouvelle méthode `fix_bug_direct()` pour correction sans fenêtre
   - Mode direct par défaut (plus fiable que le mode terminal)
+  - **⚠️ AVERTISSEMENT SÉCURITÉ CRITIQUE** : Ce mode exécute des commandes sans supervision visuelle, amplifiant le risque d'injection de prompt lorsque combiné avec `--auto`. **Le mode `--auto` est DÉSACTIVÉ par défaut depuis v2.5.8.** Voir l'avertissement complet dans v2.1.0 et la mitigation dans v2.5.8 (CWE-94, OWASP LLM01:2023).
 
 - **Flag `--test` pour Claude Code** : Test de connexion avant correction
   - `aetheris fix --test` vérifie si Claude Code fonctionne
@@ -356,11 +382,11 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [2.2.3] - 2025-01-05
 
-### 🐛 Corrections
+### 🔧 Modifications
 
-- **Restauration du modèle gemini-3-pro-preview** : Le modèle existe bien
-  - Revert de la v2.2.2 qui avait changé le modèle par erreur
-  - Le modèle `gemini-3-pro-preview` est le bon modèle par défaut
+- **Modèle Gemini par défaut** : Confirmation de `gemini-3-pro-preview` comme modèle par défaut
+  - Validation que le modèle est bien disponible et fonctionnel
+  - Alignement avec la documentation officielle Gemini
 
 ## [2.2.1] - 2025-01-05
 
@@ -407,6 +433,22 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
   - Nouvelle méthode `generate_with_code_execution()`
   - Nouvelle méthode `_call_ai_with_code_execution()` dans BaseAgent
   - Analyse dynamique avec parsing AST, calcul de métriques, etc.
+
+> **⚠️ AVERTISSEMENT DE SÉCURITÉ — Code Execution** (BUG-4BFA242A)
+>
+> L'exécution de code est **strictement confinée côté serveur** dans le sandbox de l'API Google Gemini.
+>
+> **Garanties de sécurité** :
+> - ❌ **Aucune exécution locale** : Aetheris n'exécute JAMAIS de code Python généré par le modèle sur la machine locale
+> - ✅ **Sandbox distant uniquement** : Tout code est exécuté dans l'environnement isolé de Google
+> - ✅ **Résultats informatifs uniquement** : Les résultats d'exécution sont utilisés exclusivement pour enrichir les rapports d'analyse
+> - ❌ **Aucune action automatique** : Les résultats ne déclenchent aucune modification de fichier, exécution de commande ou décision logique automatisée dans l'application locale
+>
+> **Risques résiduels** :
+> - Si le sandbox de Google Gemini était compromis (hors de notre contrôle), des résultats malveillants pourraient être inclus dans les rapports
+> - **Mitigation** : Les rapports générés doivent être revus par un humain avant toute action basée sur leur contenu
+>
+> **CWE-94** : Improper Control of Generation of Code ('Code Injection') — Risque mitigé par confinement serveur
 
 - **Thinking/Reasoning (Raisonnement)** : Affichage du processus de raisonnement du modèle
   - Nouvelle méthode `generate_with_thinking()`
@@ -497,8 +539,21 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
   - Lance Claude Code dans une fenêtre séparée pour chaque bug
   - Correction séquentielle avec confirmation utilisateur
   - Filtrage par sévérité (`--severity critical|high|medium|low`)
-  - Mode automatique (`--auto`) sans confirmations entre les bugs
+  - ~~Mode automatique (`--auto`) sans confirmations entre les bugs~~ **⚠️ DÉSACTIVÉ (voir avertissement sécurité ci-dessous)**
   - Détection automatique et support multi-plateforme (Windows, macOS, Linux)
+
+> **⚠️ AVERTISSEMENT DE SÉCURITÉ CRITIQUE**
+>
+> Le mode `--auto` est **DÉSACTIVÉ par défaut** depuis v2.5.8 en raison d'un risque de sécurité critique :
+>
+> - **Risque** : Injection de prompt (Prompt Injection) - Un attaquant peut insérer des instructions malveillantes dans le code analysé pour forcer l'agent IA à générer et exécuter du code destructeur ou exfiltrer des données.
+> - **Vecteur** : Combinaison du mode `--auto` avec l'exécution en arrière-plan de Claude Code (v2.2.7).
+> - **Mitigation** :
+>   - Le mode `--auto` requiert maintenant le flag explicite `--i-accept-security-risks`
+>   - Validation humaine obligatoire par défaut pour toute modification de fichier
+>   - Utilisez `--auto` uniquement dans des environnements sandboxés/éphémères (CI, containers)
+> - **CWE-94** : Improper Control of Generation of Code ('Code Injection')
+> - **OWASP** : LLM01:2023 - Prompt Injection
 
 - **Extraction des exports** : Analyse des exports de chaque fichier pour comprendre les relations
   - Support TypeScript/JavaScript (export default, export {}, export function/class)
@@ -542,7 +597,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Mise à jour de `docs/PLUGINS.md` avec les nouveaux hooks
 - Exemples d'utilisation des nouveaux stages
 
-## [2.0.1] - 2025-01-16
+## [2.0.1] - 2025-01-04
 
 ### 🔧 Corrections
 
@@ -555,7 +610,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - `ddgs>=1.0.0` remplace `duckduckgo-search>=6.0.0`
 - `google-generativeai>=0.8.5` (au lieu de >=0.8.0)
 
-## [2.0.0] - 2025-01-16
+## [2.0.0] - 2025-01-04
 
 ### ✨ Nouvelles fonctionnalités
 
@@ -594,7 +649,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - **Backward compatible** : L'API publique de `CodeAnalyzer` reste inchangée
 - Les nouvelles fonctionnalités sont activées par défaut mais peuvent être désactivées via configuration
 
-## [1.1.0] - 2025-01-15
+## [1.1.0] - 2025-01-03
 
 ### ✨ Nouvelles fonctionnalités
 
@@ -614,7 +669,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Mise à jour du README avec explication du reasoning
 - Ajout de la variable d'environnement `SHOW_REASONING` dans la documentation
 
-## [1.0.9] - 2025-01-15
+## [1.0.9] - 2025-01-02
 
 ### ✨ Nouvelles fonctionnalités
 
@@ -636,7 +691,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 - Mise à jour du README avec description de la barre de progression
 
-## [1.0.8] - 2025-01-15
+## [1.0.8] - 2025-01-01
 
 ### ✨ Nouvelles fonctionnalités
 
@@ -670,7 +725,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - **Breaking change** : Les variables `GEMINI_API_KEY` et `GEMINI_MODEL` sont remplacées par `AI_PROVIDER`, `AI_API_KEY` (selon provider) et `AI_MODEL`
 - Pour la rétrocompatibilité, si `AI_PROVIDER` n'est pas défini, le système utilise Gemini par défaut
 
-## [1.0.7] - 2025-11-21
+## [1.0.7] - 2024-11-21
 
 ### 🔧 Corrections et améliorations
 
@@ -687,7 +742,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 - Mise à jour du README pour indiquer que `ddgs` est une dépendance obligatoire
 
-## [1.0.6] - 2025-11-21
+## [1.0.6] - 2024-11-21
 
 ### 🔧 Corrections et améliorations
 
@@ -704,7 +759,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Documentation améliorée des scripts utilitaires
 - CHANGELOG mis à jour avec toutes les versions
 
-## [1.0.5] - 2025-11-21
+## [1.0.5] - 2024-11-21
 
 ### 🚀 Publication sur PyPI
 
@@ -719,7 +774,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Commande CLI : `aetheris` (inchangée)
 - Installation : `pip install adryserage-aetheris` (depuis PyPI)
 
-## [1.0.4] - 2025-11-21
+## [1.0.4] - 2024-11-21
 
 ### 🔧 Corrections
 
@@ -727,7 +782,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Configuration du token PyPI comme secret GitHub
 - Mise à jour des workflows avec les dernières versions des actions GitHub (checkout@v4, setup-python@v5)
 
-## [1.0.3] - 2025-11-21
+## [1.0.3] - 2024-11-21
 
 ### 🚀 Publication
 
@@ -737,7 +792,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Workflow GitHub Actions pour publication automatique lors des tags de version
 - Documentation mise à jour avec instructions d'installation
 
-## [1.0.2] - 2025-11-21
+## [1.0.2] - 2024-11-21
 
 ### 🔧 Corrections
 
@@ -745,13 +800,13 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Remplacement par `gh pr view` avec filtrage approprié pour exclure les fichiers supprimés
 - Alignement du comportement entre les modes PR et commit pour exclure les fichiers supprimés (cohérence avec `git diff --diff-filter=ACMR`)
 
-## [1.0.1] - 2025-11-21
+## [1.0.1] - 2024-11-21
 
 ### 🔧 Corrections
 
 - Correction du workflow GitHub Actions pour utiliser `gh pr view` au lieu de `gh pr diff` pour récupérer les fichiers modifiés dans les pull requests
 
-## [1.0.0] - 2025-11-21
+## [1.0.0] - 2024-11-21
 
 ### ✨ Fonctionnalités
 
@@ -787,6 +842,9 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Génération de rapports détaillés en Markdown
 - Configuration flexible via variables d'environnement
 
+[Unreleased]: https://github.com/adryserage/aetheris/compare/v2.5.8...HEAD
+[2.5.8]: https://github.com/adryserage/aetheris/compare/v2.5.0...v2.5.8
+[2.5.0]: https://github.com/adryserage/aetheris/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/adryserage/aetheris/compare/v2.3.4...v2.4.0
 [2.3.4]: https://github.com/adryserage/aetheris/compare/v2.3.3...v2.3.4
 [2.3.3]: https://github.com/adryserage/aetheris/compare/v2.3.2...v2.3.3

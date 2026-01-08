@@ -124,11 +124,13 @@ When 006-persistent-config introduced `config.json`, all post-v3.0 specs needed:
 
 ### Config.json Structure
 
+> **Note**: Model names (e.g., `gemini-1.5-pro`) are examples and may change. Always consult the provider's documentation for current model identifiers. Use `"model": "default"` to let Aetheris select the recommended model for each provider.
+
 ```json
 {
   "ai": {
     "provider": "gemini",
-    "model": "gemini-1.5-pro",
+    "model": "default",
     "timeout": 120,
     "max_retries": 3
   },
@@ -211,61 +213,91 @@ Create `.env` file:
 ```env
 AI_PROVIDER=gemini  # or openai, claude
 GEMINI_API_KEY=...  # or OPENAI_API_KEY, ANTHROPIC_API_KEY
-AI_MODEL=gemini-1.5-pro  # optional, defaults per provider
+AI_MODEL=default    # optional, uses provider's recommended model (or specify exact model ID)
 ```
+
+> **Note**: Model identifiers change over time. Use `default` to automatically use each provider's recommended model, or check the provider's API documentation for current model names.
 
 ## Architecture
 
+> **Maintenance Note**: File paths in this section are subject to change during refactoring. Always use search tools (`Glob`, `Grep`) to locate actual files by class/function name rather than relying on hardcoded paths.
+
 ### Core Flow
 ```
-CLI (src/cli.py) → CodeAnalyzer (src/core/analyzer.py) → AnalysisOrchestrator (src/core/orchestrator.py)
-                                                                      ↓
-                                                              WorkflowStages
-                                                    (SCAN → FILE_ANALYSIS → ARCHITECTURE_REPORT → ...)
-                                                                      ↓
-                                                              6 Specialized Agents
+CLI → CodeAnalyzer → AnalysisOrchestrator → WorkflowStages → Specialized Agents
 ```
 
-### Key Components
+**To locate key entry points:**
+```bash
+# Find CLI entry point
+grep -r "def analysis\|Typer\|app = " src/*.py
 
-**`src/core/`**
-- `analyzer.py` - Main `CodeAnalyzer` class that coordinates the analysis workflow
-- `orchestrator.py` - `AnalysisOrchestrator` with step-based workflow, hooks, and error handling
-- `ai_providers.py` - Abstraction layer for AI providers (Gemini, OpenAI, Claude via `AIProvider` base class)
-- `config.py` - `AnalysisConfig` dataclass with all configuration options
-- `cache.py` - Git SHA-based caching to reduce API costs
-- `parallel_analyzer.py` - Dependency graph-based parallel file analysis
-- `priority_manager.py` - Priority levels (HIGH/MEDIUM/LOW) for PR file ordering
-- `error_handler.py` - Circuit breaker and exponential backoff
+# Find main analyzer class
+grep -r "class CodeAnalyzer" src/
 
-**`src/agents/`** - All agents inherit from `BaseAgent` (src/agents/base_agent.py)
-- `code_analysis_expert.py` - Individual file analysis
-- `architect_analysis_agent.py` - Architecture overview
-- `security_analysis_agent.py` - Vulnerability detection
-- `code_metrics_agent.py` - Complexity, duplication metrics
-- `dependency_vulnerability_agent.py` - OSV API for dependency CVEs
-- `quality_assurance_agent.py` - Final synthesis report
+# Find orchestrator
+grep -r "class AnalysisOrchestrator" src/
+```
 
-**`src/services/`**
-- `dependency_analyzer.py` - Import/export analysis and cycle detection
-- `documentation_searcher.py` - Web search for library docs
-- `code_generator.py` - Code snippet generation for analysis
+### Key Components by Role
 
-**`src/models/data_models.py`** - Dataclasses: `FileAnalysis`, `SecurityIssue`, `DependencyInfo`, etc.
+**Core Module (`src/core/`)** - Orchestration and infrastructure
+
+| Role | Class/Pattern to Search |
+|------|-------------------------|
+| Analysis coordination | `class CodeAnalyzer` |
+| Workflow management | `class AnalysisOrchestrator`, `WorkflowStage` |
+| AI provider abstraction | `class AIProvider` (base), provider implementations |
+| Configuration | `class AnalysisConfig`, `@dataclass` in config |
+| Caching | `class.*Cache`, `def get_cache` |
+| Parallel analysis | `parallel`, `concurrent`, `asyncio.gather` |
+| Priority management | `class.*Priority`, `PriorityLevel` |
+| Error handling | `class CircuitBreaker`, `exponential_backoff` |
+
+**Agents Module (`src/agents/`)** - All inherit from `BaseAgent`
+
+| Role | Class Pattern to Search |
+|------|-------------------------|
+| Base agent | `class BaseAgent` |
+| File analysis | `class.*Expert`, `CodeAnalysis` |
+| Architecture analysis | `class.*Architect` |
+| Security analysis | `class.*Security` |
+| Metrics collection | `class.*Metrics` |
+| Dependency vulnerabilities | `class.*Vulnerability`, `OSV` |
+| Quality assurance | `class.*Quality` |
+
+**Services Module (`src/services/`)** - Business logic
+
+| Role | Class Pattern to Search |
+|------|-------------------------|
+| Dependency analysis | `class.*Dependency` |
+| Documentation search | `class.*Documentation`, `class.*Searcher` |
+| Code generation | `class.*Generator` |
+
+**Models Module (`src/models/`)** - Data structures
+
+| Role | Pattern to Search |
+|------|-------------------|
+| Core dataclasses | `class FileAnalysis`, `class SecurityIssue`, `class DependencyInfo` |
+| Analysis schemas | `@dataclass`, `BaseModel` |
 
 ### Adding a New Agent
 
-1. Create `src/agents/my_agent.py` inheriting from `BaseAgent`
+1. Create a new agent file in the agents module, inheriting from `BaseAgent`
 2. Implement analysis logic using `await self._call_ai_with_retry(prompt)` or `await self._call_ai_with_reasoning(prompt)`
 3. Register the agent in `CodeAnalyzer` and add a workflow step in `AnalysisOrchestrator`
+
+> **Tip**: Use `grep -r "class BaseAgent" src/` to find the base class location for reference.
 
 ### Agent Development Guidelines
 
 #### Agent Structure Template
 
+> **Note**: Import paths below are illustrative. Verify actual module paths with `grep -r "class BaseAgent" src/`.
+
 ```python
-from src.agents.base_agent import BaseAgent
-from src.models.data_models import AnalysisResult
+from src.agents.base_agent import BaseAgent  # Verify actual path
+from src.models.data_models import AnalysisResult  # Verify actual path
 
 class MyAnalysisAgent(BaseAgent):
     """Brief description of what this agent analyzes."""
@@ -321,14 +353,14 @@ class MyAnalysisAgent(BaseAgent):
 
 #### Agent Registration Checklist
 
-- [ ] Add agent class to `src/agents/__init__.py`
-- [ ] Register in `CodeAnalyzer.__init__()`
-- [ ] Add `WorkflowStage` enum value in `orchestrator.py`
+- [ ] Add agent class to agents module `__init__.py` (find with `grep -l "__all__" src/agents/`)
+- [ ] Register in `CodeAnalyzer.__init__()` (find with `grep -r "class CodeAnalyzer" src/`)
+- [ ] Add `WorkflowStage` enum value (find with `grep -r "class WorkflowStage" src/`)
 - [ ] Add workflow step in `AnalysisOrchestrator`
-- [ ] Add agent to presets in `config/presets.json`
+- [ ] Add agent to presets configuration (find with `find . -name "presets.json"`)
 - [ ] Add to `--agents` CLI help text
 - [ ] Add to Settings UI agent list
-- [ ] Create unit tests in `tests/unit/test_my_agent.py`
+- [ ] Create unit tests in tests directory
 - [ ] Update docs with agent description
 
 #### Response Handling
@@ -359,8 +391,8 @@ See `docs/PLUGINS.md` for full hook documentation.
 
 - **Async throughout**: All agent calls and AI interactions are async
 - **Progress reporting**: Use `ProgressManager` for terminal progress bars (Rich library)
-- **Error resilience**: `exponential_backoff()` and `CircuitBreaker` for API calls
-- **Markdown sanitization**: `sanitize_markdown()` in analyzer.py for XSS prevention in reports
+- **Error resilience**: `exponential_backoff()` and `CircuitBreaker` for API calls (find with `grep -r "CircuitBreaker\|exponential_backoff" src/`)
+- **Markdown sanitization**: `sanitize_markdown()` function for XSS prevention in reports (find with `grep -r "def sanitize_markdown" src/`)
 
 ## Zero Issues Left Behind Policy
 
@@ -449,15 +481,15 @@ After completing a task, ALWAYS:
 | Sync AI calls | UI freezes | Always use `async/await` |
 | Catching all exceptions silently | Hidden failures | Log errors, re-raise unexpected |
 | Hardcoding API keys | Security breach | Use `.env` only |
-| Ignoring rate limits | Service bans | Use `CircuitBreaker` |
-| Not caching | Excessive API costs | Use `cache.py` with Git SHA |
+| Ignoring rate limits | Service bans | Use `CircuitBreaker` class |
+| Not caching | Excessive API costs | Use cache module with Git SHA |
 
 ### Config Pitfalls (v3.0+)
 
 | Pitfall | Consequence | Prevention |
 |---------|-------------|------------|
 | Secrets in config.json | Exposed credentials | Secrets in `.env` ONLY |
-| Missing ConfigSchema field | Config ignored | Add to `config_schema.py` |
+| Missing ConfigSchema field | Config ignored | Add to config schema (find with `grep -r "ConfigSchema\|config.*schema" src/`) |
 | Wrong hierarchy lookup | Wrong values used | Test CLI > local > global > default |
 | Not handling missing config | Crashes | Use defaults, warn on missing |
 
@@ -478,12 +510,15 @@ Reports are generated in `docs/analyses/`:
 - Vulnerability report: `docs/analyses/vulnerabilities_report.md`
 - Performance metrics: `docs/metrics/metrics_<timestamp>.json`
 
-## Active Technologies
-- Python 3.8+ (matches existing project) + Rich (terminal UI), subprocess (gh CLI), re/pathlib (parsing) (001-github-issues-cli)
-- N/A (reads existing markdown files, writes to GitHub via gh) (001-github-issues-cli)
-- Python 3.9+ (matches existing project) + dataclasses, typer (CLI), rich (progress/output), pydantic (validation) (010-safety-profiles)
-- Local filesystem (audit logs, allowlist config) (010-safety-profiles)
-- Markdown + None (documentation only) (011-readme-safety-docs)
+## Tech Stack
 
-## Recent Changes
-- 001-github-issues-cli: Added Python 3.8+ (matches existing project) + Rich (terminal UI), subprocess (gh CLI), re/pathlib (parsing)
+| Category | Technologies |
+|----------|--------------|
+| **Language** | Python 3.9+ |
+| **CLI Framework** | Typer |
+| **Terminal UI** | Rich (progress bars, tables, panels) |
+| **Data Validation** | Pydantic, dataclasses |
+| **AI Providers** | Gemini, OpenAI, Claude (Anthropic) |
+| **File Parsing** | pathlib, re |
+| **External APIs** | GitHub CLI (gh), OSV (vulnerabilities) |
+| **Storage** | Local filesystem (JSON, Markdown) |

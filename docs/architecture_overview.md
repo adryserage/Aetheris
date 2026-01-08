@@ -1,132 +1,150 @@
 # Vue d'ensemble de l'architecture
 
-*Généré le 2026-01-07 15:47:02*
-*Nombre de fichiers analysés: 123*
-*Fichiers réussis: 123*
+*Généré le 2026-01-07 16:59:50*
+*Nombre de fichiers analysés: 124*
+*Fichiers réussis: 124*
 *Fichiers échoués: 0*
 
 ---
 
-Voici le rapport d'architecture complet basé sur l'analyse des 123 fichiers, des statistiques de dépendances et des synthèses fournies.
+Voici le rapport d'architecture complet basé sur l'analyse des 124 fichiers fournis du projet **Aetheris**.
 
-# Rapport d'Architecture Logicielle : Projet Aetheris
+# Rapport d'Architecture Logiciel - Projet Aetheris
 
 ## Vue d'ensemble de l'architecture
 
-**Aetheris** est un outil CLI (Command Line Interface) d'analyse de code basé sur une architecture **Multi-Agents (MAS)**, développé en Python (v3.8+). Il orchestre plusieurs agents spécialisés (Sécurité, Qualité, Architecture) alimentés par des LLM (Gemini, Claude, OpenAI) pour fournir des revues de code, générer des tests et corriger des bugs.
+Ce document présente une analyse architecturale approfondie du système **Aetheris**, un outil CLI d'analyse de code statique et dynamique propulsé par des agents IA (Multi-Agent System). Le projet est actuellement dans une phase critique de transition vers un modèle de distribution binaire fermée (via Cython), tout en adoptant une méthodologie de développement pilotée par des spécifications rigoureuses (SpecKit).
 
-Le projet se distingue par une méthodologie de développement rigoureuse ("Spec-First") visible dans le dossier `specs/`, mais souffre d'une complexité accidentelle liée à sa stratégie de distribution (compilation binaire Cython) et à une dérive entre la documentation et l'implémentation.
-
-### Indicateurs Clés
-*   **Maturité Architecturale** : Moyenne à Élevée (Pattern Orchestrator bien défini, mais couplage fort).
-*   **Dette Technique** : Moyenne (Dépendances implicites, fragilité des scripts CI/CD, incohérences Docs/Code).
-*   **Sécurité** : Risque Modéré (Injection de commandes dans CI, gestion des secrets, stratégie d'obfuscation binaire discutable).
-
----
+L'analyse révèle un cœur technologique solide en Python asynchrone, mais obscurci par une dette technique documentaire importante (références fantômes à une stack JS/Next.js) et des choix de distribution (Binary-Only) qui introduisent des risques significatifs pour la maintenabilité et la sécurité.
 
 ## Table des matières
-1.  [Architecture et patterns identifiés](#architecture-et-patterns-identifiés)
-2.  [Cohérence inter-modules](#cohérence-inter-modules)
-3.  [Redondances et dépendances](#redondances-dépendances-ou-couplages-excessifs)
-4.  [Recommandations d'optimisation](#recommandations-doptimisation)
-5.  [Plan de refactoring](#plan-de-refactoring)
-6.  [Gouvernance du code](#gouvernance-du-code)
+1.  Architecture et patterns identifiés
+2.  Cohérence inter-modules
+3.  Redondances, dépendances et couplages
+4.  Recommandations d'optimisation
+5.  Plan de refactoring
+6.  Gouvernance du code
 
 ---
 
-## Architecture et patterns identifiés
+## 1. Architecture et patterns identifiés
 
-### 1. Patterns Architecturaux
-*   **Orchestrator Pattern** : Le fichier `src/core/orchestrator.py` agit comme le chef d'orchestre central. Il reçoit les commandes du CLI, initialise la configuration, et délègue les tâches aux agents (`src/agents/`). C'est un point central de contrôle efficace mais qui tend à devenir une "God Class".
-*   **Agent-Based Architecture** : Les agents (`src/agents/*`) héritent probablement d'une `BaseAgent`. Chaque agent a une responsabilité unique (ex: `DependencyVulnerabilityAgent`, `CodeMetricsAgent`). C'est une excellente pratique pour la séparation des préoccupations (SoC).
-*   **Strategy Pattern** : Utilisé implicitement pour la gestion des fournisseurs d'IA (`src/core/ai_providers.py`), permettant de changer de backend (Gemini, OpenAI) sans impacter la logique métier.
-*   **Pipeline CI/CD** : Utilisation intensive de GitHub Actions pour l'automatisation. Le pattern de **Matrix Build** est bien utilisé pour la compilation multi-plateforme (`.github/workflows/build-wheels.yml`).
+L'architecture d'Aetheris repose sur plusieurs modèles de conception distincts :
 
-### 2. Choix de Design Critiques
-*   **Distribution Binaire (Cython)** : Le choix de compiler tout le code Python en extensions C (`.so`/`.pyd`) via `setup.py` et `cibuildwheel` est atypique pour un outil CLI.
-    *   *Avantage* : Obfuscation du code (protection IP).
-    *   *Inconvénient* : Complexité massive du build, perte de portabilité (pas de `sdist`), débogage utilisateur impossible, et faux sentiment de sécurité ("Security by Obscurity").
-*   **Architecture Asynchrone** : L'utilisation généralisée de `asyncio` (`main.py`, `src/services/`) est alignée avec la nature I/O bound des appels API aux LLM.
+### A. Pattern Orchestrator & Multi-Agents
+Le cœur du système (`src/core/orchestrator.py`) implémente le pattern **Orchestrator**. Il coordonne un ensemble d'agents spécialisés (`src/agents/`) :
+*   **CAE (Code Analysis Expert) :** Analyse statique et syntaxique.
+*   **SSA (Security & Safety Agent) :** Détection de vulnérabilités.
+*   **DVA (Dependency Vulnerability Agent) :** Audit des paquets tiers.
+*   **QAA (Quality Assurance Agent) :** Validation des normes.
 
----
+**Analyse :** Ce découpage est sain et favorise la séparation des responsabilités (SoC). L'utilisation d'une classe de base `BaseAgent` standardise les interactions avec les fournisseurs d'IA (Gemini, OpenAI, Claude).
 
-## Cohérence inter-modules
+### B. Architecture "Spec-First" (SpecKit)
+Le projet suit une méthodologie stricte où le code est piloté par des documents Markdown structurés (`specs/`).
+*   **Flux :** Requirement -> Spec -> Plan -> Tasks -> Code.
+*   **Observation :** Les scripts Python (`scripts/*.py`) et l'analyseur de spécifications tentent de parser ces fichiers Markdown via des Regex pour piloter le développement. C'est une forme agressive de "Documentation as Code".
 
-### 1. Communication et Interfaces
-*   **CLI vs Core** : La séparation entre l'interface (`src/cli.py`) et la logique (`src/core/`) est respectée. Cependant, la gestion de la configuration est fragmentée. Les paramètres passent des arguments CLI aux variables d'env, puis à une classe `Config`, créant des risques d'incohérence (ex: valeurs par défaut dupliquées dans la Doc et le Code).
-*   **Agents vs Services** : Les agents semblent consommer directement des services (`src/services/`), ce qui est correct, mais l'injection de dépendances n'est pas explicite, rendant les tests unitaires isolés difficiles.
-
-### 2. Incohérences Détectées (Documentation vs Réalité)
-*   **Contextes Conflictuels** : Des traces de documentation mentionnent "Next.js" (`docs/commands/user-story.md`) et des workflows npm, alors que le projet est structurellement du Python pur. Cela suggère un copier-coller de documentation ou un pivot mal nettoyé.
-*   **Dépendances Fantômes** : Le code utilise `google-genai`, `requests`, `PyYAML` et `hashlib`, mais ces dépendances ne sont pas clairement centralisées dans un fichier de lock standard visible (`requirements.txt` ou `pyproject.toml` complet). L'analyseur signale des imports "introuvables" qui sont en réalité des dépendances externes non déclarées ou des modules stdlib mal détectés par l'environnement.
-*   **Obsolescence des Specs** : Les checklists (`specs/*/checklists/*.md`) marquent des fonctionnalités comme "validées" à une date fixe, mais le code a évolué depuis. Le lien entre Spec et Code est rompu.
+### C. Stratégie de Distribution "Closed Source"
+Le projet utilise **Cython** (`setup.py`) non pas pour la performance, mais comme mécanisme d'obfuscation pour distribuer uniquement des binaires (`.so` / `.pyd`) et interdire l'accès au code source (`sdist` désactivé).
 
 ---
 
-## Redondances, dépendances ou couplages excessifs
+## 2. Cohérence inter-modules
 
-### 1. Couplage Fort dans le Build System
-Le fichier `setup.py` est **trop couplé** à la structure des fichiers sources via `glob.glob(&quot;src/**/*.py&quot;)`.
-*   *Risque* : Inclusion accidentelle de fichiers de tests ou de scripts temporaires dans le build binaire final.
-*   *Problème* : Dépendance forte à `Cython` au moment de l'installation (`setup_requires`), ce qui complique l'installation pour les contributeurs sans environnement de compilation C++.
+L'analyse révèle des incohérences critiques qui menacent l'intégrité conceptuelle du projet.
 
-### 2. Redondance de Logique
-*   **Parsing de Version** : La logique pour extraire la version est dupliquée et fragile.
-    *   `setup.py` : Utilise probablement une méthode.
-    *   `.github/workflows/auto-release.yml` : Utilise `grep` et `sed` (fragile).
-    *   `scripts/extract_release_notes.py` : Utilise des Regex Python.
-    *   *Impact* : Risque de désynchronisation où le tag Git, la release PyPI et le wheel ont des versions différentes.
+### A. La "Stack Fantôme" (Incohérence Majeure)
+Plusieurs fichiers de documentation et rapports d'architecture (`docs/architecture_overview.md`, `README.md`, `docs/installation.md`) contiennent des références explicites à **Next.js**, **Node.js**, **React** et **npm install**, alors que le code source est quasi-exclusivement en **Python** (avec un peu de Cython).
+*   **Impact :** Confusion totale pour les développeurs et les utilisateurs. Risque d'erreur lors de l'installation des dépendances.
+*   **Cause probable :** Copier-coller non nettoyé d'un template de projet web ou pivot technologique mal documenté.
 
-### 3. Gestion des Dépendances
-*   **Dépendances Implicites** : L'absence de `pyproject.toml` complet (contenant les dépendances runtime `[project.dependencies]`) rend l'installation déterministe impossible.
-*   **Risque de Supply Chain** : Les actions GitHub utilisent des tags mutables (`@v4`), et les scripts d'installation (`pip install`) n'utilisent pas de vérification de hash.
+### B. Gestion des versions fragmentée
+Il n'y a pas de "Single Source of Truth" (SSOT) pour la version du logiciel.
+*   `setup.py` définit sa propre version.
+*   Les workflows GitHub (`auto-release.yml`) tentent d'extraire la version via `tomllib` depuis `pyproject.toml` (qui semble incomplet ou en conflit avec `setup.py`).
+*   Des scripts Regex (`extract_release_notes.py`) parsent le `CHANGELOG.md`.
+*   **Risque :** Désynchronisation entre le tag Git, la release PyPI et la version affichée dans la CLI.
 
----
-
-## Recommandations d'optimisation
-
-### 1. Architecture & Performance
-*   **Abandonner la compilation Cython totale** : Sauf contrainte légale absolue, revenir à une distribution Python standard (`sdist` + `wheel`). Cela supprime 80% de la complexité CI/CD, améliore la portabilité (Alpine, ARM), et permet le débogage. Si la protection IP est critique, n'obfusquer que le cœur algorithmique (`src/core`), pas le CLI ou les utilitaires.
-*   **Mise en cache sémantique** : Implémenter un cache sémantique (via Vector DB locale ou hash de contexte) pour les appels LLM afin de réduire les coûts et la latence, au lieu du simple cache fichier actuel.
-
-### 2. Sécurité
-*   **Sanitisation CI/CD** : Remplacer les interpolations directes `${{ inputs.x }}` dans les scripts shell des workflows GitHub par des variables d'environnement pour éviter les injections de commandes.
-*   **Gestion des Secrets** : Interdire le passage de tokens via arguments CLI (`--token`). Utiliser uniquement des variables d'environnement ou des gestionnaires de secrets.
-*   **Sécuriser le YAML** : Remplacer tout appel implicite ou `yaml.load` par `yaml.safe_load`.
-
-### 3. Maintenabilité
-*   **Centralisation de la Config** : Utiliser `Pydantic` pour définir un schéma de configuration unique qui charge `.env`, CLI args et fichiers de config avec validation de type stricte.
-*   **Adoption de `pyproject.toml` (PEP 621)** : Migrer toutes les métadonnées et dépendances de `setup.py` vers `pyproject.toml`.
+### C. Rupture de la chaîne de confiance (CI/CD)
+Le workflow de distribution binaire (`specs/001-cython-binary-dist`) interdit la publication des sources (`sdist`). Cependant, les workflows GitHub utilisent des actions tierces avec des tags mutables (`@v2`) et installent des dépendances sans vérification de hachage.
+*   **Incohérence :** On cherche à protéger le code (Cython) mais on laisse la porte ouverte aux attaques de la chaîne d'approvisionnement (Supply Chain Attacks) dans le pipeline de build.
 
 ---
 
-## Plan de refactoring
+## 3. Redondances, dépendances ou couplages excessifs
 
-Ce plan est priorisé par impact sur la stabilité et la sécurité.
+### A. Couplage Fort : Code <-> Documentation Markdown
+Le système repose sur le parsing de fichiers Markdown (`specs/*.md`) via des expressions régulières pour valider l'avancement ou générer du cache (`generate_bugs_cache.py`).
+*   **Problème :** Le Markdown est un format de présentation pour humains. Un simple changement d'espace, de niveau de titre ou de formatage brise les scripts d'automatisation.
+*   **Diagnostic :** Couplage excessif entre la forme (doc) et la fonction (code).
 
-### Phase 1 : Sécurité et Stabilisation (Urgent)
-1.  **Correctif CI/CD** : Réécrire `.github/workflows/*.yml` pour utiliser des variables d'environnement au lieu d'interpolations directes et épingler les Actions par SHA.
-2.  **Gestion des Dépendances** : Créer un `pyproject.toml` complet listant toutes les dépendances (`google-genai`, `requests`, `PyYAML`, etc.) et geler les versions de dev.
-3.  **Nettoyage Regex** : Remplacer les commandes `grep/sed` dans les workflows par un script Python robuste utilisant `tomli` pour lire la version.
+### B. Gestion des Dépendances (Manquantes et Implicites)
+L'analyse des imports Python vs les fichiers de configuration révèle de graves lacunes :
+*   **Imports orphelins :** `google.genai`, `requests`, `PyYAML`, `rich` sont utilisés massivement mais absents d'un fichier de verrouillage central fiable (le `setup.py` est incomplet et le `pyproject.toml` semble ne gérer que le build system).
+*   **Dépendances système :** Certains scripts assument la présence de `gh` (GitHub CLI) ou de `npm` sans vérification robuste au runtime.
 
-### Phase 2 : Simplification Architecturale (Moyen Terme)
-4.  **Refonte du Build** :
-    *   Supprimer la compilation Cython globale.
-    *   Configurer le build system standard (`hatch` ou `poetry`).
-    *   Réactiver la génération de `sdist`.
-5.  **Standardisation Config** : Implémenter `Pydantic Settings` pour unifier la gestion de la configuration (Env/CLI/File).
-
-### Phase 3 : Qualité et Tests (Long Terme)
-6.  **Tests Automatisés** : Ajouter des tests unitaires pour les Agents (en mockant les appels LLM).
-7.  **Nettoyage Documentation** : Supprimer les références à Next.js/npm et aligner les Spec Docs avec le code actuel via un linter de documentation.
+### C. Redondance des scripts de configuration
+Présence de `setup-local.sh` et `setup-local.ps1` (mentionnés dans `docs/cicd-template`).
+*   **Risque :** Divergence logique classique entre les scripts Shell et PowerShell. Une modification sur l'un est souvent oubliée sur l'autre.
 
 ---
 
-## Gouvernance du code
+## 4. Recommandations d'optimisation
 
-Pour maintenir la qualité architecturale à long terme :
+### A. Architecture de Build (Priorité Haute)
+Abandonner l'approche `setup.py` impérative au profit d'une configuration déclarative moderne (**PEP 621**).
+*   **Action :** Centraliser toutes les métadonnées, dépendances et scripts de build dans `pyproject.toml`.
+*   **Outil recommandé :** **Hatch** ou **Poetry** pour gérer les environnements virtuels et les builds de manière déterministe.
 
-1.  **Doc-as-Code** : Imposer que toute modification de code (`src/`) soit accompagnée d'une mise à jour de la documentation (`docs/` ou `specs/`) dans la même PR. Utiliser des outils pour vérifier la validité des liens et des snippets de code dans le Markdown.
-2.  **Validation des Specs** : Ne plus utiliser de checklists manuelles statiques. Adopter un processus où les specs sont liées aux tests d'acceptation (Gherkin/PyTest BDD) qui échouent si le code ne respecte pas la spec.
-3.  **Politique de Dépendances** : Interdire l'ajout de dépendances sans déclaration explicite dans `pyproject.toml`. Scanner les vulnérabilités (ex: `pip-audit`) dans le pipeline CI.
-4.  **Standardisation des Logs** : Utiliser le logging structuré (JSON) en production pour faciliter l'analyse par les outils d'observabilité, plutôt que des `print` ou des logs texte simples.
+### B. Sécurisation du Pipeline CI/CD
+*   **Pinning :** Remplacer tous les tags d'actions (ex: `actions/checkout@v4`) par leurs SHA immuables.
+*   **Permissions :** Appliquer le principe de moindre privilège dans tous les workflows YAML (supprimer les droits d'écriture globaux).
+*   **Sanitization :** Corriger les injections de variables directes dans les scripts shell (`${{ inputs.x }}`).
+
+### C. Refonte de la Distribution Binaire
+La stratégie "Cython-only" sans `sdist` est fragile (casse sur Alpine/musllinux, architectures futures).
+*   **Optimisation :** Utiliser **PyInstaller** ou **Nuitka** si l'objectif est de créer un exécutable autonome. Ces outils sont conçus pour cela, contrairement à Cython qui est conçu pour l'interfaçage C/Performance.
+*   **Alternative :** Si Cython est maintenu, rétablir la publication des sources (`sdist`) pour la compatibilité, ou assurer une matrice de build exhaustive (incluant `musllinux`).
+
+---
+
+## 5. Plan de refactoring
+
+Ce plan est priorisé par criticité (Sécurité > Stabilité > Fonctionnalité).
+
+### Phase 1 : Assainissement et Sécurité (Semaine 1)
+1.  **Nettoyage Contextuel :** Supprimer toutes les références à Next.js/Node.js/React de la documentation et des fichiers de configuration (`docs/*`, `README.md`).
+2.  **Sécurisation Secrets :** Supprimer les arguments CLI `--token` dans les scripts et la documentation. Forcer l'usage exclusif de variables d'environnement (`GITHUB_TOKEN`).
+3.  **Fix GitHub Actions :**
+    *   Ajouter `permissions: contents: read` par défaut.
+    *   Épingler les actions par SHA.
+    *   Supprimer les injections de shell (`run: ... ${{ inputs }} ...`).
+
+### Phase 2 : Standardisation des Dépendances (Semaine 2)
+1.  **Adoption PEP 621 :** Créer un `pyproject.toml` complet.
+2.  **Freeze des dépendances :** Générer un fichier de lock avec hachages (via `uv` ou `pip-tools`) pour garantir que `requests`, `google-genai`, etc., sont installés dans des versions testées.
+3.  **Correction Imports :** Ajouter les bibliothèques manquantes (`types-requests`, `types-PyYAML`) pour satisfaire le typage statique.
+
+### Phase 3 : Découplage Docs/Code (Semaine 3)
+1.  **Migration des Specs :** Cesser de parser le Markdown. Si les specs doivent piloter le code, les convertir en format structuré (YAML/JSON) avec un schéma JSON Schema validation.
+2.  **Génération de Docs :** Inverser le flux : générer la documentation lisible (Markdown) à partir des fichiers de définition structurés (et non l'inverse).
+
+### Phase 4 : Architecture de Distribution (Semaine 4)
+1.  **Réévaluation Cython :** Lancer un POC avec **Nuitka**. Si concluant (binaire unique, pas de dépendance Python système chez le client), remplacer la pipeline Cython complexe.
+2.  **Pipeline de Release :** Unifier la gestion de version. Utiliser `setuptools_scm` ou `hatch-vcs` pour que le tag Git soit l'unique source de vérité pour la version du package.
+
+---
+
+## 6. Gouvernance du code
+
+Pour maintenir la qualité architecturale sur le long terme :
+
+1.  **Règle "Zero Hallucination" :** Toute référence technologique dans la documentation (ex: "Node.js") doit correspondre à une dépendance réelle dans le fichier de lock. Un linter de documentation doit être mis en place.
+2.  **Tests Automatisés Obligatoires :** La spécification actuelle indique "No automated tests requested". C'est inacceptable pour un produit distribué.
+    *   **Imposer :** Tests unitaires (`pytest`) pour chaque Agent.
+    *   **Imposer :** Tests d'intégration pour le build binaire avant release.
+3.  **Workflow de Spécification :**
+    *   Arrêter l'utilisation de regex fragiles pour valider les specs.
+    *   Utiliser des templates de Pull Request GitHub pour valider manuellement ou via des outils structurés que les specs sont respectées.
+4.  **Gestion des Secrets :** Interdire strictement le commit de fichiers `.env` (via `pre-commit hooks` type `detect-secrets`) et l'affichage de secrets dans les logs CLI.
