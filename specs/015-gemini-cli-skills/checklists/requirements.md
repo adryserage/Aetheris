@@ -36,5 +36,5 @@
 - 35 functional requirements covering all major components (FR-001 to FR-035)
 - 8 success criteria with measurable outcomes (SC-001 to SC-008)
 - 11 key entities including CommandRegistry and CommandAutocompleter
-- Edge cases organized by category: CLI Wrapper, Skills, Conductor, MCP
+- 12 edge cases with documented solutions (organized by category: CLI Wrapper, Skills, Conductor, MCP)
 - Dependencies on v2.6.1 (existing) and optionally v3.0 (config)

@@ -131,27 +131,39 @@ En tant que développeur, je veux pouvoir enregistrer de nouveaux skills personn
 
 ---
 
-### Edge Cases
+### Edge Cases & Solutions
 
 #### CLI Wrapper & Command Passthrough
-- Que se passe-t-il si l'utilisateur tape une commande qui n'existe dans aucun des providers?
-- Comment gérer les commandes ambiguës existant dans les deux CLIs mais avec des comportements différents?
-- Que se passe-t-il si les données d'autocomplétion ne sont pas disponibles (ex: première exécution, cache corrompu)?
-- Comment gérer les commandes avec caractères spéciaux ou quotes dans les arguments?
-- Que se passe-t-il si l'utilisateur change de provider en cours de session (commandes mémorisées deviennent invalides)?
+
+| Edge Case | Solution |
+|-----------|----------|
+| Commande inexistante dans aucun provider | Afficher message d'erreur avec suggestions de commandes similaires (distance de Levenshtein ≤2) et lien vers `/help` |
+| Commandes ambiguës entre CLIs | Préfixer avec le provider explicite: `/claude:commit` vs `/gemini:commit`. Par défaut, utiliser le provider actif |
+| Données d'autocomplétion indisponibles | Fallback sur liste statique des commandes de base. Régénérer le cache au prochain démarrage. Mode dégradé fonctionnel |
+| Caractères spéciaux/quotes dans arguments | Parser les arguments avec shlex (shell-like). Supporter les quotes simples, doubles et échappement backslash |
+| Changement de provider en session | Invalider le cache de commandes. Afficher avertissement. Recharger le registre du nouveau provider |
 
 #### Skills & Providers
-- Que se passe-t-il si un provider est indisponible temporairement pendant une session?
-- Comment gérer les différences de capacités entre Claude et Gemini (certains skills non supportés)?
-- Que se passe-t-il si un skill tente d'accéder à un fichier hors du projet?
-- Comment gérer les timeouts sur les appels Function Calling de longue durée?
+
+| Edge Case | Solution |
+|-----------|----------|
+| Provider indisponible temporairement | Circuit breaker avec 3 tentatives. Fallback sur cache local si disponible. Message d'erreur explicite avec retry suggéré |
+| Différences de capacités entre providers | Maintenir une matrice de compatibilité. Afficher warning si skill non supporté. Suggérer alternative équivalente si existe |
+| Skill accède à fichier hors projet | Sandboxing par défaut: limiter au répertoire projet. Mode `--unsafe` pour désactiver. Log d'audit des accès |
+| Timeouts sur Function Calling | Timeout configurable (défaut: 120s). Annulation gracieuse avec sauvegarde état partiel. Option `--timeout` par commande |
 
 #### Conductor & Orchestration
-- Que se passe-t-il si le Conductor détecte une boucle infinie dans le plan?
+
+| Edge Case | Solution |
+|-----------|----------|
+| Boucle infinie dans le plan | Limite stricte de 20 étapes (NFR-003). Détection de cycles: si même état revisité 2x, arrêt avec erreur explicative |
 
 #### MCP Integration
-- Comment gérer les conflits entre skills MCP et skills intégrés du même nom?
-- Que se passe-t-il si la connexion MCP est perdue en cours d'exécution?
+
+| Edge Case | Solution |
+|-----------|----------|
+| Conflit nom skill MCP vs intégré | Priorité aux skills intégrés par défaut. Option `mcp.override_builtins: true` pour inverser. Afficher warning sur conflit |
+| Connexion MCP perdue | Retry automatique (3x avec backoff). Continuer sans MCP si échec. Log warning. Reconnecter automatiquement si rétablie |
 
 ## Requirements
 
