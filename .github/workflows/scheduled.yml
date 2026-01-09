@@ -307,7 +307,9 @@ jobs:
           git push
 
   # ============================================
-  # WEEKLY SECURITY: CodeQL scheduled scan
+  # WEEKLY SECURITY: Dependency vulnerability scan
+  # NOTE: CodeQL requires GitHub Advanced Security (Organization plan for private repos)
+  # Using pip-audit for dependency security scanning instead
   # ============================================
   weekly-security:
     name: Weekly Security Scan
@@ -320,16 +322,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          languages: python
-          queries: security-extended
+          python-version: '3.11'
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+      - name: Install dependencies
+        run: |
+          pip install pip-audit safety bandit
+          pip install -e .
 
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-        with:
-          category: "/language:python"
+      - name: Run pip-audit
+        run: pip-audit --strict --progress-spinner=off
+
+      - name: Run safety check
+        run: safety check --full-report || true
+
+      - name: Run bandit security linter
+        run: bandit -r src/ -ll -ii || true

@@ -117,26 +117,8 @@ jobs:
   # ============================================
   # SECURITY CHECKS
   # ============================================
-  codeql:
-    name: CodeQL Analysis
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: python
-          queries: security-extended
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-        with:
-          category: "/language:python"
+  # NOTE: CodeQL requires GitHub Advanced Security (Organization plan for private repos)
+  # Enable when Advanced Security is available
 
   dependency-review:
     name: Dependency Review
