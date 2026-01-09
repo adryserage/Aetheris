@@ -73,7 +73,7 @@ pip install adryserage-aetheris && aetheris analysis
 
 <p align="center">
   <a href="https://pepy.tech/project/adryserage-aetheris">
-    <img src="assets/charts/downloads.svg" alt="Download History Chart" width="600">
+    <img src="https://adryserage.github.io/aetheris/assets/charts/downloads.svg" alt="Download History Chart" width="600">
   </a>
 </p>
 

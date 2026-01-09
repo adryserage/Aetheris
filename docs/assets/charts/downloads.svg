@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" width="600" height="300">
+  <defs>
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#58a6ff;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#58a6ff;stop-opacity:0" />
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#3fb950;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#3fb950;stop-opacity:0" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="600" height="300" fill="#0d1117"/>
+
+  <!-- Title -->
+  <text x="300" y="25" text-anchor="middle" fill="#f0f6fc" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="bold">
+    Aetheris PyPI Downloads
+  </text>
+
+  <!-- Daily Downloads Section -->
+  <text x="50" y="55" fill="#8b949e" font-family="system-ui, -apple-system, sans-serif" font-size="11">Daily Downloads</text>
+
+  <!-- Chart area 1 -->
+  <rect x="50" y="65" width="500" height="80" fill="none" stroke="#30363d" stroke-width="1"/>
+
+  <!-- Sample daily trend line -->
+  <path d="M50,135 L100,125 L150,130 L200,115 L250,120 L300,100 L350,110 L400,95 L450,105 L500,85 L550,90"
+        fill="none" stroke="#58a6ff" stroke-width="2"/>
+  <path d="M50,135 L100,125 L150,130 L200,115 L250,120 L300,100 L350,110 L400,95 L450,105 L500,85 L550,90 L550,145 L50,145 Z"
+        fill="url(#blueGrad)"/>
+
+  <!-- Cumulative Downloads Section -->
+  <text x="50" y="175" fill="#8b949e" font-family="system-ui, -apple-system, sans-serif" font-size="11">Cumulative Downloads</text>
+
+  <!-- Chart area 2 -->
+  <rect x="50" y="185" width="500" height="80" fill="none" stroke="#30363d" stroke-width="1"/>
+
+  <!-- Sample cumulative trend line -->
+  <path d="M50,255 L100,250 L150,240 L200,225 L250,210 L300,195 L350,180 L400,165 L450,150 L500,135 L550,120"
+        fill="none" stroke="#3fb950" stroke-width="2"/>
+  <path d="M50,255 L100,250 L150,240 L200,225 L250,210 L300,195 L350,180 L400,165 L450,150 L500,135 L550,120 L550,265 L50,265 Z"
+        fill="url(#greenGrad)"/>
+
+  <!-- Footer note -->
+  <text x="300" y="290" text-anchor="middle" fill="#6e7681" font-family="system-ui, -apple-system, sans-serif" font-size="10">
+    Chart auto-updates daily via GitHub Actions
+  </text>
+</svg>
