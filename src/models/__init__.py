@@ -12,6 +12,15 @@ from .cleanup_models import (
     SecretPattern,
     ValidationReport,
 )
+from .stats_models import (
+    AnalysisRecord,
+    CategoryMetrics,
+    ExportReport,
+    ROICalculation,
+    ROIParameters,
+    StatisticsAggregate,
+    StatisticsStorage,
+)
 
 __all__ = [
     "CleanupConfig",
@@ -22,4 +31,11 @@ __all__ = [
     "SecretMatch",
     "SecretPattern",
     "ValidationReport",
+    "AnalysisRecord",
+    "CategoryMetrics",
+    "ExportReport",
+    "ROICalculation",
+    "ROIParameters",
+    "StatisticsAggregate",
+    "StatisticsStorage",
 ]

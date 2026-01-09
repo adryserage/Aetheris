@@ -1770,6 +1770,108 @@ def run_validate_package(args):
             sys.exit(1)
 
 
+def setup_stats_parser(subparsers):
+    """Configure le parser pour la sous-commande stats (v2.6.5)"""
+    stats_parser = subparsers.add_parser(
+        "stats",
+        help="View analysis statistics and ROI metrics",
+        description="Display analysis statistics dashboard with ROI calculations",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Basic dashboard
+  aetheris stats
+
+  # Last week only
+  aetheris stats --period week
+
+  # Export to JSON
+  aetheris stats --export json
+
+  # Export monthly stats to specific file
+  aetheris stats --period month --export csv --output report.csv
+
+  # Global user statistics
+  aetheris stats --global
+        """,
+    )
+
+    stats_parser.add_argument(
+        "--period",
+        "-p",
+        type=str,
+        choices=["week", "month", "all"],
+        default="all",
+        help="Time period filter: week, month, or all (default: all)",
+    )
+
+    stats_parser.add_argument(
+        "--export",
+        "-e",
+        type=str,
+        choices=["json", "csv", "md"],
+        default=None,
+        help="Export format: json, csv, or md",
+    )
+
+    stats_parser.add_argument(
+        "--output",
+        "-o",
+        type=str,
+        default=None,
+        help="Output file path (default: auto-generated)",
+    )
+
+    stats_parser.add_argument(
+        "--global",
+        dest="use_global",
+        action="store_true",
+        help="Show global stats instead of project-local",
+    )
+
+    stats_parser.add_argument(
+        "--project",
+        type=str,
+        default=".",
+        help="Project directory to read stats from (default: current)",
+    )
+
+    return stats_parser
+
+
+def run_stats(args):
+    """Execute the stats command"""
+    from pathlib import Path
+
+    from rich.console import Console
+
+    from src.services.statistics_service import StatisticsService
+
+    console = Console()
+    project_path = Path(args.project).resolve()
+
+    service = StatisticsService(
+        project_path=project_path,
+        use_global=args.use_global,
+    )
+
+    # Export mode
+    if args.export:
+        try:
+            output_path = Path(args.output) if args.output else None
+            result_path = service.export(args.export, args.period, output_path)
+            console.print(f"[green]✓ Exported statistics to: {result_path}[/green]")
+        except ValueError as e:
+            console.print(f"[red]Error: {e}[/red]")
+            sys.exit(3)
+        except OSError as e:
+            console.print(f"[red]Cannot write to file: {e}[/red]")
+            sys.exit(4)
+    else:
+        # Dashboard mode
+        service.format_dashboard(args.period)
+
+
 def create_parser():
     """Crée le parser principal avec sous-commandes"""
     parser = argparse.ArgumentParser(
@@ -1822,6 +1924,9 @@ Exemples:
     # Ajouter la sous-commande validate-package (v2.6.2)
     setup_validate_parser(subparsers)
 
+    # Ajouter la sous-commande stats (v2.6.5)
+    setup_stats_parser(subparsers)
+
     return parser
 
 
@@ -1850,6 +1955,8 @@ def main():
         run_cleanup(args)
     elif args.command in ["validate-package", "validate"]:
         run_validate_package(args)
+    elif args.command == "stats":
+        run_stats(args)
     else:
         parser.print_help()
         sys.exit(1)
