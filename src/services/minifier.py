@@ -72,7 +72,7 @@ class Minifier:
                 else:
                     result.append(token_string)
 
-                prev_toktype = token_type
+                _prev_toktype = token_type  # noqa: F841
                 last_lineno = end_line
                 last_col = end_col
 
