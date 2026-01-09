@@ -77,7 +77,7 @@ v2.6.1 013-readme-restructure ✅ ─────┘ Public docs + GitHub Pages
 ═══════════════════════════════════════════════════════════════════════════════
                               PLANNED (Next)
 ═══════════════════════════════════════════════════════════════════════════════
-v2.6.2 012-artifact-cleanup           Package security & size optimization
+v2.6.2 012-artifact-cleanup           Nettoyage des Artefacts & Sécurisation des Paquets
 v2.7   003-advanced-stats             Statistics command (aetheris stats)
 v2.8   004-i18n-multilingual          Internationalization support
 v2.9   005-cicd-template              GitHub Actions templates
