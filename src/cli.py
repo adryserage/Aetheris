@@ -31,6 +31,7 @@ except ImportError as e:
 from src.core.analyzer import CodeAnalyzer
 
 # Import de la configuration depuis le module dédié
+from src.core.change_detector import ChangeDetector
 from src.core.config import AnalysisConfig
 from src.core.config import load_env_file
 from src.core.config import TimeoutConfig
@@ -104,6 +105,16 @@ Exemples:
         help=(
             "Timeout for the entire analysis. Formats: 3600 (seconds), 30m (minutes), "
             "2h (hours), 0 or no-limit (unlimited). Default: 60m"
+        ),
+    )
+
+    analysis_parser.add_argument(
+        "--reanalyze",
+        "-r",
+        action="store_true",
+        help=(
+            "Reanalyze only files modified since the last analysis. "
+            "Detects changes via git or file timestamps and updates existing reports."
         ),
     )
 
@@ -246,8 +257,43 @@ async def run_analysis(args):
     # Parser les fichiers modifiés depuis les arguments ou l'environnement GitHub Actions
     changed_files: List[str] = []
     analyze_changed_only = args.changed_files_only
+    reanalyze_mode = getattr(args, "reanalyze", False)
 
-    if analyze_changed_only:
+    # Handle --reanalyze flag (v2.6.1)
+    if reanalyze_mode:
+        log_print("🔄 Mode reanalyze: détection des fichiers modifiés depuis la dernière analyse...")
+        detector = ChangeDetector(
+            metrics_dir=os.getenv("OUTPUT_DIR", "docs/analyses") + "/../metrics",
+            root_dir=os.getenv("ROOT_DIR", "."),
+        )
+        # Use proper metrics directory path
+        detector.metrics_dir = "docs/metrics"
+
+        last_analysis = detector.get_last_analysis_info()
+        if last_analysis:
+            log_print(f"📅 Dernière analyse: {last_analysis.timestamp.strftime('%Y-%m-%d %H:%M')}")
+            log_print(f"📁 Fichier métriques: {last_analysis.metrics_file}")
+
+            changed_files, detection_method = detector.get_changed_files(last_analysis)
+            log_print(f"🔍 Méthode de détection: {detection_method}")
+
+            if changed_files:
+                log_print(f"📝 {len(changed_files)} fichier(s) modifié(s) détecté(s)")
+                analyze_changed_only = True
+            else:
+                log_print("✅ Aucun fichier modifié depuis la dernière analyse")
+                log_print("   Utilisez 'aetheris analysis' sans --reanalyze pour une analyse complète")
+                sys.exit(0)
+
+            # Check for deleted files
+            deleted_files = detector.get_deleted_files(last_analysis)
+            if deleted_files:
+                log_print(f"🗑️  {len(deleted_files)} fichier(s) supprimé(s) depuis la dernière analyse")
+        else:
+            log_print("⚠️  Aucune analyse précédente trouvée, lancement d'une analyse complète...")
+            # Continue with full analysis
+
+    elif analyze_changed_only:
         # Priorité: argument --files, puis variable d'environnement CHANGED_FILES
         files_input = args.files or os.getenv("CHANGED_FILES")
         changed_files = parse_changed_files(files_input)
@@ -318,7 +364,11 @@ async def run_analysis(args):
     log_print(f"🤖 Provider AI: {config.ai_provider.upper()}")
     log_print(f"🤖 Modèle: {config.ai_model}")
 
-    if analyze_changed_only:
+    if reanalyze_mode and changed_files:
+        log_print(
+            f"🔍 Mode: Reanalyse des fichiers modifiés ({len(changed_files)} fichier(s))"
+        )
+    elif analyze_changed_only:
         log_print(
             f"🔍 Mode: Analyse des fichiers modifiés uniquement ({len(changed_files)} fichier(s))"
         )

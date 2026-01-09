@@ -175,19 +175,27 @@ flowchart TD
 | **CI/CD** | GitHub Actions template included, GitLab CI, Jenkins compatible |
 | **Output Formats** | Markdown reports, JSON metrics, console summaries |
 
-### New in v2.6.1 — Timeout Management
+### New in v2.6.1 — Timeout & Incremental Analysis
 
-Long-running analyses now include:
+**Timeout Management** for long-running analyses:
 - **Configurable timeout**: `--timeout 30m`, `--timeout 2h`, or `--timeout 0` (unlimited)
 - **Heartbeat monitor**: Progress indicator every 10 minutes for long operations
 - **Graceful interruption**: Partial results saved when timeout is reached
+
+**Incremental Reanalysis** (`--reanalyze` / `-r`):
+- **Auto-detect changes**: Finds files modified since last analysis via git or timestamps
+- **Efficient updates**: Only reanalyzes changed files, preserves previous results
+- **Cost savings**: Reduces API calls by skipping unchanged files
 
 ```bash
 # Run with 2-hour timeout (large codebases)
 aetheris analysis --timeout 2h
 
-# Disable timeout for massive repositories
-aetheris analysis --timeout 0
+# Reanalyze only files changed since last run
+aetheris analysis --reanalyze
+
+# Combine: reanalyze with custom timeout
+aetheris analysis -r --timeout 30m
 ```
 
 ---
