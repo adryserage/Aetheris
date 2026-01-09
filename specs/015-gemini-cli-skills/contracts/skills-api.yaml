@@ -1,0 +1,208 @@
+# Skills API Contract
+# Version: 1.0.0
+# Date: 2026-01-09
+
+openapi: 3.0.3
+info:
+  title: Aetheris Skills API
+  description: Internal API for AI agent skills (file operations, shell commands, etc.)
+  version: 1.0.0
+
+components:
+  schemas:
+    SkillParameter:
+      type: object
+      required: [name, type]
+      properties:
+        name:
+          type: string
+          description: Parameter name
+        description:
+          type: string
+        type:
+          type: string
+          enum: [string, integer, number, boolean, array, object]
+        required:
+          type: boolean
+          default: true
+        enum:
+          type: array
+          items:
+            type: string
+          nullable: true
+
+    Skill:
+      type: object
+      required: [name, description, parameters]
+      properties:
+        name:
+          type: string
+          pattern: "^[a-z_][a-z0-9_]*$"
+          example: "read_file"
+        description:
+          type: string
+          example: "Read contents of a file"
+        parameters:
+          type: array
+          items:
+            $ref: "#/components/schemas/SkillParameter"
+        returns:
+          type: string
+          example: "File contents as string"
+        safe:
+          type: boolean
+          default: true
+          description: "If false, requires user confirmation before execution"
+
+    SkillResult:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+        data:
+          description: "Result data (type depends on skill)"
+        error:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          properties:
+            execution_time_ms:
+              type: integer
+            call_id:
+              type: string
+            skill_name:
+              type: string
+
+    SkillCall:
+      type: object
+      required: [skill_name, arguments, call_id]
+      properties:
+        skill_name:
+          type: string
+        arguments:
+          type: object
+          additionalProperties: true
+        call_id:
+          type: string
+          format: uuid
+
+# Built-in Skills Definitions
+x-builtin-skills:
+  read_file:
+    name: read_file
+    description: "Read the contents of a file within the project directory"
+    parameters:
+      - name: path
+        type: string
+        description: "Relative path to the file"
+        required: true
+      - name: encoding
+        type: string
+        description: "File encoding"
+        required: false
+        enum: [utf-8, ascii, latin-1]
+    returns: "File contents as string"
+    safe: true
+
+  write_file:
+    name: write_file
+    description: "Write content to a file within the project directory"
+    parameters:
+      - name: path
+        type: string
+        description: "Relative path to the file"
+        required: true
+      - name: content
+        type: string
+        description: "Content to write"
+        required: true
+      - name: mode
+        type: string
+        description: "Write mode"
+        required: false
+        enum: [overwrite, append]
+    returns: "Success confirmation"
+    safe: false  # Requires confirmation
+
+  search_files:
+    name: search_files
+    description: "Search for files matching a pattern"
+    parameters:
+      - name: pattern
+        type: string
+        description: "Glob pattern (e.g., '**/*.py')"
+        required: true
+      - name: content_pattern
+        type: string
+        description: "Regex to match file contents"
+        required: false
+    returns: "List of matching file paths"
+    safe: true
+
+  execute_command:
+    name: execute_command
+    description: "Execute a shell command"
+    parameters:
+      - name: command
+        type: string
+        description: "Command to execute"
+        required: true
+      - name: cwd
+        type: string
+        description: "Working directory"
+        required: false
+      - name: timeout
+        type: integer
+        description: "Timeout in seconds"
+        required: false
+    returns: "Command output (stdout/stderr)"
+    safe: false  # Requires confirmation
+
+# Adapter Contracts
+x-adapters:
+  claude:
+    format: "tool_use"
+    to_api:
+      description: "Convert Skill to Claude tool definition"
+      output:
+        type: object
+        properties:
+          name: { type: string }
+          description: { type: string }
+          input_schema: { type: object }
+    parse_response:
+      description: "Extract tool_use blocks from response.content"
+      input: "anthropic.types.Message"
+      output: "list[SkillCall]"
+    format_result:
+      description: "Format SkillResult as tool_result"
+      output:
+        type: object
+        properties:
+          type: { const: "tool_result" }
+          tool_use_id: { type: string }
+          content: { type: string }
+
+  gemini:
+    format: "function_calling"
+    to_api:
+      description: "Convert Skill to Gemini function declaration"
+      output:
+        type: object
+        properties:
+          name: { type: string }
+          description: { type: string }
+          parameters: { type: object }
+    parse_response:
+      description: "Extract function_call from response.candidates"
+      input: "google.genai.types.GenerateContentResponse"
+      output: "list[SkillCall]"
+    format_result:
+      description: "Format SkillResult as function_response"
+      output:
+        type: object
+        properties:
+          name: { type: string }
+          response: { type: object }

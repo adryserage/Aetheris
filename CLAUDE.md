@@ -624,3 +624,10 @@ Reports are generated in `docs/analyses/`:
 | **File Parsing** | pathlib, re |
 | **External APIs** | GitHub CLI (gh), OSV (vulnerabilities) |
 | **Storage** | Local filesystem (JSON, Markdown) |
+
+## Active Technologies
+- Python 3.9+ (compatible 3.12) (015-gemini-cli-skills)
+- Local filesystem (JSON config, skill definitions) (015-gemini-cli-skills)
+
+## Recent Changes
+- 015-gemini-cli-skills: Added Python 3.9+ (compatible 3.12)
