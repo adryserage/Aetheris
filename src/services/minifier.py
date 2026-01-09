@@ -38,7 +38,7 @@ class Minifier:
             Source with comments removed
         """
         result = []
-        prev_toktype = tokenize.INDENT
+        _prev_toktype = tokenize.INDENT  # noqa: F841
         last_lineno = -1
         last_col = 0
 
