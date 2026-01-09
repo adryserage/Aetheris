@@ -71,7 +71,7 @@ class ProgressManager:
 
     def add_task(
         self, description: str, total: int = 100, task_id: Optional[TaskID] = None
-    ) -> TaskID:
+    ) -> Optional[TaskID]:
         """
         Ajoute une nouvelle tâche à la barre de progression
 
@@ -92,7 +92,7 @@ class ProgressManager:
 
     def update_task(
         self,
-        task_id: TaskID,
+        task_id: Optional[TaskID],
         advance: int = 1,
         description: Optional[str] = None,
         total: Optional[int] = None,
@@ -101,24 +101,24 @@ class ProgressManager:
         Met à jour une tâche de progression
 
         Args:
-            task_id: ID de la tâche
+            task_id: ID de la tâche (peut être None si le progress est désactivé)
             advance: Nombre d'éléments à avancer
             description: Nouvelle description (optionnel)
             total: Nouveau total (optionnel)
         """
-        if not self.enabled or not self.progress:
+        if not self.enabled or not self.progress or task_id is None:
             return
 
         self.progress.update(task_id, advance=advance, description=description, total=total)
 
-    def complete_task(self, task_id: TaskID):
+    def complete_task(self, task_id: Optional[TaskID]):
         """
         Marque une tâche comme complétée
 
         Args:
-            task_id: ID de la tâche
+            task_id: ID de la tâche (peut être None si le progress est désactivé)
         """
-        if not self.enabled or not self.progress:
+        if not self.enabled or not self.progress or task_id is None:
             return
 
         self.progress.update(task_id, completed=self.progress.tasks[task_id].total)
