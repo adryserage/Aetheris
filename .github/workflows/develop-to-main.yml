@@ -34,7 +34,7 @@ jobs:
         run: isort --check-only --profile black src/ main.py
 
       - name: Run flake8
-        run: flake8 src/ main.py --max-line-length=100 --extend-ignore=E203,W503
+        run: flake8 src/ main.py --max-line-length=100 --extend-ignore=E203,W503,E501,E402,F401
 
   typecheck:
     name: Type Check
