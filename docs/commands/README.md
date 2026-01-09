@@ -31,6 +31,29 @@ aetheris --version
 aetheris analysis
 ```
 
+### Incremental Analysis (v2.6.1)
+```bash
+# Reanalyze only files changed since last analysis
+aetheris analysis --reanalyze
+
+# Short form
+aetheris analysis -r
+
+# Combined with timeout for large codebases
+aetheris analysis -r --timeout 30m
+```
+
+### Long-Running Analysis (v2.6.1)
+```bash
+# Set timeout (supports: 30m, 2h, etc.)
+aetheris analysis --timeout 2h
+
+# Unlimited timeout (no auto-termination)
+aetheris analysis --timeout 0
+
+# Heartbeat monitor runs automatically every 10 minutes
+```
+
 ### Analyze and Fix
 ```bash
 # --analyze-first: Run analysis before fixing (skips if recent analysis exists)

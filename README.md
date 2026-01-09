@@ -196,7 +196,24 @@ aetheris analysis --reanalyze
 
 # Combine: reanalyze with custom timeout
 aetheris analysis -r --timeout 30m
+
+# Full workflow example
+aetheris analysis                    # Initial full analysis
+# ... make code changes ...
+aetheris analysis -r                 # Quick reanalysis of changes only
 ```
+
+<details>
+<summary><strong>How Change Detection Works</strong></summary>
+
+| Method | When Used | Detection |
+|:-------|:----------|:----------|
+| **Git-based** | When `.git` exists | `git diff` against last analyzed commit |
+| **Timestamp** | No git available | File modification times vs last analysis |
+
+The system reads the last analysis timestamp from `docs/metrics/metrics_*.json` and compares against current file states.
+
+</details>
 
 ---
 
@@ -248,12 +265,21 @@ aetheris analysis
 
 | Command | Purpose | Example |
 |:--------|:--------|:--------|
-| `aetheris analysis` | Deep codebase scan | `aetheris analysis --changed-files-only` |
+| `aetheris analysis` | Deep codebase scan | `aetheris analysis --reanalyze --timeout 30m` |
 | `aetheris fix` | Auto-fix with Claude Code | `aetheris fix --analyze-first --auto` |
 | `aetheris pr` | GitHub PR reviews | `aetheris pr --url <pr-url>` |
 | `aetheris issues` | Create GitHub issues | `aetheris issues --labels security` |
 | `aetheris user-story` | Flow analysis | `aetheris user-story --auto` |
 | `aetheris pr-gen` | Generate fix PRs | `aetheris pr-gen --link-issues` |
+
+### Analysis Command Options (v2.6.1)
+
+| Option | Short | Description |
+|:-------|:------|:------------|
+| `--timeout` | | Set analysis timeout (`30m`, `2h`, `0` for unlimited) |
+| `--reanalyze` | `-r` | Only analyze files changed since last run |
+| `--changed-files-only` | | Analyze only specified files (requires `--files`) |
+| `--files` | | Comma-separated list of files to analyze |
 
 [Full command documentation](docs/commands/README.md)
 
@@ -276,7 +302,7 @@ aetheris analysis
 | Version | Status | What's New |
 |:--------|:------:|:-----------|
 | **v2.5** | Released | 6 core agents, GitHub Actions, auto-fix with Claude Code |
-| **v2.6.1** | Released | Flexible timeout management, heartbeat monitor |
+| **v2.6.1** | Released | Flexible timeout (`--timeout`), heartbeat monitor, incremental reanalysis (`--reanalyze`) |
 | **v3.0** | In Progress | Persistent `config.json`, team-shareable settings |
 | **v3.0.1** | Planned | 4 new agents: Performance, API Contract, Type Safety, Data Privacy |
 
