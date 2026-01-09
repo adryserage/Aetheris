@@ -2,7 +2,7 @@
 
 **AI Code Review That Actually Works**
 
-6 AI agents. 15+ vulnerabilities per codebase. 2 minutes instead of 2 hours.
+6 AI agents. Automated vulnerability detection. Minutes instead of hours.
 
 ## Quick Install
 

@@ -1,7 +1,7 @@
 # Aetheris — AI Code Review That Actually Works
 
 <p align="center">
-  <strong>6 AI agents. 15+ vulnerabilities per codebase. 2 minutes instead of 2 hours.</strong>
+  <strong>6 AI agents. Automated vulnerability detection. Minutes instead of hours.</strong>
 </p>
 
 <p align="center">
@@ -45,11 +45,11 @@
 
 **Your code reviews are broken.** Senior devs spend hours reviewing PRs. Junior devs miss critical bugs. Security vulnerabilities slip into production. Sound familiar?
 
-**Aetheris fixes this.** It's like having a senior developer, security expert, and architect review every commit — in 2 minutes, not 2 hours.
+**Aetheris fixes this.** It's like having a senior developer, security expert, and architect review every commit — in minutes, not hours.
 
 | Your Pain Point | Aetheris Solution |
 |:----------------|:------------------|
-| "Code review takes forever" | **2-minute automated scans** |
+| "Code review takes forever" | **Fast automated scans** |
 | "We keep shipping the same bugs" | **Consistent, thorough reviews 24/7** |
 | "Security audits are expensive" | **Built-in CVE + OWASP scanning** |
 | "Junior devs miss edge cases" | **AI catches what humans miss** |
