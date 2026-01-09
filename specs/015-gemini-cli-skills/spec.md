@@ -3,11 +3,14 @@
 **Feature Branch**: `015-gemini-cli-skills`
 **Created**: 2026-01-09
 **Status**: Draft
-**Target Version**: v2.8
+**Target Version**: v4.0
+**Depends On**: v3.0 (Persistent Config), v3.1 (Security), v3.2 (Headless Architecture)
 
 ## Overview
 
 Transitionner de l'utilisation directe de l'API Gemini vers une architecture "CLI Wrapper" unifiée, similaire à Claude CLI. Cette version introduit des capacités d'agents actifs ("Skills") pour les deux modèles (Claude et Gemini) et un orchestrateur ("Conductor") spécifique pour Gemini, ainsi que l'intégration du Model Context Protocol (MCP).
+
+Cette spec combine les fonctionnalités prévues dans la roadmap pour v4.0 (Multi-Modèles & CLI Wrapper), v4.1 (Skills & Conductor) et v4.2 (TUI Interactive).
 
 ## User Scenarios & Testing
 

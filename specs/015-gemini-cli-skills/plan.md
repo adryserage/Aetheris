@@ -2,6 +2,19 @@
 
 **Branch**: `015-gemini-cli-skills` | **Date**: 2026-01-09 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/specs/015-gemini-cli-skills/spec.md`
+**Target Version**: v4.0
+
+## Dependencies (Prerequisites)
+
+Cette spec dépend des versions suivantes qui doivent être implémentées en premier:
+
+| Version | Feature | Raison de la Dépendance |
+|---------|---------|-------------------------|
+| **v3.0** | Configuration Persistante (JSON) | Skills requièrent `config.json` pour `enabled_skills`, `safe_mode`, `custom_skills_path` |
+| **v3.1** | Sécurité Renforcée | Skills exécutent des commandes shell, nécessitent profils de sécurité (`--profile safe/ci/unrestricted`) |
+| **v3.2** | Architecture Headless | Conductor requiert le runner déterministe pour exécution non-interactive |
+
+**Ordre d'implémentation requis**: v3.0 → v3.1 → v3.2 → v4.0 (cette spec)
 
 ## Summary
 

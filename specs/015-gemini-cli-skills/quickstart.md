@@ -1,4 +1,4 @@
-# Quickstart: CLI Wrapper & Skills (v2.8)
+# Quickstart: CLI Wrapper & Skills (v4.0)
 
 ## Installation
 
@@ -31,7 +31,7 @@ aetheris -c
 
 ```
 $ aetheris --cli
-🔮 Aetheris Interactive CLI v2.8.0
+🔮 Aetheris Interactive CLI v4.0.0
 Provider: gemini | Type /help for commands | /exit to quit
 
 aetheris[gemini]> /
@@ -243,7 +243,7 @@ aetheris[gemini]> /run_tests --pattern "tests/unit/*"
 
 ## Configuration Reference
 
-Full `config.json` for v2.8:
+Full `config.json` for v4.0:
 
 ```json
 {

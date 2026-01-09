@@ -1,7 +1,7 @@
 # Tasks: CI/CD Integration - GitHub Actions Template
 
 **Input**: Design documents from `/specs/005-cicd-template/`
-**Target Version**: v2.9
+**Target Version**: v2.8
 **Estimated LOC**: ~300 (YAML + scripts + docs)
 
 ---

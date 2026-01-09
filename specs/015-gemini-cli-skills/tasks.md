@@ -1,7 +1,10 @@
 # Implementation Tasks: Migration Gemini CLI & Intégration Skills
 
 **Branch**: `015-gemini-cli-skills` | **Date**: 2026-01-09
+**Target Version**: v4.0 | **Depends On**: v3.0, v3.1, v3.2
 **Spec**: [spec.md](./spec.md) | **Plan**: [plan.md](./plan.md)
+
+> ⚠️ **Note**: Cette spec ne peut être implémentée qu'après v3.0 (Config), v3.1 (Security), v3.2 (Headless)
 
 ## Summary
 
@@ -416,7 +419,7 @@
 - [ ] Update --help output
 - **Files**: `src/cli.py`
 
-### T054: Add config.json schema for v2.8
+### T054: Add config.json schema for v4.0
 - [ ] Add `cli.*` section
 - [ ] Add `skills.*` section
 - [ ] Add `mcp.*` section
@@ -438,7 +441,7 @@
 - [ ] Run full test suite
 - [ ] Run lint and typecheck
 - [ ] Verify all SC metrics
-- [ ] Tag release v2.8.0
+- [ ] Tag release v4.0.0
 
 ---
 
