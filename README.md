@@ -13,10 +13,6 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/adryserage/aetheris/actions/workflows/ci-quality.yml"><img src="https://github.com/adryserage/aetheris/actions/workflows/ci-quality.yml/badge.svg" alt="CI"></a>
-  <a href="https://github.com/adryserage/aetheris/actions/workflows/security-scan.yml"><img src="https://github.com/adryserage/aetheris/actions/workflows/security-scan.yml/badge.svg" alt="Security"></a>
-  <a href="https://codecov.io/gh/adryserage/aetheris"><img src="https://codecov.io/gh/adryserage/aetheris/branch/main/graph/badge.svg" alt="Coverage"></a>
-  <a href="https://github.com/adryserage/aetheris/commits/main"><img src="https://img.shields.io/github/last-commit/adryserage/aetheris" alt="Last Commit"></a>
   <a href="https://adryserage.github.io/aetheris/"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-blue" alt="Documentation"></a>
 </p>
 
