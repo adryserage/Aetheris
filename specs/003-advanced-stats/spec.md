@@ -3,7 +3,7 @@
 **Feature Branch**: `003-advanced-stats`
 **Created**: 2025-01-07
 **Status**: Draft
-**Target Version**: v2.7
+**Target Version**: v2.6.5
 
 ## Overview
 
