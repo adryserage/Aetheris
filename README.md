@@ -205,6 +205,9 @@ flowchart TD
 - **Auto-Fix Integration** — Fix issues automatically with Claude Code via `aetheris fix --auto`
 - **GitHub Integration** — Create issues, review PRs, generate fix PRs directly
 - **Smart Caching** — 60-80% cost reduction on repeat analyses
+- **Artifact Cleanup** — Remove development artifacts before packaging with `aetheris cleanup`
+- **Secret Scanner** — Detect exposed credentials with confidence levels (high/medium/low)
+- **Package Validation** — Pre-publication security checks with `aetheris validate-package`
 
 ```bash
 # Full analysis
@@ -276,6 +279,8 @@ aetheris analysis
 | `aetheris issues` | Create GitHub issues | `aetheris issues --labels security` |
 | `aetheris user-story` | Flow analysis | `aetheris user-story --auto` |
 | `aetheris pr-gen` | Generate fix PRs | `aetheris pr-gen --link-issues` |
+| `aetheris cleanup` | Remove artifacts before packaging | `aetheris cleanup --dry-run` |
+| `aetheris validate-package` | Pre-publication security check | `aetheris validate-package --fix` |
 
 [Full command documentation](docs/commands/README.md)
 
@@ -299,6 +304,7 @@ aetheris analysis
 |:--------|:------:|:-----------|
 | **v2.5** | Released | 6 core agents, GitHub Actions, auto-fix |
 | **v2.6.1** | Released | Timeout management, incremental reanalysis |
+| **v2.6.2** | Released | Artifact cleanup, secret scanning, package validation |
 | **v3.0** | In Progress | Persistent config, team settings |
 | **v3.0.1** | Planned | 4 new agents (Performance, API, Types, Privacy) |
 

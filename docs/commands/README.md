@@ -12,6 +12,8 @@ Aetheris provides several CLI commands for code analysis and automation.
 | `aetheris user-story` | Analyze user flows | [user-story.md](./user-story.md) |
 | `aetheris issues` | Create GitHub issues from analysis | [issues.md](./issues.md) |
 | `aetheris pr-gen` | Generate PRs with AI fixes | [pr-gen.md](./pr-gen.md) |
+| `aetheris cleanup` | Remove artifacts before packaging | [cleanup.md](./cleanup.md) |
+| `aetheris validate-package` | Pre-publication security check | [validate-package.md](./validate-package.md) |
 
 ## Quick Reference
 
@@ -77,6 +79,21 @@ aetheris issues
 ```bash
 # --link-issues: Link generated PRs to existing GitHub issues
 aetheris pr-gen --link-issues
+```
+
+### Pre-Release Validation (v2.6.2)
+```bash
+# Preview what would be cleaned
+aetheris cleanup --dry-run
+
+# Clean artifacts before packaging
+aetheris cleanup --deep
+
+# Validate package for secrets and excluded files
+aetheris validate-package
+
+# Auto-fix validation issues
+aetheris validate-package --fix
 ```
 
 ## Next Steps
