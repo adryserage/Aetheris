@@ -1,7 +1,8 @@
-# Auto-promote develop to main when all quality gates pass
-# This triggers auto-release workflow to create new versions
+# Promote develop to main workflow
+# Auto-promote when all quality gates pass
+# Replaces: develop-to-main.yml
 
-name: Develop to Main
+name: Promote
 
 on:
   push:
@@ -11,6 +12,9 @@ on:
 
 permissions:
   contents: write
+
+env:
+  PYTHON_VERSION: '3.11'
 
 jobs:
   lint:
@@ -22,7 +26,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install linting tools
         run: pip install black isort flake8
@@ -45,7 +49,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install dependencies
         run: |
@@ -64,7 +68,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install build tools
         run: pip install build twine
@@ -102,4 +106,4 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Successfully merged develop into main." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The auto-release workflow will now create a new version." >> $GITHUB_STEP_SUMMARY
+          echo "The release workflow will now handle version detection and publishing." >> $GITHUB_STEP_SUMMARY

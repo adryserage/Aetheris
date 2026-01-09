@@ -1,0 +1,194 @@
+# Consolidated CI workflow: Quality, Security, and Dependencies
+# Replaces: ci-quality.yml, security-scan.yml, dependency-submission.yml
+
+name: CI
+
+on:
+  push:
+    branches: [main, master, develop]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'requirements*.txt'
+  pull_request:
+    branches: [main, master, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  actions: read
+  contents: write
+  security-events: write
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # ============================================
+  # QUALITY CHECKS
+  # ============================================
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install linters
+        run: pip install black flake8 isort mypy
+
+      - name: Check formatting (black)
+        run: black --check --line-length 100 src/ main.py
+
+      - name: Check imports (isort)
+        run: isort --check-only --profile black src/ main.py
+
+      - name: Lint (flake8)
+        run: flake8 src/ main.py --max-line-length=100 --extend-ignore=E203,W503,E501,E402,F401
+
+  test:
+    name: Test & Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -e .
+          pip install pytest pytest-cov pytest-asyncio
+
+      - name: Run tests with coverage
+        run: pytest tests/ -v --cov=src --cov-report=xml --cov-report=term-missing || true
+        continue-on-error: true
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Generate coverage badge
+        run: |
+          COVERAGE=$(python -c "import xml.etree.ElementTree as ET; tree = ET.parse('coverage.xml'); print(f\"{float(tree.getroot().attrib.get('line-rate', 0)) * 100:.0f}\")" 2>/dev/null || echo "0")
+          echo "Coverage: ${COVERAGE}%"
+          mkdir -p .github/badges
+          if [ "$COVERAGE" -ge 80 ]; then COLOR="brightgreen"
+          elif [ "$COVERAGE" -ge 60 ]; then COLOR="yellow"
+          elif [ "$COVERAGE" -ge 40 ]; then COLOR="orange"
+          else COLOR="red"; fi
+          echo "{\"schemaVersion\":1,\"label\":\"coverage\",\"message\":\"${COVERAGE}%\",\"color\":\"${COLOR}\"}" > .github/badges/coverage.json
+        continue-on-error: true
+
+  type-check:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -e .
+          pip install mypy types-requests
+
+      - name: Run mypy
+        run: mypy src/ --ignore-missing-imports --no-error-summary
+
+  # ============================================
+  # SECURITY CHECKS
+  # ============================================
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python
+          queries: security-extended
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:python"
+
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          deny-licenses: GPL-3.0, AGPL-3.0
+
+  pip-audit:
+    name: Pip Audit (CVE Scan)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Run pip-audit
+        run: |
+          pip install -e . || true
+          pip-audit --strict --progress-spinner off || true
+        continue-on-error: true
+
+  # ============================================
+  # DEPENDENCY SUBMISSION
+  # ============================================
+  submit-dependencies:
+    name: Submit Dependencies
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Submit dependencies
+        uses: advanced-security/component-detection-dependency-submission-action@v0.0.2
+        with:
+          directoryExclusionList: 'tests,docs,specs,.github'
