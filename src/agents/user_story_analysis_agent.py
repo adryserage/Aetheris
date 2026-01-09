@@ -8,7 +8,7 @@ Trace les flux frontend ↔ backend et détecte les incohérences logiques.
 import os
 import uuid
 from datetime import datetime
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, cast
 
 from ..core.config import AnalysisConfig
 from ..core.progress import ProgressManager
@@ -233,7 +233,8 @@ Réponds en JSON valide selon ce schéma:
 """
 
         try:
-            result = await self._call_ai_structured(prompt, FlowAnalysisSchema)
+            result_base = await self._call_ai_structured(prompt, FlowAnalysisSchema)
+            result = cast(FlowAnalysisSchema, result_base)
 
             # Convertir les étapes
             for i, step_schema in enumerate(result.steps):
@@ -511,7 +512,8 @@ Réponds en JSON:
 """
 
         try:
-            result = await self._call_ai_structured(prompt, ConsistencyCheckSchema)
+            result_base = await self._call_ai_structured(prompt, ConsistencyCheckSchema)
+            result = cast(ConsistencyCheckSchema, result_base)
 
             # Créer des issues pour chaque problème
             for issue_text in result.logical_issues:

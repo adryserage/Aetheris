@@ -268,7 +268,7 @@ class IssueCreator:
 
     def parse_single_report(self, report_path: str) -> List[ExtractedBug]:
         """Extract bugs from a single markdown analysis report."""
-        bugs = []
+        bugs: List[ExtractedBug] = []
 
         try:
             with open(report_path, "r", encoding="utf-8", errors="ignore") as f:

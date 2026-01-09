@@ -386,7 +386,7 @@ class GeminiProvider(AIProvider):
         Returns:
             Nom/ID du job créé
         """
-        batch_requests = []
+        batch_requests: List[Dict[str, Any]] = []
         for req in requests:
             batch_requests.append(
                 {
@@ -540,7 +540,7 @@ class GeminiProvider(AIProvider):
         if fc.enable_google_search:
             tools.append(types.Tool(google_search=types.GoogleSearch()))
 
-        config_dict = {
+        config_dict: Dict[str, Any] = {
             "temperature": fc.temperature,
             "max_output_tokens": fc.max_output_tokens,
             "top_p": fc.top_p,

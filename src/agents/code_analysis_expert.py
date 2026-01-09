@@ -8,7 +8,7 @@ et les capacités de Thinking pour un raisonnement approfondi.
 import os
 import pathlib
 import re
-from typing import List, Optional
+from typing import List, Optional, cast
 
 from src.agents.base_agent import BaseAgent
 from src.core.config import AnalysisConfig
@@ -413,7 +413,7 @@ Sois précis, constructif et actionnable."""
             if self.config.enable_structured_outputs:
                 try:
                     result = await self._call_ai_structured(prompt, FileAnalysisResult)
-                    return result
+                    return cast(FileAnalysisResult, result)
                 except Exception:
                     # Fallback vers l'analyse standard
                     pass

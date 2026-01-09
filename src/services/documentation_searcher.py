@@ -85,19 +85,26 @@ class DocumentationSearcher:
 
     async def search_documentation(self, language: str, file_path: str, content: str) -> str:
         """Recherche de la documentation en ligne et retourne un résumé"""
-        if not self.enabled:
+        if not self.enabled or self.ddgs is None:
             return ""
 
         try:
             queries = self._generate_search_queries(language, file_path, content)
             all_results = []
 
+            # Local reference to avoid None checks inside lambda
+            # self.ddgs is guaranteed to be not None here due to the check above
+            assert self.ddgs is not None
+            ddgs = self.ddgs
+            max_results = self.config.max_web_results
+
+            def search_query(q: str) -> list:
+                return list(ddgs.text(q, max_results=max_results))
+
             for query in queries:
                 try:
                     # Recherche avec DuckDuckGo (exécutée dans un thread pour ne pas bloquer)
-                    results = await asyncio.to_thread(
-                        lambda: list(self.ddgs.text(query, max_results=self.config.max_web_results))
-                    )
+                    results = await asyncio.to_thread(search_query, query)
 
                     for result in results:
                         all_results.append(

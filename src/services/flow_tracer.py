@@ -309,7 +309,7 @@ class FlowTracer:
                 line_number = content[: match.start()].count("\n") + 1
 
                 # Extraire l'URL
-                url = match.group(1) if match.lastindex >= 1 else ""
+                url = match.group(1) if match.lastindex is not None and match.lastindex >= 1 else ""
 
                 # Déterminer la méthode HTTP
                 method = self._extract_method_from_pattern_name(pattern_name)

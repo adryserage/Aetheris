@@ -231,8 +231,8 @@ class AnalysisOrchestrator:
         execution_order = self._get_execution_order()
 
         # Grouper les étapes parallélisables
-        sequential_groups = []
-        current_parallel = []
+        sequential_groups: List[List[WorkflowStep]] = []
+        current_parallel: List[WorkflowStep] = []
 
         for step in execution_order:
             if step.parallelizable and current_parallel:
@@ -281,7 +281,7 @@ class AnalysisOrchestrator:
         )
 
         # Log timeout info
-        if timeout_seconds:
+        if timeout_seconds and timeout_config is not None:
             log_print(f"⏱️  Timeout global: {timeout_config.format_human()}")
         else:
             log_print("⏱️  Timeout: illimité")
@@ -301,8 +301,12 @@ class AnalysisOrchestrator:
                 except asyncio.TimeoutError:
                     self.current_stage = WorkflowStage.ERROR
                     elapsed = self.heartbeat_monitor.elapsed_seconds
+                    # timeout_config is guaranteed to be not None when timeout_seconds is set
+                    timeout_str = (
+                        timeout_config.format_human() if timeout_config else f"{timeout_seconds}s"
+                    )
                     error_msg = (
-                        f"Analyse interrompue: timeout de {timeout_config.format_human()} "
+                        f"Analyse interrompue: timeout de {timeout_str} "
                         f"atteint après {elapsed:.0f}s"
                     )
                     self.context.errors.append(error_msg)

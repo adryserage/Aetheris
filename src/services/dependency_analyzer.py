@@ -128,6 +128,9 @@ class DependencyAnalyzer:
             if not target_path:
                 return None
 
+        # At this point target_path is guaranteed to be str
+        assert target_path is not None
+
         # Essayer avec .dart
         test_path = target_path + ".dart"
         if test_path in self.file_map:

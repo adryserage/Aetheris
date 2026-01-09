@@ -20,7 +20,7 @@ def build_dependency_graph(
     Returns:
         Graphe de dépendances: {file_path: set(dependencies)}
     """
-    graph = {file: set() for file in files}
+    graph: Dict[str, Set[str]] = {file: set() for file in files}
 
     for file_path, deps in dependencies_map.items():
         if file_path in graph:
