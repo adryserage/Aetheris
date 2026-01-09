@@ -132,51 +132,39 @@ By default, these files are excluded from AI analysis:
 - `**/*.pem`, `**/*.key` - Certificate files
 - `**/credentials*` - Credential files
 
-## Agent Configuration
+## How Agents Work
 
-Agents inherit from `BaseAgent` class and use:
+### Analysis Process
 
-```python
-await self._call_ai_with_retry(prompt)      # Standard call
-await self._call_ai_with_reasoning(prompt)  # With reasoning display
-await self._call_ai_structured(prompt, Schema)  # Structured output (see below)
-```
+Each agent performs a multi-step analysis:
 
-### Structured Output with Pydantic Schemas
+1. **Initial Scan** - Quick identification of potential issues
+2. **Deep Analysis** - Detailed examination of flagged areas
+3. **Cross-Reference** - Correlation with other agent findings
+4. **Synthesis** - Final prioritized recommendations
 
-The `_call_ai_structured` method requires a Pydantic model to validate and parse AI responses:
+### Output Quality
 
-```python
-from pydantic import BaseModel, Field
-from typing import List
+All agents produce structured findings with:
 
-# Define your response schema
-class SecurityIssue(BaseModel):
-    severity: str = Field(description="Issue severity: critical, high, medium, low")
-    description: str = Field(description="Detailed description of the issue")
-    cwe_id: str | None = Field(default=None, description="CWE identifier if applicable")
+| Element | Description |
+|---------|-------------|
+| **Severity** | Critical, High, Medium, Low |
+| **Location** | File path and line numbers |
+| **Description** | Clear explanation of the issue |
+| **Recommendation** | Actionable fix suggestion |
+| **References** | CWE, OWASP, or best practice links |
 
-class SecurityAnalysisResult(BaseModel):
-    issues: List[SecurityIssue] = Field(default_factory=list)
-    risk_score: int = Field(ge=0, le=100, description="Overall risk score 0-100")
+## Extending Aetheris
 
-# Use in agent
-result = await self._call_ai_structured(prompt, SecurityAnalysisResult)
-# result is now a validated SecurityAnalysisResult instance
-```
+Aetheris supports custom agents through its plugin system. See the [Plugin Guide](./PLUGINS.md) for details on:
 
-**Key points:**
-- Schemas must inherit from `pydantic.BaseModel`
-- Use `Field()` with descriptions to guide AI response formatting
-- The method returns a validated instance of your schema
-- Invalid responses raise `ValidationError` (handled by retry logic)
+- Creating custom analysis agents
+- Registering hooks into the workflow
+- Building specialized analysis pipelines
 
-## Adding Custom Agents
+## Related Documentation
 
-1. Create `src/agents/my_agent.py`
-2. Inherit from `BaseAgent`
-3. Implement analysis logic
-4. Register in `CodeAnalyzer`
-5. Add workflow step in `AnalysisOrchestrator`
-
-See [PLUGINS.md](./PLUGINS.md) for extensibility details.
+- [Features](./features.md) - Full feature reference
+- [Configuration](./configuration.md) - Customizing agent behavior
+- [Troubleshooting](./troubleshooting.md) - Common issues and solutions

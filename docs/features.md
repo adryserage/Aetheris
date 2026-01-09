@@ -164,3 +164,156 @@ Automatically excluded:
 - Binary files (> 1MB)
 - Hidden directories (`.git/`, `.venv/`)
 - `.gitignore` patterns respected
+
+## Output Examples
+
+### Console Output
+
+```
+$ aetheris analysis
+
+  Aetheris v2.6.1 - AI Code Analysis
+  ══════════════════════════════════════════
+
+  ✓ Discovered 127 files to analyze
+  ✓ Building dependency graph...
+
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100%
+  Analyzing files... [127/127]
+
+  FINDINGS SUMMARY
+  ────────────────────────────────────────────
+
+  🔴 CRITICAL: 2 issues
+     • SQL injection in user_service.py:45
+     • Hardcoded API key in config.py:12
+
+  🟠 HIGH: 5 issues
+     • N+1 query pattern in orders.py:78-92
+     • Missing input validation in api/routes.py:34
+     • Weak password hashing in auth.py:23
+     • Circular dependency: auth → users → auth
+     • Exposed debug endpoint in server.py:156
+
+  🟡 MEDIUM: 8 issues
+  🔵 LOW: 8 issues
+
+  TOTAL: 23 issues found
+  ────────────────────────────────────────────
+
+  📊 Quality Score: 72/100 (Fair)
+  📁 Report: docs/analyses/quality_assurance_report.md
+  ⏱  Completed in 2m 34s
+```
+
+### Quality Assurance Report Structure
+
+```markdown
+# Quality Assurance Report
+
+## Executive Summary
+- **Overall Score**: 72/100
+- **Risk Level**: Medium
+- **Files Analyzed**: 127
+- **Issues Found**: 23
+
+## Critical Issues (Immediate Action Required)
+
+### 1. SQL Injection Vulnerability
+- **File**: `src/services/user_service.py:45`
+- **CWE**: CWE-89
+- **OWASP**: A03:2021 - Injection
+- **Description**: User input directly concatenated into SQL query
+- **Impact**: Complete database compromise
+- **Recommendation**: Use parameterized queries
+
+```python
+# Before (vulnerable)
+query = f"SELECT * FROM users WHERE id = {user_id}"
+
+# After (secure)
+query = "SELECT * FROM users WHERE id = %s"
+cursor.execute(query, (user_id,))
+```
+
+## Architecture Analysis
+- Layered architecture detected
+- 3 circular dependencies found
+- Coupling score: 0.68 (moderate)
+
+## Metrics Summary
+| Metric | Value | Target | Status |
+|--------|-------|--------|--------|
+| Cyclomatic Complexity | 12.3 avg | < 10 | ⚠️ |
+| Code Duplication | 8.2% | < 5% | ⚠️ |
+| Test Coverage | 67% | > 80% | ❌ |
+| Maintainability Index | 72 | > 65 | ✅ |
+
+## Action Plan
+1. **Week 1**: Fix critical security issues
+2. **Week 2**: Address high-priority findings
+3. **Week 3**: Reduce code duplication
+4. **Week 4**: Improve test coverage
+```
+
+### Vulnerability Report Structure
+
+```markdown
+# Dependency Vulnerabilities Report
+
+## Summary
+- **Total Dependencies**: 45
+- **Vulnerable**: 3
+- **Up-to-date**: 38
+- **Outdated**: 4
+
+## Critical Vulnerabilities
+
+### CVE-2023-12345 - requests
+- **Severity**: CRITICAL (9.8)
+- **Installed**: 2.28.0
+- **Fixed In**: 2.31.0
+- **Description**: Server-side request forgery vulnerability
+- **Action**: `pip install requests>=2.31.0`
+
+### CVE-2023-67890 - pyyaml
+- **Severity**: HIGH (7.5)
+- **Installed**: 5.4.0
+- **Fixed In**: 6.0.1
+- **Description**: Arbitrary code execution via YAML deserialization
+- **Action**: `pip install pyyaml>=6.0.1`
+```
+
+### JSON Metrics Output
+
+```json
+{
+  "timestamp": "2024-01-15T10:30:45Z",
+  "version": "2.6.1",
+  "git_sha": "abc123def456",
+  "duration_seconds": 154,
+  "files_analyzed": 127,
+  "cache_hit_rate": 0.73,
+  "stages": {
+    "file_discovery": {"duration_ms": 234, "files": 127},
+    "dependency_analysis": {"duration_ms": 1523, "dependencies": 45},
+    "file_analysis": {"duration_ms": 89234, "completed": 127},
+    "security_analysis": {"duration_ms": 12456, "issues": 7},
+    "architecture_analysis": {"duration_ms": 8234, "patterns": 3},
+    "metrics_analysis": {"duration_ms": 5678, "files": 127},
+    "vulnerability_scan": {"duration_ms": 3456, "cves": 3},
+    "qa_synthesis": {"duration_ms": 4567}
+  },
+  "token_usage": {
+    "input_tokens": 145000,
+    "output_tokens": 23000,
+    "estimated_cost_usd": 0.42
+  },
+  "quality_score": 72,
+  "issues_by_severity": {
+    "critical": 2,
+    "high": 5,
+    "medium": 8,
+    "low": 8
+  }
+}
