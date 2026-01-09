@@ -27,11 +27,11 @@ from src.core.parallel_analyzer import detect_independent_files
 from src.core.priority_manager import PriorityManager
 from src.core.progress import ProgressManager
 from src.models.data_models import FileAnalysis, ReverseDependency
+from src.models.stats_models import AnalysisRecord
 from src.services.code_generator import CodeGenerator
 from src.services.dependency_analyzer import DependencyAnalyzer
 from src.services.documentation_searcher import DocumentationSearcher
 from src.services.statistics_service import StatisticsService
-from src.models.stats_models import AnalysisRecord
 
 
 def sanitize_markdown(text: str) -> str:

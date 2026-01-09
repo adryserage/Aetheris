@@ -5,10 +5,10 @@ This module provides dataclasses for storing analysis results,
 calculating ROI metrics, and generating statistics reports.
 """
 
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
-import uuid
 
 
 @dataclass
