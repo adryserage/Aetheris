@@ -1,0 +1,285 @@
+# MCP Client Contract
+# Version: 1.0.0
+# Date: 2026-01-09
+# Reference: https://modelcontextprotocol.io/
+
+openapi: 3.0.3
+info:
+  title: Aetheris MCP Client Contract
+  description: Contract for Model Context Protocol client integration
+  version: 1.0.0
+
+components:
+  schemas:
+    MCPServerConfig:
+      type: object
+      required: [name, command]
+      properties:
+        name:
+          type: string
+          description: "Unique identifier for this server"
+          example: "filesystem"
+        command:
+          type: string
+          description: "Command to start the server"
+          example: "npx"
+        args:
+          type: array
+          items:
+            type: string
+          description: "Command arguments"
+          example: ["-y", "@modelcontextprotocol/server-filesystem", "/project"]
+        env:
+          type: object
+          additionalProperties:
+            type: string
+          description: "Environment variables for the server process"
+
+    MCPTool:
+      type: object
+      required: [name, description, inputSchema, server]
+      properties:
+        name:
+          type: string
+          example: "read_file"
+        description:
+          type: string
+          example: "Read file contents"
+        inputSchema:
+          type: object
+          description: "JSON Schema for tool inputs"
+        server:
+          type: string
+          description: "Server name providing this tool"
+
+    MCPResource:
+      type: object
+      required: [uri, name, server]
+      properties:
+        uri:
+          type: string
+          format: uri
+          example: "file:///project/src/main.py"
+        name:
+          type: string
+          example: "main.py"
+        description:
+          type: string
+        mimeType:
+          type: string
+          example: "text/x-python"
+        server:
+          type: string
+
+    MCPClientState:
+      type: object
+      properties:
+        servers:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/MCPServerConfig"
+        connected:
+          type: object
+          additionalProperties:
+            type: boolean
+        tools:
+          type: array
+          items:
+            $ref: "#/components/schemas/MCPTool"
+        resources:
+          type: array
+          items:
+            $ref: "#/components/schemas/MCPResource"
+
+# MCP Protocol Messages (JSON-RPC 2.0)
+x-mcp-protocol:
+  initialize:
+    description: "Initialize connection with MCP server"
+    request:
+      method: "initialize"
+      params:
+        protocolVersion: "2024-11-05"
+        capabilities:
+          roots:
+            listChanged: true
+          sampling: {}
+        clientInfo:
+          name: "aetheris"
+          version: "2.8.0"
+    response:
+      protocolVersion: string
+      capabilities:
+        tools: { listChanged: boolean }
+        resources: { subscribe: boolean, listChanged: boolean }
+      serverInfo:
+        name: string
+        version: string
+
+  list_tools:
+    description: "List available tools from server"
+    request:
+      method: "tools/list"
+      params: {}
+    response:
+      tools:
+        type: array
+        items:
+          name: string
+          description: string
+          inputSchema: object
+
+  call_tool:
+    description: "Call a tool on the server"
+    request:
+      method: "tools/call"
+      params:
+        name: string
+        arguments: object
+    response:
+      content:
+        type: array
+        items:
+          type: string
+          enum: [text, image, resource]
+          # Plus content-specific fields
+
+  list_resources:
+    description: "List available resources"
+    request:
+      method: "resources/list"
+      params: {}
+    response:
+      resources:
+        type: array
+        items:
+          uri: string
+          name: string
+          description: string
+          mimeType: string
+
+  read_resource:
+    description: "Read a resource's contents"
+    request:
+      method: "resources/read"
+      params:
+        uri: string
+    response:
+      contents:
+        type: array
+        items:
+          uri: string
+          mimeType: string
+          text: string  # or blob for binary
+
+# Client Interface Contract
+x-client-interface:
+  MCPClient:
+    description: "Main MCP client class"
+    methods:
+      __init__:
+        params:
+          - name: config
+            type: "dict[str, MCPServerConfig]"
+            description: "Server configurations from config.json"
+
+      connect:
+        async: true
+        params:
+          - name: server_name
+            type: string
+        returns: bool
+        description: "Connect to a specific MCP server"
+        errors:
+          - MCPConnectionError
+          - MCPServerNotFoundError
+
+      disconnect:
+        async: true
+        params:
+          - name: server_name
+            type: string
+        returns: void
+        description: "Disconnect from a server"
+
+      connect_all:
+        async: true
+        returns: "dict[str, bool]"
+        description: "Connect to all configured servers"
+
+      call_tool:
+        async: true
+        params:
+          - name: tool_name
+            type: string
+          - name: arguments
+            type: dict
+        returns: any
+        description: "Call a tool by name (finds correct server)"
+        errors:
+          - MCPToolNotFoundError
+          - MCPToolExecutionError
+
+      read_resource:
+        async: true
+        params:
+          - name: uri
+            type: string
+        returns: string
+        description: "Read resource contents by URI"
+        errors:
+          - MCPResourceNotFoundError
+
+      get_tools:
+        returns: "list[MCPTool]"
+        description: "Get all discovered tools"
+
+      get_resources:
+        returns: "list[MCPResource]"
+        description: "Get all discovered resources"
+
+# Skill Bridge Contract
+x-skill-bridge:
+  description: "Bridge MCP tools to Aetheris Skill interface"
+  MCPToolBridge:
+    methods:
+      tool_to_skill:
+        params:
+          - name: tool
+            type: MCPTool
+        returns: Skill
+        description: "Convert MCP tool to Skill"
+
+      execute_as_skill:
+        async: true
+        params:
+          - name: skill_name
+            type: string
+          - name: arguments
+            type: dict
+        returns: SkillResult
+        description: "Execute MCP tool via Skill interface"
+
+# Configuration in config.json
+x-config-schema:
+  mcp:
+    type: object
+    properties:
+      enabled:
+        type: boolean
+        default: false
+      servers:
+        type: array
+        items:
+          $ref: "#/components/schemas/MCPServerConfig"
+      override_builtins:
+        type: boolean
+        default: false
+        description: "If true, MCP tools take priority over built-in skills"
+      connection_timeout:
+        type: integer
+        default: 2000
+        description: "Connection timeout in milliseconds (SC-004)"
+      retry_attempts:
+        type: integer
+        default: 3
+        description: "Number of retry attempts on connection failure"
