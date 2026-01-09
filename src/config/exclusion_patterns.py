@@ -162,10 +162,7 @@ DEEP_CLEAN_EXCLUSIONS: list[str] = [
 
 # Combined default exclusions (without deep clean)
 DEFAULT_EXCLUSIONS: list[str] = (
-    SECURITY_EXCLUSIONS
-    + OS_ARTIFACT_EXCLUSIONS
-    + DEV_TOOLING_EXCLUSIONS
-    + TEST_EXCLUSIONS
+    SECURITY_EXCLUSIONS + OS_ARTIFACT_EXCLUSIONS + DEV_TOOLING_EXCLUSIONS + TEST_EXCLUSIONS
 )
 
 # All exclusions including deep clean

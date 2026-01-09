@@ -129,16 +129,12 @@ class PackageValidator:
             )
 
         if excluded_files:
-            report.warnings.append(
-                f"Found {len(excluded_files)} files that should be excluded"
-            )
+            report.warnings.append(f"Found {len(excluded_files)} files that should be excluded")
 
         if secrets:
             high_confidence = [s for s in secrets if s.confidence.value == "high"]
             if high_confidence:
-                report.warnings.append(
-                    f"Found {len(high_confidence)} high-confidence secrets!"
-                )
+                report.warnings.append(f"Found {len(high_confidence)} high-confidence secrets!")
 
         return report
 
@@ -160,6 +156,7 @@ class PackageValidator:
             try:
                 if filepath.is_dir():
                     import shutil
+
                     shutil.rmtree(filepath)
                     actions.append(f"Removed directory: {filepath}")
                 else:

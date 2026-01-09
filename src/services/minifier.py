@@ -76,7 +76,7 @@ class Minifier:
                 last_lineno = end_line
                 last_col = end_col
 
-        except tokenize.TokenizeError as e:
+        except tokenize.TokenError as e:
             logger.warning(f"Tokenize error: {e}, returning original source")
             return source
 

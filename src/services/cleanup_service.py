@@ -144,13 +144,9 @@ class CleanupService:
             config: Cleanup configuration options
         """
         self.config = config or CleanupConfig()
-        self._patterns = get_exclusions(
-            deep=self.config.deep, custom=self.config.custom_patterns
-        )
+        self._patterns = get_exclusions(deep=self.config.deep, custom=self.config.custom_patterns)
 
-    def get_files_to_clean(
-        self, directory: str | Path, deep: bool | None = None
-    ) -> list[Path]:
+    def get_files_to_clean(self, directory: str | Path, deep: bool | None = None) -> list[Path]:
         """Get list of files that would be cleaned.
 
         Args:
@@ -179,9 +175,7 @@ class CleanupService:
                 if path.is_file():
                     total_size += path.stat().st_size
                 elif path.is_dir():
-                    total_size += sum(
-                        f.stat().st_size for f in path.rglob("*") if f.is_file()
-                    )
+                    total_size += sum(f.stat().st_size for f in path.rglob("*") if f.is_file())
             except (OSError, PermissionError) as e:
                 logger.warning(f"Could not get size of {path}: {e}")
 
@@ -290,8 +284,9 @@ class CleanupService:
     @staticmethod
     def _format_size(size_bytes: int) -> str:
         """Format byte size as human-readable string."""
+        size: float = float(size_bytes)
         for unit in ["B", "KB", "MB", "GB"]:
-            if size_bytes < 1024:
-                return f"{size_bytes:.1f} {unit}"
-            size_bytes /= 1024
-        return f"{size_bytes:.1f} TB"
+            if size < 1024:
+                return f"{size:.1f} {unit}"
+            size /= 1024
+        return f"{size:.1f} TB"

@@ -8,6 +8,7 @@ from typing import Optional
 
 class ConfidenceLevel(Enum):
     """Confidence level for secret detection."""
+
     HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"

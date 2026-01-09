@@ -98,9 +98,7 @@ class SecretScanner:
 
         # Filter patterns by confidence if configured
         if not self.config.include_low_confidence:
-            self._patterns = [
-                p for p in self._patterns if p.confidence != "low"
-            ]
+            self._patterns = [p for p in self._patterns if p.confidence != "low"]
 
         # Compile all patterns
         self._compiled_patterns = [(p, re.compile(p.regex)) for p in self._patterns]
@@ -220,9 +218,7 @@ class SecretScanner:
 
         return matches
 
-    def _scan_line(
-        self, filepath: Path, line_number: int, line: str
-    ) -> list[SecretMatch]:
+    def _scan_line(self, filepath: Path, line_number: int, line: str) -> list[SecretMatch]:
         """Scan a single line for secrets.
 
         Args:
@@ -284,9 +280,7 @@ class SecretScanner:
         logger.info(f"Scanning {len(files_to_scan)} files for secrets...")
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            future_to_file = {
-                executor.submit(self.scan_file, f): f for f in files_to_scan
-            }
+            future_to_file = {executor.submit(self.scan_file, f): f for f in files_to_scan}
 
             for future in as_completed(future_to_file):
                 filepath = future_to_file[future]
