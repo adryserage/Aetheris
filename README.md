@@ -111,6 +111,12 @@ pip install adryserage-aetheris && aetheris analysis
      TECHNICAL SECTION — How Aetheris Works
      ============================================================ -->
 
+## How It Works
+
+<p align="center">
+  <img src="assets/diagrams/how-it-works.svg" alt="How Aetheris Works" width="800">
+</p>
+
 ## Architecture
 
 Aetheris coordinates 6 specialized AI agents through a central orchestrator. Each agent analyzes a specific domain, and the QA Synthesis agent consolidates findings into prioritized, actionable reports.

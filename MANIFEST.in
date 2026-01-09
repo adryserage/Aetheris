@@ -27,3 +27,11 @@ global-exclude __pycache__
 prune build
 prune dist
 prune *.egg-info
+
+# Exclude development/CI files (not needed in distribution)
+prune scripts
+prune assets
+prune specs
+prune tests
+prune .github
+global-exclude *.svg
