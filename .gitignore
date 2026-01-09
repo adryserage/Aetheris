@@ -120,3 +120,4 @@ MANIFEST
 /docs
 /docs
 /docs
+/.venv-mypy
