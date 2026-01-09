@@ -651,3 +651,10 @@ Reports are generated in `docs/analyses/`:
 **Analysis Skills (v4.1)**: `security-context`, `complexity-hotspots`, `dependency-graph`
 
 > ⚠️ **Aetheris stops at v4.x** - Mature AI code analyzer, no features beyond this version.
+
+## Active Technologies
+- Python 3.9+ (compatible with existing codebase) + Pydantic (data validation), Rich (terminal UI), pathlib (file I/O) (018-advanced-stats-roi)
+- Local JSON files (~/.aetheris/statistics.json and ./aetheris-stats.json) (018-advanced-stats-roi)
+
+## Recent Changes
+- 018-advanced-stats-roi: Added Python 3.9+ (compatible with existing codebase) + Pydantic (data validation), Rich (terminal UI), pathlib (file I/O)
