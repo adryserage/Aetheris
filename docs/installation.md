@@ -2,8 +2,17 @@
 
 ## Prerequisites
 
-- **Python 3.8+** - [Download Python](https://www.python.org/downloads/)
+- **Python 3.9+** - [Download Python](https://www.python.org/downloads/)
 - **pip** - Python package manager (included with Python)
+
+### System Requirements
+
+| Requirement | Minimum | Recommended |
+|-------------|---------|-------------|
+| Python | 3.9 | 3.11+ |
+| RAM | 512 MB | 2 GB |
+| Disk | 100 MB | 500 MB (with cache) |
+| Network | Required | Required (AI API calls) |
 
 ### Optional Prerequisites
 

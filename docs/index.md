@@ -78,8 +78,27 @@ Aetheris is a multi-agent AI code analysis system that coordinates 6 specialized
 - **GitHub Integration** — Create issues, review PRs, generate fix PRs
 - **Smart Caching** — 60-80% cost reduction on repeat analyses
 
+## Pricing
+
+Aetheris uses AI providers' APIs on a pay-per-use basis. No subscription required.
+
+| Project Size | Estimated Cost* |
+|--------------|-----------------|
+| Small (< 50 files) | $0.50 - $2 |
+| Medium (50-200 files) | $2 - $10 |
+| Large (200+ files) | $10 - $50 |
+
+*Costs vary by provider and model. Smart caching reduces repeat analysis costs by 60-80%.
+
+**Free Tier Options:**
+- Google Gemini offers a generous free tier
+- Cache unchanged files to minimize API calls
+
+[View detailed pricing](./ai-providers.md#pricing)
+
 ## Links
 
 - [GitHub Repository](https://github.com/adryserage/aetheris)
 - [PyPI Package](https://pypi.org/project/adryserage-aetheris/)
 - [Get Free Gemini API Key](https://ai.google.dev)
+- [Report Issues](https://github.com/adryserage/aetheris/issues)
