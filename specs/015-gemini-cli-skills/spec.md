@@ -30,21 +30,24 @@ En tant qu'utilisateur d'Aetheris, je veux pouvoir utiliser une interface CLI un
 
 ### User Story 2 - External CLI Wrapper with Command Passthrough (Priority: P1)
 
-En tant qu'utilisateur d'Aetheris, je veux que l'outil encapsule les CLIs externes (Gemini CLI et Claude Code CLI) et me permette d'exécuter leurs commandes natives via une syntaxe `/command -arguments`, avec autocomplétion intelligente des commandes disponibles.
+En tant qu'utilisateur d'Aetheris, je veux pouvoir lancer un mode CLI interactif (`aetheris --cli`) qui encapsule les CLIs externes (Gemini CLI et Claude Code CLI) et me permette d'exécuter leurs commandes natives via une syntaxe `/command -arguments`, avec autocomplétion intelligente des commandes disponibles, tout en gardant la possibilité d'utiliser les commandes directes habituelles (`aetheris analysis`, `aetheris fix`, etc.).
 
-**Why this priority**: Expérience utilisateur critique - permet d'accéder aux fonctionnalités natives des CLIs sous-jacentes sans quitter Aetheris.
+**Why this priority**: Expérience utilisateur critique - permet d'accéder aux fonctionnalités natives des CLIs sous-jacentes sans quitter Aetheris, tout en maintenant la rétrocompatibilité.
 
-**Independent Test**: Lancer `aetheris shell`, taper `/` et vérifier que les commandes disponibles s'affichent en autocomplétion, puis exécuter `/help` et obtenir l'aide du provider actif.
+**Independent Test**: Lancer `aetheris --cli`, taper `/` et vérifier que les commandes disponibles s'affichent en autocomplétion, puis exécuter `/help` et obtenir l'aide du provider actif. Vérifier aussi que `aetheris analysis` fonctionne toujours directement sans le mode CLI.
 
 **Acceptance Scenarios**:
 
-1. **Given** l'utilisateur est en mode interactif Aetheris, **When** il tape `/`, **Then** une liste de commandes disponibles s'affiche en suggestion
-2. **Given** l'utilisateur tape `/ana`, **When** l'autocomplétion est active, **Then** `/analysis` est suggéré
-3. **Given** l'utilisateur tape `/commit -m "message"`, **When** la commande est exécutée, **Then** elle est passée au CLI sous-jacent (Claude Code ou Gemini CLI)
-4. **Given** l'utilisateur tape une commande inconnue `/xyz`, **When** il l'exécute, **Then** un message d'erreur avec suggestions similaires est affiché
-5. **Given** le provider actif est Claude, **When** l'utilisateur tape `/`, **Then** les commandes spécifiques à Claude Code sont affichées
-6. **Given** le provider actif est Gemini, **When** l'utilisateur tape `/`, **Then** les commandes spécifiques à Gemini CLI sont affichées
-7. **Given** l'utilisateur tape `/help commit`, **When** la commande est exécutée, **Then** l'aide détaillée de la commande `commit` s'affiche
+1. **Given** l'utilisateur lance `aetheris --cli`, **When** le mode interactif démarre, **Then** un prompt s'affiche avec le provider actif indiqué
+2. **Given** l'utilisateur est en mode interactif, **When** il tape `/`, **Then** une liste de commandes disponibles s'affiche en suggestion
+3. **Given** l'utilisateur tape `/ana`, **When** l'autocomplétion est active, **Then** `/analysis` est suggéré
+4. **Given** l'utilisateur tape `/commit -m "message"`, **When** la commande est exécutée, **Then** elle est passée au CLI sous-jacent (Claude Code ou Gemini CLI)
+5. **Given** l'utilisateur tape une commande inconnue `/xyz`, **When** il l'exécute, **Then** un message d'erreur avec suggestions similaires est affiché
+6. **Given** le provider actif est Claude, **When** l'utilisateur tape `/`, **Then** les commandes spécifiques à Claude Code sont affichées
+7. **Given** le provider actif est Gemini, **When** l'utilisateur tape `/`, **Then** les commandes spécifiques à Gemini CLI sont affichées
+8. **Given** l'utilisateur tape `/help commit`, **When** la commande est exécutée, **Then** l'aide détaillée de la commande `commit` s'affiche
+9. **Given** l'utilisateur lance `aetheris analysis` (sans --cli), **When** la commande s'exécute, **Then** l'analyse se fait directement comme avant (rétrocompatibilité)
+10. **Given** l'utilisateur est en mode --cli, **When** il tape `/exit` ou Ctrl+C, **Then** le mode interactif se termine proprement
 
 ---
 
@@ -179,14 +182,17 @@ En tant que développeur, je veux pouvoir enregistrer de nouveaux skills personn
 
 #### Command Passthrough & Autocomplete
 
-- **FR-028**: Le système DOIT permettre l'exécution de commandes natives du provider actif via la syntaxe `/command -arguments`
-- **FR-029**: Le système DOIT afficher une liste de commandes disponibles lorsque l'utilisateur tape `/`
-- **FR-030**: Le système DOIT fournir une autocomplétion intelligente basée sur le préfixe tapé (ex: `/ana` → `/analysis`)
-- **FR-031**: Le système DOIT filtrer les commandes affichées selon le provider actuellement actif
-- **FR-032**: Le système DOIT transmettre les commandes au CLI sous-jacent (Claude Code ou Gemini CLI) sans modification
-- **FR-033**: Le système DOIT afficher un message d'erreur avec suggestions similaires pour les commandes inconnues
-- **FR-034**: Le système DOIT maintenir un registre des commandes disponibles par provider
-- **FR-035**: Le système DOIT permettre l'accès à l'aide détaillée d'une commande via `/help <commande>`
+- **FR-028**: Le système DOIT fournir un mode CLI interactif via `aetheris --cli` (ou `-c`)
+- **FR-029**: Le système DOIT maintenir la rétrocompatibilité: les commandes directes (`aetheris analysis`, `aetheris fix`) DOIVENT fonctionner sans changement
+- **FR-030**: Le système DOIT permettre l'exécution de commandes natives du provider actif via la syntaxe `/command -arguments` en mode --cli
+- **FR-031**: Le système DOIT afficher une liste de commandes disponibles lorsque l'utilisateur tape `/`
+- **FR-032**: Le système DOIT fournir une autocomplétion intelligente basée sur le préfixe tapé (ex: `/ana` → `/analysis`)
+- **FR-033**: Le système DOIT filtrer les commandes affichées selon le provider actuellement actif
+- **FR-034**: Le système DOIT transmettre les commandes au CLI sous-jacent (Claude Code ou Gemini CLI) sans modification
+- **FR-035**: Le système DOIT afficher un message d'erreur avec suggestions similaires pour les commandes inconnues
+- **FR-036**: Le système DOIT maintenir un registre des commandes disponibles par provider
+- **FR-037**: Le système DOIT permettre l'accès à l'aide détaillée d'une commande via `/help <commande>`
+- **FR-038**: Le système DOIT permettre de quitter le mode interactif via `/exit` ou Ctrl+C
 
 #### Agent Skills - Claude
 
