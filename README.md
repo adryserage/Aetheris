@@ -24,7 +24,7 @@
   <a href="#-get-started-in-30-seconds">Quick Start</a> |
   <a href="#-see-it-in-action">Demo</a> |
   <a href="#-architecture">Architecture</a> |
-  <a href="docs/commands/README.md">Documentation</a>
+  <a href="https://adryserage.github.io/aetheris/">📚 Documentation</a>
 </p>
 
 ---
@@ -310,11 +310,15 @@ aetheris analysis
 
 ## Documentation
 
+📚 **[Full Documentation](https://adryserage.github.io/aetheris/)** — Complete guides, tutorials, and API reference
+
 | Getting Started | Reference | Advanced |
 |:----------------|:----------|:---------|
-| [Installation](docs/installation.md) | [Commands](docs/commands/README.md) | [Extending Agents](docs/PLUGINS.md) |
-| [Configuration](docs/configuration.md) | [AI Providers](docs/ai-providers.md) | [GitHub Actions](docs/github-actions.md) |
-| [Troubleshooting](docs/troubleshooting.md) | [Analysis Agents](docs/agents.md) | [Features Deep Dive](docs/features.md) |
+| [Quick Start Guide](https://adryserage.github.io/aetheris/quickstart/) | [CLI Commands](https://adryserage.github.io/aetheris/commands/) | [GitHub Actions](https://adryserage.github.io/aetheris/advanced/github-actions/) |
+| [Installation](https://adryserage.github.io/aetheris/getting-started/installation/) | [AI Providers](https://adryserage.github.io/aetheris/reference/ai-providers/) | [Extending Agents](https://adryserage.github.io/aetheris/advanced/plugins/) |
+| [Configuration](https://adryserage.github.io/aetheris/getting-started/configuration/) | [Analysis Agents](https://adryserage.github.io/aetheris/reference/agents/) | [Troubleshooting](https://adryserage.github.io/aetheris/advanced/troubleshooting/) |
+
+**Local docs:** [docs/](docs/) — Markdown source files
 
 ---
 
