@@ -1,0 +1,105 @@
+# Auto-promote develop to main when all quality gates pass
+# This triggers auto-release workflow to create new versions
+
+name: Develop to Main
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  lint:
+    name: Lint Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install linting tools
+        run: pip install black isort flake8
+
+      - name: Check black formatting
+        run: black --check --line-length 100 src/ main.py
+
+      - name: Check isort imports
+        run: isort --check-only --profile black src/ main.py
+
+      - name: Run flake8
+        run: flake8 src/ main.py --max-line-length=100 --extend-ignore=E203,W503
+
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install mypy types-requests
+
+      - name: Run mypy
+        run: mypy src/ --ignore-missing-imports --no-error-summary
+
+  build:
+    name: Build Package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build tools
+        run: pip install build twine
+
+      - name: Build package
+        run: python -m build
+
+      - name: Verify package
+        run: twine check dist/*
+
+  promote-to-main:
+    name: Promote to Main
+    needs: [lint, typecheck, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge develop into main
+        run: |
+          git checkout main
+          git merge develop --no-ff -m "chore: auto-promote develop to main [skip ci]"
+          git push origin main
+
+      - name: Summary
+        run: |
+          echo "## Promotion Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Successfully merged develop into main." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The auto-release workflow will now create a new version." >> $GITHUB_STEP_SUMMARY
