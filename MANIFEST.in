@@ -34,4 +34,48 @@ prune assets
 prune specs
 prune tests
 prune .github
+prune docs
+prune fixtures
+prune mocks
 global-exclude *.svg
+
+# Exclude security-sensitive files (NEVER include in distribution)
+global-exclude .env
+global-exclude .env.*
+global-exclude secrets.json
+global-exclude secrets.yaml
+global-exclude credentials.json
+global-exclude *.pem
+global-exclude *.key
+global-exclude id_rsa*
+global-exclude id_ed25519*
+
+# Exclude OS-generated files
+global-exclude .DS_Store
+global-exclude Thumbs.db
+global-exclude desktop.ini
+global-exclude ._*
+
+# Exclude development config files
+global-exclude .eslintrc*
+global-exclude .prettierrc*
+global-exclude .editorconfig
+global-exclude pytest.ini
+global-exclude .coveragerc
+global-exclude .flake8
+global-exclude .mypy.ini
+global-exclude mypy.ini
+global-exclude .ruff.toml
+global-exclude ruff.toml
+
+# Exclude test files
+global-exclude *_test.py
+global-exclude test_*.py
+global-exclude conftest.py
+
+# Exclude IDE/editor files
+prune .vscode
+prune .idea
+global-exclude *.swp
+global-exclude *.swo
+global-exclude *~

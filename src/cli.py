@@ -1546,6 +1546,230 @@ def get_version():
         return "2.3.4"  # Fallback
 
 
+# ============================================================================
+# CLEANUP COMMAND (v2.6.2)
+# ============================================================================
+
+
+def setup_cleanup_parser(subparsers):
+    """Configure le parser pour la sous-commande cleanup"""
+    cleanup_parser = subparsers.add_parser(
+        "cleanup",
+        help="Clean development artifacts and build files",
+        description="Remove development artifacts, build files, and prepare for packaging",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Preview what would be cleaned (dry run)
+  aetheris cleanup --dry-run
+
+  # Clean standard artifacts
+  aetheris cleanup
+
+  # Deep clean including build directories
+  aetheris cleanup --deep
+
+  # Add custom patterns
+  aetheris cleanup --patterns "*.bak,*.tmp,logs/"
+        """,
+    )
+
+    cleanup_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview files to be deleted without actually deleting them",
+    )
+
+    cleanup_parser.add_argument(
+        "--deep",
+        action="store_true",
+        help="Include build artifacts (dist/, build/, *.egg-info/, __pycache__/)",
+    )
+
+    cleanup_parser.add_argument(
+        "--patterns",
+        type=str,
+        default=None,
+        help="Additional patterns to exclude (comma-separated)",
+    )
+
+    cleanup_parser.add_argument(
+        "--directory",
+        "-d",
+        type=str,
+        default=".",
+        help="Directory to clean (default: current directory)",
+    )
+
+    return cleanup_parser
+
+
+def run_cleanup(args):
+    """Execute the cleanup command"""
+    from pathlib import Path
+
+    from rich.console import Console
+    from rich.panel import Panel
+
+    from src.models.cleanup_models import CleanupConfig
+    from src.services.cleanup_service import CleanupService
+
+    console = Console()
+
+    # Parse custom patterns
+    custom_patterns = []
+    if args.patterns:
+        custom_patterns = [p.strip() for p in args.patterns.split(",") if p.strip()]
+
+    # Create config
+    config = CleanupConfig(
+        dry_run=args.dry_run,
+        deep=args.deep,
+        custom_patterns=custom_patterns,
+    )
+
+    service = CleanupService(config)
+    directory = Path(args.directory).resolve()
+
+    if not directory.exists():
+        console.print(f"[red]Error: Directory not found: {directory}[/red]")
+        sys.exit(1)
+
+    console.print(f"\n[bold]Cleanup: {directory}[/bold]")
+    console.print(f"Mode: {'Dry run (preview)' if args.dry_run else 'Execute'}")
+    console.print(f"Deep clean: {'Yes' if args.deep else 'No'}")
+
+    if args.dry_run:
+        # Preview mode
+        preview = service.cleanup_dry_run(directory)
+        console.print(Panel(preview, title="Files to be deleted", border_style="yellow"))
+    else:
+        # Execute cleanup
+        result = service.cleanup(directory)
+
+        if result.total_items_deleted > 0:
+            console.print(f"\n[green]Cleaned {result.total_items_deleted} items[/green]")
+            console.print(f"  Files: {len(result.files_deleted)}")
+            console.print(f"  Directories: {len(result.directories_deleted)}")
+            console.print(f"  Space freed: {result.size_freed_mb:.2f} MB")
+        else:
+            console.print("\n[green]No files to clean[/green]")
+
+        if result.errors:
+            console.print(f"\n[yellow]Warnings ({len(result.errors)}):[/yellow]")
+            for error in result.errors[:5]:
+                console.print(f"  - {error}")
+
+
+def setup_validate_parser(subparsers):
+    """Configure le parser pour la sous-commande validate-package"""
+    validate_parser = subparsers.add_parser(
+        "validate-package",
+        aliases=["validate"],
+        help="Validate package before publication",
+        description="Check package for secrets, excluded files, and size limits",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Validate current directory
+  aetheris validate-package
+
+  # Validate specific directory
+  aetheris validate-package -d dist/
+
+  # Validate and auto-fix issues
+  aetheris validate-package --fix
+
+  # Set custom size limit
+  aetheris validate-package --max-size 100
+        """,
+    )
+
+    validate_parser.add_argument(
+        "--directory",
+        "-d",
+        type=str,
+        default=".",
+        help="Directory to validate (default: current directory)",
+    )
+
+    validate_parser.add_argument(
+        "--fix",
+        action="store_true",
+        help="Automatically fix issues (remove excluded files)",
+    )
+
+    validate_parser.add_argument(
+        "--max-size",
+        type=float,
+        default=50.0,
+        help="Maximum package size in MB (default: 50)",
+    )
+
+    validate_parser.add_argument(
+        "--secrets-ignore",
+        type=str,
+        default=".secretsignore",
+        help="Path to secrets ignore file (default: .secretsignore)",
+    )
+
+    return validate_parser
+
+
+def run_validate_package(args):
+    """Execute the validate-package command"""
+    from pathlib import Path
+
+    from rich.console import Console
+    from rich.panel import Panel
+
+    from src.services.package_validator import PackageValidator
+
+    console = Console()
+    directory = Path(args.directory).resolve()
+
+    if not directory.exists():
+        console.print(f"[red]Error: Directory not found: {directory}[/red]")
+        sys.exit(1)
+
+    # Check for secrets ignore file
+    secrets_ignore = Path(args.secrets_ignore)
+    if not secrets_ignore.is_absolute():
+        secrets_ignore = directory / secrets_ignore
+
+    validator = PackageValidator(
+        max_size_mb=args.max_size,
+        secrets_ignore_file=secrets_ignore if secrets_ignore.exists() else None,
+    )
+
+    console.print(f"\n[bold]Validating: {directory}[/bold]")
+
+    report = validator.validate(directory)
+    report_text = validator.format_report(report)
+
+    if report.is_valid:
+        console.print(Panel(report_text, title="Validation Passed", border_style="green"))
+    else:
+        console.print(Panel(report_text, title="Validation Failed", border_style="red"))
+
+        if args.fix:
+            console.print("\n[yellow]Attempting to fix issues...[/yellow]")
+            actions = validator.fix_issues(directory, report)
+            for action in actions:
+                console.print(f"  - {action}")
+
+            # Re-validate
+            new_report = validator.validate(directory)
+            if new_report.is_valid:
+                console.print("\n[green]All fixable issues resolved![/green]")
+            else:
+                console.print("\n[red]Some issues require manual review[/red]")
+                sys.exit(1)
+        else:
+            console.print("\n[yellow]Run with --fix to auto-fix some issues[/yellow]")
+            sys.exit(1)
+
+
 def create_parser():
     """Crée le parser principal avec sous-commandes"""
     parser = argparse.ArgumentParser(
@@ -1592,6 +1816,12 @@ Exemples:
     # Ajouter la sous-commande issues
     setup_issues_parser(subparsers)
 
+    # Ajouter la sous-commande cleanup (v2.6.2)
+    setup_cleanup_parser(subparsers)
+
+    # Ajouter la sous-commande validate-package (v2.6.2)
+    setup_validate_parser(subparsers)
+
     return parser
 
 
@@ -1616,6 +1846,10 @@ def main():
         asyncio.run(run_pr_generator(args))
     elif args.command == "issues":
         asyncio.run(run_issues(args))
+    elif args.command == "cleanup":
+        run_cleanup(args)
+    elif args.command in ["validate-package", "validate"]:
+        run_validate_package(args)
     else:
         parser.print_help()
         sys.exit(1)
