@@ -4,7 +4,7 @@ Agent d'analyse architecturale (AAA)
 
 import json
 import os
-from typing import List
+from typing import Dict, List, Optional
 
 from src.agents.base_agent import BaseAgent
 from src.core.config import AnalysisConfig
@@ -19,7 +19,7 @@ class ArchitectAnalysisAgent(BaseAgent):
         self.doc_searcher = doc_searcher
 
     async def generate_architecture_report(
-        self, analyses: List[FileAnalysis], cycles: List[List[str]] = None
+        self, analyses: List[FileAnalysis], cycles: Optional[List[List[str]]] = None
     ) -> str:
         """Génère le rapport d'architecture global"""
         try:
@@ -63,17 +63,17 @@ class ArchitectAnalysisAgent(BaseAgent):
                         all_inconsistencies.extend(analysis.inconsistencies)
 
             # Grouper par langage et module
-            by_language = {}
-            by_module = {}
+            by_language: Dict[str, List[Dict[str, object]]] = {}
+            by_module: Dict[str, List[Dict[str, object]]] = {}
 
             for summary in summaries:
-                lang = summary["language"]
+                lang = str(summary["language"])
                 if lang not in by_language:
                     by_language[lang] = []
                 by_language[lang].append(summary)
 
                 # Extraire le module (dossier parent)
-                file_path = summary["file"]
+                file_path = str(summary["file"])
                 module = (
                     "/".join(file_path.split("/")[:2])
                     if "/" in file_path

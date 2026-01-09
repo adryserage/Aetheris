@@ -2,11 +2,8 @@
 Modèles de données pour le système d'analyse de code
 """
 
-from dataclasses import dataclass
-from dataclasses import field
-from typing import List
-from typing import Optional
-from typing import Tuple
+from dataclasses import dataclass, field
+from typing import List, Optional, Tuple
 
 
 @dataclass
@@ -115,6 +112,16 @@ class ImpactAnalysis:
     directly_impacted: List[str] = field(default_factory=list)  # Fichiers qui importent directement
     transitively_impacted: List[str] = field(default_factory=list)  # Fichiers à N niveaux
     impact_chain: List[List[str]] = field(default_factory=list)  # Chemins source → impacté
+
+    def to_dict(self) -> dict:
+        """Convertit en dictionnaire pour la sérialisation JSON."""
+        return {
+            "bug_id": self.bug_id,
+            "source_file": self.source_file,
+            "directly_impacted": self.directly_impacted,
+            "transitively_impacted": self.transitively_impacted,
+            "impact_chain": self.impact_chain,
+        }
 
 
 @dataclass

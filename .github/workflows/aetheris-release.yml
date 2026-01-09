@@ -1,0 +1,60 @@
+name: Aetheris Release Analysis
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  reanalyze:
+    name: Analyze Release Changes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install Aetheris
+        run: pip install adryserage-aetheris
+
+      - name: Run incremental analysis
+        run: |
+          echo "Analyzing changes in release..."
+          # Use --reanalyze to only analyze new/modified files since last analysis
+          aetheris analysis --reanalyze --timeout 30m || true
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AI_PROVIDER: ${{ secrets.AI_PROVIDER || 'gemini' }}
+
+      - name: Upload analysis artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-analysis
+          path: |
+            docs/analyses/
+            docs/metrics/
+          retention-days: 90
+
+      - name: Commit analysis reports
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/analyses/ docs/metrics/ || true
+          git diff --staged --quiet || git commit -m "chore: update analysis for release"
+          git push || true

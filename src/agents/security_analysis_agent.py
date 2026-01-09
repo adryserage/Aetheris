@@ -7,7 +7,7 @@ Utilise les Structured Outputs de Gemini pour garantir des réponses validées.
 import json
 import os
 import re
-from typing import List
+from typing import List, cast
 
 from src.agents.base_agent import BaseAgent
 from src.core.config import AnalysisConfig
@@ -166,7 +166,8 @@ Inclus également un résumé global et un score de risque (0-10)."""
                 # Utiliser les Structured Outputs si disponibles (Gemini)
                 if self.config.enable_structured_outputs:
                     try:
-                        result = await self._call_ai_structured(prompt, SecurityAnalysisResult)
+                        result_base = await self._call_ai_structured(prompt, SecurityAnalysisResult)
+                        result = cast(SecurityAnalysisResult, result_base)
                         for issue_schema in result.issues:
                             issues.append(
                                 SecurityIssue(

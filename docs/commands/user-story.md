@@ -64,6 +64,40 @@ aetheris user-story --auto --output-format json
 aetheris user-story --auto --severity high
 ```
 
+## Configuration File
+
+Instead of passing CLI flags repeatedly, you can persist settings in a `config.json` file. Aetheris follows this priority order (highest to lowest):
+
+1. **CLI flags** - Override everything
+2. **Local `config.json`** - Project-specific settings
+3. **Global `~/.aetheris/config.json`** - User-wide defaults
+4. **Environment variables** - From `.env`
+5. **Built-in defaults**
+
+### Example Configuration
+
+```json
+{
+  "user_story": {
+    "output_format": "both",
+    "diagram": "mermaid",
+    "output_file": "docs/user-stories/analysis.md",
+    "severity": "low"
+  }
+}
+```
+
+### Configuration Options
+
+| JSON Key | CLI Equivalent | Description |
+|----------|----------------|-------------|
+| `user_story.output_format` | `--output-format` | `markdown`, `json`, or `both` |
+| `user_story.diagram` | `--diagram` | `mermaid`, `plantuml`, `both`, or `none` |
+| `user_story.output_file` | `--output-file` | Output file path |
+| `user_story.severity` | `--severity` | Minimum severity threshold |
+
+See [Configuration Guide](../configuration.md) for all options and the full `config.json` schema.
+
 ## Issues Detected
 
 | Type | Description |
@@ -77,22 +111,43 @@ aetheris user-story --auto --severity high
 
 ## Supported Frameworks
 
+> **Note**: Versions listed are minimum supported. Syntax detection may not work correctly for older versions due to breaking API changes.
+
 ### Frontend
-- fetch
-- axios
-- SWR
-- React Query
-- dio (Dart)
-- requests
-- httpx
+
+| Library | Min Version | Notes |
+|---------|-------------|-------|
+| fetch | (native) | Browser/Node.js native API |
+| axios | 0.21+ | Earlier versions have different interceptor syntax |
+| SWR | 1.0+ | v1.0 introduced new API patterns |
+| React Query / TanStack Query | 3.0+ | v3/v4/v5 supported; v2 syntax differs significantly |
+| dio (Dart) | 4.0+ | v4.0 introduced interceptors redesign |
+| requests (Python) | 2.20+ | Session handling standardized |
+| httpx (Python) | 0.23+ | Async client API stabilized |
 
 ### Backend
-- Express.js
-- Next.js API Routes
-- FastAPI
-- Flask
-- Django
-- NestJS
+
+| Framework | Min Version | Notes |
+|-----------|-------------|-------|
+| Express.js | 4.17+ | v5.x also supported; v3.x syntax not detected |
+| Next.js | 12.0+ | App Router (Route Handlers, Server Actions) and Pages Router (API Routes) both supported |
+| FastAPI | 0.68+ | Depends on Starlette 0.14+; older versions have different routing |
+| Flask | 2.0+ | v2.0 introduced async support; v1.x partially supported |
+| Django | 3.2+ | Class-based views and path() syntax required |
+| NestJS | 8.0+ | Decorator syntax standardized in v8 |
+
+### Version Detection
+
+Aetheris attempts to auto-detect framework versions from:
+- `package.json` (Node.js projects)
+- `requirements.txt` / `pyproject.toml` (Python projects)
+- `pubspec.yaml` (Dart/Flutter projects)
+
+If version detection fails, the latest stable syntax is assumed. Use `--framework-version` to override:
+
+```bash
+aetheris user-story --auto --framework-version "nextjs=12,express=4"
+```
 
 ## Output
 

@@ -5,26 +5,16 @@ Creates GitHub issues from Aetheris analysis reports using the `gh` CLI tool.
 Supports dry-run mode, custom labels, assignees, deduplication, and progress feedback.
 """
 
-import asyncio
 import json
 import os
 import re
 import subprocess
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List
-from typing import Optional
-from typing import Set
-from typing import Tuple
+from typing import List, Optional, Set, Tuple
 
 from rich.console import Console
-from rich.panel import Panel
-from rich.progress import Progress
-from rich.progress import SpinnerColumn
-from rich.progress import TextColumn
-from rich.table import Table
-
+from rich.progress import Progress, SpinnerColumn, TextColumn
 
 console = Console()
 
@@ -203,9 +193,7 @@ class IssueCreator:
         )
 
         if not success:
-            console.print(
-                f"[yellow]Warning: Could not fetch existing issues: {stderr}[/yellow]"
-            )
+            console.print(f"[yellow]Warning: Could not fetch existing issues: {stderr}[/yellow]")
             return set()
 
         try:
@@ -235,7 +223,9 @@ class IssueCreator:
         console.print(f"\n[bold cyan]{title}[/bold cyan]")
         console.print(f"  [dim]Labels:[/dim] {labels_str}")
         console.print(f"  [dim]File:[/dim] {bug.source_file}")
-        console.print(f"  [dim]Type:[/dim] {bug.bug_type.title()} | [dim]Severity:[/dim] {bug.severity.title()}")
+        console.print(
+            f"  [dim]Type:[/dim] {bug.bug_type.title()} | [dim]Severity:[/dim] {bug.severity.title()}"
+        )
         if bug.line_number:
             console.print(f"  [dim]Line:[/dim] {bug.line_number}")
 
@@ -260,7 +250,7 @@ class IssueCreator:
 
             # Check for rate limiting
             if result.error and ("rate limit" in result.error.lower() or "403" in result.error):
-                delay = BASE_DELAY_SECONDS * (2 ** attempt)
+                delay = BASE_DELAY_SECONDS * (2**attempt)
                 console.print(
                     f"[yellow]Rate limited. Waiting {delay:.1f}s before retry...[/yellow]"
                 )
@@ -278,7 +268,7 @@ class IssueCreator:
 
     def parse_single_report(self, report_path: str) -> List[ExtractedBug]:
         """Extract bugs from a single markdown analysis report."""
-        bugs = []
+        bugs: List[ExtractedBug] = []
 
         try:
             with open(report_path, "r", encoding="utf-8", errors="ignore") as f:
@@ -381,16 +371,14 @@ class IssueCreator:
         # Scan directory
         if not os.path.exists(self.output_dir):
             console.print(
-                f"[yellow]No analysis reports found. Run 'aetheris analysis' first.[/yellow]"
+                "[yellow]No analysis reports found. Run 'aetheris analysis' first.[/yellow]"
             )
             return []
 
         report_files = list(Path(self.output_dir).glob("*.md"))
 
         if not report_files:
-            console.print(
-                f"[yellow]No analysis reports found in {self.output_dir}[/yellow]"
-            )
+            console.print(f"[yellow]No analysis reports found in {self.output_dir}[/yellow]")
             return []
 
         for report_file in report_files:
@@ -449,7 +437,9 @@ class IssueCreator:
     # T013: Get labels for bug
     # -------------------------------------------------------------------------
 
-    def get_labels_for_bug(self, bug: ExtractedBug, custom_labels: List[str] = None) -> List[str]:
+    def get_labels_for_bug(
+        self, bug: ExtractedBug, custom_labels: Optional[List[str]] = None
+    ) -> List[str]:
         """Get labels based on bug type and severity."""
         labels = ["aetheris-analysis"]
 
@@ -488,9 +478,12 @@ class IssueCreator:
 
         # Build command
         args = [
-            "issue", "create",
-            "--title", title,
-            "--body", body,
+            "issue",
+            "create",
+            "--title",
+            title,
+            "--body",
+            body,
         ]
 
         # Add labels
@@ -647,7 +640,9 @@ class IssueCreator:
         else:
             console.print(f"Total bugs found: [bold]{summary.total_bugs}[/bold]")
             console.print(f"Issues created:   [green]{summary.created}[/green]")
-            console.print(f"Issues skipped:   [yellow]{summary.skipped}[/yellow] [dim](already exist)[/dim]")
+            console.print(
+                f"Issues skipped:   [yellow]{summary.skipped}[/yellow] [dim](already exist)[/dim]"
+            )
             console.print(f"Issues failed:    [red]{summary.failed}[/red]")
 
         console.print()

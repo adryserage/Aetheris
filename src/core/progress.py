@@ -10,13 +10,15 @@ from typing import Optional
 try:
     from rich.console import Console
     from rich.panel import Panel
-    from rich.progress import BarColumn
-    from rich.progress import Progress
-    from rich.progress import SpinnerColumn
-    from rich.progress import TaskID
-    from rich.progress import TextColumn
-    from rich.progress import TimeElapsedColumn
-    from rich.progress import TimeRemainingColumn
+    from rich.progress import (
+        BarColumn,
+        Progress,
+        SpinnerColumn,
+        TaskID,
+        TextColumn,
+        TimeElapsedColumn,
+        TimeRemainingColumn,
+    )
 
     RICH_AVAILABLE = True
 except ImportError:
@@ -60,6 +62,8 @@ class ProgressManager:
             TimeRemainingColumn(),
             console=self.console,
             expand=True,
+            refresh_per_second=4,  # Limiter le rafraîchissement pour éviter les duplications
+            transient=False,  # Garder les barres de progression visibles
         ) as progress:
             self.progress = progress
             yield progress
@@ -67,7 +71,7 @@ class ProgressManager:
 
     def add_task(
         self, description: str, total: int = 100, task_id: Optional[TaskID] = None
-    ) -> TaskID:
+    ) -> Optional[TaskID]:
         """
         Ajoute une nouvelle tâche à la barre de progression
 
@@ -88,7 +92,7 @@ class ProgressManager:
 
     def update_task(
         self,
-        task_id: TaskID,
+        task_id: Optional[TaskID],
         advance: int = 1,
         description: Optional[str] = None,
         total: Optional[int] = None,
@@ -97,24 +101,24 @@ class ProgressManager:
         Met à jour une tâche de progression
 
         Args:
-            task_id: ID de la tâche
+            task_id: ID de la tâche (peut être None si le progress est désactivé)
             advance: Nombre d'éléments à avancer
             description: Nouvelle description (optionnel)
             total: Nouveau total (optionnel)
         """
-        if not self.enabled or not self.progress:
+        if not self.enabled or not self.progress or task_id is None:
             return
 
         self.progress.update(task_id, advance=advance, description=description, total=total)
 
-    def complete_task(self, task_id: TaskID):
+    def complete_task(self, task_id: Optional[TaskID]):
         """
         Marque une tâche comme complétée
 
         Args:
-            task_id: ID de la tâche
+            task_id: ID de la tâche (peut être None si le progress est désactivé)
         """
-        if not self.enabled or not self.progress:
+        if not self.enabled or not self.progress or task_id is None:
             return
 
         self.progress.update(task_id, completed=self.progress.tasks[task_id].total)
@@ -128,13 +132,12 @@ class ProgressManager:
             **kwargs: Options d'affichage
         """
         if self.enabled and self.console:
-            # Si une barre de progression est active, on l'efface temporairement
-            if self.progress:
-                self.console.print(*args, **kwargs)
-            else:
-                self.console.print(*args, **kwargs)
+            # Utiliser console.log pour une meilleure intégration avec les barres de progression
+            # Cela évite les problèmes de duplication
+            self.console.print(*args, **kwargs)
         else:
-            # Fallback vers print standard
+            # Fallback vers print standard avec flush pour garantir la visibilité
+            kwargs.setdefault("flush", True)
             print(*args, **kwargs)
 
     def print_panel(self, content: str, title: str = "", style: str = "blue"):

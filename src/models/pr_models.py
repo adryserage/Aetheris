@@ -2,11 +2,9 @@
 Modèles de données pour l'analyse de Pull Requests
 """
 
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import List
-from typing import Optional
+from typing import List, Optional
 
 
 class PRIssueType(str, Enum):

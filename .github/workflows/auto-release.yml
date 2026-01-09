@@ -14,94 +14,83 @@ permissions:
   id-token: write # Nécessaire pour l'authentification OIDC avec PyPI
 
 jobs:
-  detect-version-change:
+  auto-release:
     runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.version.outputs.current }}
-      version_changed: ${{ steps.version.outputs.changed }}
-      tag_name: ${{ steps.version.outputs.tag_name }}
-    
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0 # Nécessaire pour comparer avec les commits précédents
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Extract current version from pyproject.toml
-        id: version
-        run: |
-          # Extraire la version actuelle
-          CURRENT_VERSION=$(grep -E '^version = ' pyproject.toml | sed -E 's/version = "(.+)"/\1/')
-          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          echo "tag_name=v$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          
-          # Vérifier si le tag existe déjà
-          if git rev-parse "v$CURRENT_VERSION" >/dev/null 2>&1; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-            echo "⚠️  Le tag v$CURRENT_VERSION existe déjà. Pas de nouvelle release."
-          else
-            # Vérifier si la version a changé depuis le dernier commit
-            if git diff HEAD~1 HEAD -- pyproject.toml 2>/dev/null | grep -q "^+version ="; then
-              echo "changed=true" >> $GITHUB_OUTPUT
-              echo "✅ Nouvelle version détectée: $CURRENT_VERSION"
-            else
-              # Vérifier si c'est le premier commit ou si pyproject.toml a été modifié
-              if git diff HEAD~1 HEAD --name-only | grep -q "pyproject.toml"; then
-                echo "changed=true" >> $GITHUB_OUTPUT
-                echo "✅ pyproject.toml modifié. Version: $CURRENT_VERSION"
-              else
-                echo "changed=false" >> $GITHUB_OUTPUT
-                echo "ℹ️  Aucun changement de version détecté."
-              fi
-            fi
-          fi
-          
-          echo "Version actuelle: $CURRENT_VERSION"
-          echo "Tag: v$CURRENT_VERSION"
-
-  create-tag-and-release:
-    needs: detect-version-change
-    if: needs.detect-version-change.outputs.version_changed == 'true'
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5.5.0
         with:
           python-version: "3.11"
 
-      - name: Configure Git
+      - name: Detect version change and create release
         run: |
+          # Extraire la version avec Python (tomllib natif, robuste au formatage TOML)
+          CURRENT_VERSION=$(python3 -c "
+          import tomllib, sys
+          with open('pyproject.toml', 'rb') as f:
+              data = tomllib.load(f)
+          # Chercher dans [project] puis [tool.poetry] pour compatibilité
+          version = data.get('project', {}).get('version') or data.get('tool', {}).get('poetry', {}).get('version')
+          if not version:
+              print('ERREUR: Version non trouvée dans pyproject.toml ([project].version ou [tool.poetry].version)', file=sys.stderr)
+              sys.exit(1)
+          print(version)
+          ")
+          TAG_NAME="v$CURRENT_VERSION"
+
+          # Valider le format de version semver (avec support des pre-releases)
+          # Format attendu: X.Y.Z ou X.Y.Z-suffix.N (ex: 1.0.0, 2.1.0-alpha.1, 3.0.0-rc.2)
+          SEMVER_REGEX='^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*)?$'
+          if ! echo "$CURRENT_VERSION" | grep -qE "$SEMVER_REGEX"; then
+            echo "❌ Format de version invalide: $CURRENT_VERSION"
+            echo "   Format attendu: X.Y.Z ou X.Y.Z-suffix (ex: 1.0.0, 2.1.0-alpha.1)"
+            exit 1
+          fi
+
+          echo "Version actuelle: $CURRENT_VERSION"
+          echo "Tag: $TAG_NAME"
+
+          # Vérifier si le tag existe déjà
+          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+            echo "⚠️  Le tag $TAG_NAME existe déjà. Pas de nouvelle release."
+            exit 0
+          fi
+
+          # Vérifier si la version a changé depuis le dernier commit
+          VERSION_CHANGED=false
+          if git diff HEAD~1 HEAD -- pyproject.toml 2>/dev/null | grep -q "^+version ="; then
+            VERSION_CHANGED=true
+            echo "✅ Nouvelle version détectée: $CURRENT_VERSION"
+          elif git diff HEAD~1 HEAD --name-only | grep -q "pyproject.toml"; then
+            VERSION_CHANGED=true
+            echo "✅ pyproject.toml modifié. Version: $CURRENT_VERSION"
+          else
+            echo "ℹ️  Aucun changement de version détecté."
+          fi
+
+          # Si pas de changement de version, arrêter ici
+          if [ "$VERSION_CHANGED" != "true" ]; then
+            echo "Aucune action nécessaire."
+            exit 0
+          fi
+
+          # Configurer Git pour la création du tag
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Create and push tag
-        env:
-          VERSION: ${{ needs.detect-version-change.outputs.version }}
-          TAG_NAME: ${{ needs.detect-version-change.outputs.tag_name }}
-        run: |
-          # Vérifier que le tag n'existe pas déjà (double vérification)
-          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
-            echo "⚠️  Le tag $TAG_NAME existe déjà. Ignoré."
-            exit 0
+          # Créer le tag de manière atomique (évite TOCTOU race condition)
+          if git tag -a "$TAG_NAME" -m "Release $TAG_NAME" 2>/dev/null; then
+            # Pousser le tag (cela déclenchera les workflows publish.yml et create-release.yml)
+            git push origin "$TAG_NAME"
+            echo "✅ Tag $TAG_NAME créé et poussé avec succès"
+          else
+            echo "⚠️  Le tag $TAG_NAME existe déjà ou erreur de création. Ignoré."
           fi
-          
-          # Créer le tag
-          git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
-          
-          # Pousser le tag (cela déclenchera les workflows publish.yml et create-release.yml)
-          git push origin "$TAG_NAME"
-          
-          echo "✅ Tag $TAG_NAME créé et poussé avec succès"
 

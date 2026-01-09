@@ -6,11 +6,9 @@ pour garantir des réponses JSON valides et typées.
 """
 
 from enum import Enum
-from typing import List
-from typing import Optional
+from typing import List, Optional
 
-from pydantic import BaseModel
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 
 class Severity(str, Enum):

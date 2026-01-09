@@ -5,12 +5,11 @@ Agent d'Assurance Qualité - Synthétise toutes les informations d'analyse (QAA)
 import json
 import os
 from collections import defaultdict
-from typing import List
+from typing import DefaultDict, Dict, List
 
 from src.agents.base_agent import BaseAgent
 from src.core.config import AnalysisConfig
-from src.models.data_models import DependencyVulnerability
-from src.models.data_models import FileAnalysis
+from src.models.data_models import DependencyVulnerability, FileAnalysis
 
 
 class QualityAssuranceAgent(BaseAgent):
@@ -36,7 +35,7 @@ class QualityAssuranceAgent(BaseAgent):
 
             # Statistiques par catégorie
             security_issues_count = sum(len(a.security_issues) for a in successful_analyses)
-            security_by_severity = defaultdict(int)
+            security_by_severity: DefaultDict[str, int] = defaultdict(int)
             for analysis in successful_analyses:
                 for issue in analysis.security_issues:
                     security_by_severity[issue.severity] += 1
@@ -77,7 +76,7 @@ class QualityAssuranceAgent(BaseAgent):
             total_inconsistencies = sum(len(a.inconsistencies) for a in successful_analyses)
 
             # Vulnérabilités des dépendances
-            vuln_by_severity = defaultdict(int)
+            vuln_by_severity: DefaultDict[str, int] = defaultdict(int)
             for vuln in dep_vulnerabilities:
                 vuln_by_severity[vuln.severity] += 1
 

@@ -6,23 +6,21 @@ Analyse les PRs avec plusieurs providers AI et produit un consensus sur les issu
 
 import asyncio
 import hashlib
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
+from typing import Dict, List, Optional, Tuple
 
 from src.agents.base_agent import BaseAgent
-from src.core.ai_providers import AIProvider
-from src.core.ai_providers import create_ai_provider
+from src.core.ai_providers import AIProvider, create_ai_provider
 from src.core.config import AnalysisConfig
 from src.core.progress import ProgressManager
-from src.models.pr_models import PRComment
-from src.models.pr_models import PRFile
-from src.models.pr_models import PRInfo
-from src.models.pr_models import PRIssue
-from src.models.pr_models import PRIssueSeverity
-from src.models.pr_models import PRIssueType
-from src.models.pr_models import PRReviewResult
+from src.models.pr_models import (
+    PRComment,
+    PRFile,
+    PRInfo,
+    PRIssue,
+    PRIssueSeverity,
+    PRIssueType,
+    PRReviewResult,
+)
 
 
 class PRReviewAgent(BaseAgent):
@@ -102,8 +100,8 @@ class PRReviewAgent(BaseAgent):
             PRReviewResult avec les issues détectées
         """
         if self.progress_manager:
-            self.progress_manager.update_status(
-                f"Analyse de la PR #{pr_info.pr_number} avec {len(self.ai_providers)} provider(s)..."
+            self.progress_manager.print(
+                f"[cyan]Analyse de la PR #{pr_info.pr_number} avec {len(self.ai_providers)} provider(s)...[/cyan]"
             )
 
         # Analyser avec chaque provider en parallèle
@@ -127,13 +125,13 @@ class PRReviewAgent(BaseAgent):
 
         for i, (provider_name, _) in enumerate(self.ai_providers.items()):
             result = results[i]
-            if isinstance(result, Exception):
+            if isinstance(result, BaseException):
                 if self.progress_manager:
-                    self.progress_manager.print_warning(
-                        f"Erreur avec {provider_name}: {str(result)}"
+                    self.progress_manager.print(
+                        f"[yellow]⚠️ Erreur avec {provider_name}: {str(result)}[/yellow]"
                     )
                 provider_issues[provider_name] = []
-            else:
+            elif isinstance(result, list):
                 provider_issues[provider_name] = result
                 total_before_consensus += len(result)
 
@@ -193,7 +191,7 @@ class PRReviewAgent(BaseAgent):
             Liste des issues détectées
         """
         if self.progress_manager:
-            self.progress_manager.update_status(f"Analyse avec {provider_name}...")
+            self.progress_manager.print(f"[cyan]Analyse avec {provider_name}...[/cyan]")
 
         prompt = self._build_review_prompt(pr_info, diff_content, files_changed)
 
@@ -205,15 +203,15 @@ class PRReviewAgent(BaseAgent):
             issues = self._parse_ai_response(response, provider_name)
 
             if self.progress_manager:
-                self.progress_manager.print_success(
-                    f"{provider_name}: {len(issues)} issue(s) trouvée(s)"
+                self.progress_manager.print(
+                    f"[green]✅ {provider_name}: {len(issues)} issue(s) trouvée(s)[/green]"
                 )
 
             return issues
 
         except Exception as e:
             if self.progress_manager:
-                self.progress_manager.print_error(f"Erreur {provider_name}: {str(e)}")
+                self.progress_manager.print(f"[red]❌ Erreur {provider_name}: {str(e)}[/red]")
             raise
 
     def _build_review_prompt(
@@ -488,13 +486,13 @@ IMPORTANT:
             Résumé formaté en markdown
         """
         # Compter par sévérité
-        severity_counts = {}
+        severity_counts: Dict[str, int] = {}
         for issue in issues:
             sev = issue.severity.value
             severity_counts[sev] = severity_counts.get(sev, 0) + 1
 
         # Compter par type
-        type_counts = {}
+        type_counts: Dict[str, int] = {}
         for issue in issues:
             t = issue.issue_type.value
             type_counts[t] = type_counts.get(t, 0) + 1

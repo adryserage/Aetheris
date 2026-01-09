@@ -2,21 +2,15 @@
 Classe de base pour tous les agents d'analyse
 """
 
-from typing import TYPE_CHECKING
-from typing import Optional
-from typing import Tuple
-from typing import Type
+from typing import TYPE_CHECKING, Optional, Tuple, Type
 
-from src.core.ai_providers import AIProvider
-from src.core.ai_providers import GeminiProvider
-from src.core.ai_providers import create_ai_provider
+from src.core.ai_providers import AIProvider, GeminiProvider, create_ai_provider
 from src.core.config import AnalysisConfig
 
 if TYPE_CHECKING:
     from pydantic import BaseModel
 
-from src.core.error_handler import CircuitBreaker
-from src.core.error_handler import exponential_backoff
+from src.core.error_handler import CircuitBreaker, exponential_backoff
 from src.core.progress import ProgressManager
 
 

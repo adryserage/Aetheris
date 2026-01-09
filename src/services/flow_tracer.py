@@ -7,15 +7,10 @@ Supporte JavaScript/TypeScript, Dart/Flutter, Python et plusieurs frameworks.
 
 import os
 import re
-from dataclasses import dataclass
-from dataclasses import field
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Set
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Set
 
-from ..models.user_story_models import APICall
-from ..models.user_story_models import APIEndpoint
+from ..models.user_story_models import APICall, APIEndpoint
 
 # === Patterns de détection par langage ===
 
@@ -314,7 +309,7 @@ class FlowTracer:
                 line_number = content[: match.start()].count("\n") + 1
 
                 # Extraire l'URL
-                url = match.group(1) if match.lastindex >= 1 else ""
+                url = match.group(1) if match.lastindex is not None and match.lastindex >= 1 else ""
 
                 # Déterminer la méthode HTTP
                 method = self._extract_method_from_pattern_name(pattern_name)

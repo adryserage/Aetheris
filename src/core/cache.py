@@ -7,11 +7,8 @@ import hashlib
 import json
 import os
 import subprocess
-from datetime import datetime
-from datetime import timedelta
-from typing import Any
-from typing import Dict
-from typing import Optional
+from datetime import datetime, timedelta
+from typing import Any, Dict, Optional
 
 from src.models.data_models import FileAnalysis
 
@@ -19,18 +16,20 @@ from src.models.data_models import FileAnalysis
 class AnalysisCache:
     """Cache pour les résultats d'analyse de fichiers"""
 
-    def __init__(self, root_dir: str, cache_dir: str = ".cache/aetheris", ttl_days: int = 7):
+    def __init__(
+        self, root_dir: str, cache_dir: str = ".cache/aetheris", ttl_seconds: int = 604800
+    ):
         """
         Initialise le cache
 
         Args:
             root_dir: Répertoire racine du projet
             cache_dir: Répertoire de cache (relatif à root_dir)
-            ttl_days: Durée de vie du cache en jours
+            ttl_seconds: Durée de vie du cache en secondes (défaut: 604800 = 7 jours)
         """
         self.root_dir = root_dir
         self.cache_dir = os.path.join(root_dir, cache_dir)
-        self.ttl_days = ttl_days
+        self.ttl_seconds = ttl_seconds
         os.makedirs(self.cache_dir, exist_ok=True)
 
     def _get_file_hash(self, file_path: str) -> str:
@@ -116,7 +115,7 @@ class AnalysisCache:
             # Vérifier l'âge du cache
             cache_mtime = os.path.getmtime(cache_path)
             cache_age = datetime.now() - datetime.fromtimestamp(cache_mtime)
-            if cache_age > timedelta(days=self.ttl_days):
+            if cache_age > timedelta(seconds=self.ttl_seconds):
                 # Cache expiré
                 os.remove(cache_path)
                 return None

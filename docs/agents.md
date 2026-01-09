@@ -66,6 +66,8 @@ Identifies:
 - Severity levels
 - Fixed versions available
 
+**Runtime Environment**: DVA parses manifest files (package.json, requirements.txt, pubspec.yaml) and lockfiles directly without requiring package managers (npm, pip, flutter) to be installed. Dependency resolution is performed by reading the lockfile contents and querying the OSV API. If no lockfile is present, only direct dependencies from the manifest are analyzed.
+
 ## Quality Assurance Agent (QAA)
 
 Synthesizes all analyses:
@@ -75,6 +77,61 @@ Synthesizes all analyses:
 - **Action Plan**: Prioritized improvements
 - **Roadmap**: Improvement timeline
 
+## Data Security
+
+Before sending code to external AI providers, Aetheris applies **automatic sensitive data filtering** to protect secrets and intellectual property.
+
+### Pre-processing (Scrubbing)
+
+The following data types are automatically masked before AI analysis:
+
+| Data Type | Pattern Examples | Replacement |
+|-----------|------------------|-------------|
+| API Keys | `AKIA...`, `sk-...`, `ghp_...` | `[REDACTED_API_KEY]` |
+| Passwords | `password=`, `pwd=`, `secret=` | `[REDACTED_SECRET]` |
+| Connection Strings | `mongodb://`, `postgres://` | `[REDACTED_CONNECTION_STRING]` |
+| Private Keys | `-----BEGIN RSA PRIVATE KEY-----` | `[REDACTED_PRIVATE_KEY]` |
+| JWT Tokens | `eyJ...` (base64 JWT format) | `[REDACTED_TOKEN]` |
+| AWS Credentials | `aws_access_key_id`, `aws_secret_access_key` | `[REDACTED_AWS_CREDENTIAL]` |
+| PII Patterns | Email addresses, phone numbers | `[REDACTED_PII]` |
+
+### Configuration
+
+Control sensitive data filtering via `config.json`:
+
+```json
+{
+  "security": {
+    "scrub_secrets": true,
+    "custom_patterns": [
+      {
+        "name": "internal_token",
+        "pattern": "MYCOMPANY_[A-Z0-9]{32}",
+        "replacement": "[REDACTED_INTERNAL_TOKEN]"
+      }
+    ],
+    "exclude_files": ["**/*.env", "**/secrets/**"]
+  }
+}
+```
+
+### Best Practices
+
+1. **Never commit secrets** - Use `.env` files excluded from analysis
+2. **Review before analysis** - Check what files will be sent to AI
+3. **Use `--dry-run`** - Preview analysis scope without sending data
+4. **Custom patterns** - Add company-specific secret formats to config
+5. **Audit logging** - Enable `audit_log_path` to track all AI interactions
+
+### File Exclusions
+
+By default, these files are excluded from AI analysis:
+
+- `.env`, `.env.*` - Environment files
+- `**/secrets/**` - Secret directories
+- `**/*.pem`, `**/*.key` - Certificate files
+- `**/credentials*` - Credential files
+
 ## Agent Configuration
 
 Agents inherit from `BaseAgent` class and use:
@@ -82,8 +139,37 @@ Agents inherit from `BaseAgent` class and use:
 ```python
 await self._call_ai_with_retry(prompt)      # Standard call
 await self._call_ai_with_reasoning(prompt)  # With reasoning display
-await self._call_ai_structured(prompt, Schema)  # Structured output
+await self._call_ai_structured(prompt, Schema)  # Structured output (see below)
 ```
+
+### Structured Output with Pydantic Schemas
+
+The `_call_ai_structured` method requires a Pydantic model to validate and parse AI responses:
+
+```python
+from pydantic import BaseModel, Field
+from typing import List
+
+# Define your response schema
+class SecurityIssue(BaseModel):
+    severity: str = Field(description="Issue severity: critical, high, medium, low")
+    description: str = Field(description="Detailed description of the issue")
+    cwe_id: str | None = Field(default=None, description="CWE identifier if applicable")
+
+class SecurityAnalysisResult(BaseModel):
+    issues: List[SecurityIssue] = Field(default_factory=list)
+    risk_score: int = Field(ge=0, le=100, description="Overall risk score 0-100")
+
+# Use in agent
+result = await self._call_ai_structured(prompt, SecurityAnalysisResult)
+# result is now a validated SecurityAnalysisResult instance
+```
+
+**Key points:**
+- Schemas must inherit from `pydantic.BaseModel`
+- Use `Field()` with descriptions to guide AI response formatting
+- The method returns a validated instance of your schema
+- Invalid responses raise `ValidationError` (handled by retry logic)
 
 ## Adding Custom Agents
 

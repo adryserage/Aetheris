@@ -12,14 +12,8 @@ avancées du SDK google-genai :
 - Google Search : recherche web intégrée (grounding)
 """
 
-from dataclasses import dataclass
-from dataclasses import field
-from typing import TYPE_CHECKING
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Type
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type
 
 if TYPE_CHECKING:
     from pydantic import BaseModel

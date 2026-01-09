@@ -10,11 +10,38 @@ aetheris analysis [options]
 
 ## Options
 
-| Option | Description |
-|--------|-------------|
-| `--changed-files-only` | Analyze only modified files (for PR/commits) |
-| `--files FILES` | List of files to analyze (JSON array or comma-separated) |
-| `--pr-number NUM` | PR number (optional, for information) |
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--changed-files-only` | | Analyze only modified files (for PR/commits). **Requires** `--files` or `CHANGED_FILES` env var |
+| `--files FILES` | | List of files to analyze. Supports two formats (see below). When used with `--changed-files-only`, provides the list of changed files |
+| `--pr-number NUM` | | PR number (optional, for information) |
+| `--timeout DURATION` | | **(v2.6.1)** Set analysis timeout. Formats: `30m`, `2h`, `90s`, or `0` for unlimited |
+| `--reanalyze` | `-r` | **(v2.6.1)** Only analyze files changed since the last analysis. Auto-detects via git or timestamps |
+
+### `--files` Format
+
+The `--files` option accepts **comma-separated paths** (recommended for manual use):
+
+```bash
+# Recommended: Simple comma-separated list (no spaces after commas)
+--files src/file1.py,src/file2.py,src/file3.py
+```
+
+> **Note**: JSON array format (`'["file1.py"]'`) is also supported for CI/CD pipelines that generate JSON output, but comma-separated is preferred for manual usage to avoid shell escaping issues.
+
+### Option Interaction
+
+The `--changed-files-only` and `--files` options work together as follows:
+
+| Mode | Behavior |
+|------|----------|
+| `--files` alone | Analyzes the specified files directly |
+| `--changed-files-only` alone | **Error**: requires `--files` or `CHANGED_FILES` env var to specify which files changed |
+| `--changed-files-only --files ...` | Analyzes the files provided via `--files` as the changed file list |
+
+**Priority order** (when `--changed-files-only` is set):
+1. `--files` CLI argument (highest priority)
+2. `CHANGED_FILES` environment variable (fallback)
 
 ## Examples
 
@@ -23,20 +50,82 @@ aetheris analysis [options]
 aetheris analysis
 ```
 
-### Analyze Specific Files
+### Incremental Reanalysis (v2.6.1)
+
+Automatically detect and analyze only files changed since the last analysis:
+
 ```bash
+# Auto-detect changed files and reanalyze
+aetheris analysis --reanalyze
+
+# Short form
+aetheris analysis -r
+
+# Combined with timeout
+aetheris analysis -r --timeout 30m
+```
+
+**How it works:**
+1. Reads the last analysis timestamp from `docs/metrics/metrics_*.json`
+2. Detects changed files using git (preferred) or file timestamps (fallback)
+3. Analyzes only the changed files
+4. Updates existing reports with new findings
+
+> **Note**: If no previous analysis exists, `--reanalyze` will run a full analysis with an informational message.
+
+### Timeout Management (v2.6.1)
+
+Control analysis duration for large codebases:
+
+```bash
+# 30 minute timeout
+aetheris analysis --timeout 30m
+
+# 2 hour timeout
+aetheris analysis --timeout 2h
+
+# Unlimited (no timeout)
+aetheris analysis --timeout 0
+```
+
+**Supported formats:** `30s` (seconds), `30m` (minutes), `2h` (hours)
+
+**Heartbeat Monitor:** For analyses longer than 10 minutes, a progress indicator is displayed automatically.
+
+### Analyze Specific Files (Manual)
+```bash
+# Recommended: comma-separated (no spaces)
 aetheris analysis --files src/file1.py,src/file2.py
 ```
 
-### Analyze Changed Files (GitHub Actions)
+### Analyze Changed Files (CI/CD)
+
+For GitHub Actions or other CI pipelines:
+
 ```bash
-aetheris analysis --changed-files-only --files '["src/file1.py", "src/file2.py"]'
+# Using environment variable (recommended for CI)
+export CHANGED_FILES="src/file1.py,src/file2.py"
+aetheris analysis --changed-files-only
+
+# Or pass files directly (comma-separated)
+aetheris analysis --changed-files-only --files src/file1.py,src/file2.py
 ```
+
+> **Important**: `--changed-files-only` does **not** auto-detect changes via Git. It signals that the analysis scope is limited to the provided file list. Your CI pipeline must detect and pass the changed files (e.g., using `git diff --name-only`).
 
 ### With PR Number
 ```bash
 aetheris analysis --changed-files-only --files src/file1.py --pr-number 123
 ```
+
+### Comparison: `--reanalyze` vs `--changed-files-only`
+
+| Feature | `--reanalyze` | `--changed-files-only` |
+|---------|---------------|------------------------|
+| Auto-detect changes | ✅ Yes (git/timestamps) | ❌ No (requires `--files`) |
+| Use case | Local development | CI/CD pipelines |
+| Requires previous analysis | ✅ Yes | ❌ No |
+| Preserves old findings | ✅ Yes | ❌ No |
 
 ## What Gets Analyzed
 
@@ -50,15 +139,17 @@ The analysis includes:
 
 ## Output
 
-Reports are generated in `docs/analyses/`:
+Reports are generated in the directory specified by `OUTPUT_DIR` (default: `docs/analyses`):
 
 | File | Description |
 |------|-------------|
-| `docs/analyses/<file>.md` | Individual file reports |
-| `docs/architecture_overview.md` | Architecture overview |
-| `docs/analyses/quality_assurance_report.md` | QA synthesis |
-| `docs/analyses/vulnerabilities_report.md` | Dependency vulnerabilities |
-| `docs/metrics/metrics_*.json` | Performance metrics |
+| `${OUTPUT_DIR}/<file>.md` | Individual file reports |
+| `${OUTPUT_DIR}/quality_assurance_report.md` | QA synthesis |
+| `${OUTPUT_DIR}/vulnerabilities_report.md` | Dependency vulnerabilities |
+| `${OUTPUT_DIR}/../architecture_overview.md` | Architecture overview |
+| `${OUTPUT_DIR}/../metrics/metrics_*.json` | Performance metrics |
+
+> **Note**: Paths shown use `${OUTPUT_DIR}` placeholder. With the default value `docs/analyses`, reports appear in `docs/analyses/`, `docs/architecture_overview.md`, and `docs/metrics/`.
 
 ## Environment Variables
 
@@ -70,5 +161,34 @@ Reports are generated in `docs/analyses/`:
 | `ENABLE_SECURITY_ANALYSIS` | Enable security checks | `true` |
 | `ENABLE_METRICS_ANALYSIS` | Enable code metrics | `true` |
 | `ENABLE_DEPENDENCY_VULNERABILITY` | Enable CVE scanning | `true` |
+| `ANALYSIS_TIMEOUT` | **(v2.6.1)** Default timeout duration | `120m` |
+| `HEARTBEAT_INTERVAL` | **(v2.6.1)** Heartbeat interval in seconds | `600` (10 min) |
 
 See [Configuration](../configuration.md) for all options.
+
+## Change Detection (v2.6.1)
+
+When using `--reanalyze`, the system detects changes using one of two methods:
+
+### Git-Based Detection (Preferred)
+
+If the project is a git repository:
+1. Reads the git commit SHA from the last analysis metrics file
+2. Runs `git diff --name-only <last-sha> HEAD` to find changed files
+3. Also includes staged, unstaged, and untracked files
+
+### Timestamp-Based Detection (Fallback)
+
+If git is unavailable:
+1. Reads the timestamp from the last analysis metrics file
+2. Compares against file modification times
+3. Returns all files modified after the last analysis
+
+### Excluded Directories
+
+The following directories are always excluded from change detection:
+- `.git`
+- `__pycache__`
+- `node_modules`
+- `.venv`, `venv`
+- `.tox`

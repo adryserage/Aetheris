@@ -8,24 +8,23 @@ Trace les flux frontend ↔ backend et détecte les incohérences logiques.
 import os
 import uuid
 from datetime import datetime
-from typing import TYPE_CHECKING
-from typing import List
-from typing import Optional
+from typing import TYPE_CHECKING, List, Optional, cast
 
 from ..core.config import AnalysisConfig
 from ..core.progress import ProgressManager
-from ..models.user_story_models import APICall
-from ..models.user_story_models import APIEndpoint
-from ..models.user_story_models import FlowIssue
-from ..models.user_story_models import FlowStep
-from ..models.user_story_models import FlowStepType
-from ..models.user_story_models import IssueSeverity
-from ..models.user_story_models import IssueType
-from ..models.user_story_models import UserStory
-from ..models.user_story_models import UserStoryAnalysisResult
-from ..models.user_story_models import UserStoryFlow
-from ..models.user_story_schemas import ConsistencyCheckSchema
-from ..models.user_story_schemas import FlowAnalysisSchema
+from ..models.user_story_models import (
+    APICall,
+    APIEndpoint,
+    FlowIssue,
+    FlowStep,
+    FlowStepType,
+    IssueSeverity,
+    IssueType,
+    UserStory,
+    UserStoryAnalysisResult,
+    UserStoryFlow,
+)
+from ..models.user_story_schemas import ConsistencyCheckSchema, FlowAnalysisSchema
 from ..services.flow_tracer import FlowTracer
 from ..services.user_story_parser import UserStoryParser
 from .base_agent import BaseAgent
@@ -234,7 +233,8 @@ Réponds en JSON valide selon ce schéma:
 """
 
         try:
-            result = await self._call_ai_structured(prompt, FlowAnalysisSchema)
+            result_base = await self._call_ai_structured(prompt, FlowAnalysisSchema)
+            result = cast(FlowAnalysisSchema, result_base)
 
             # Convertir les étapes
             for i, step_schema in enumerate(result.steps):
@@ -512,7 +512,8 @@ Réponds en JSON:
 """
 
         try:
-            result = await self._call_ai_structured(prompt, ConsistencyCheckSchema)
+            result_base = await self._call_ai_structured(prompt, ConsistencyCheckSchema)
+            result = cast(ConsistencyCheckSchema, result_base)
 
             # Créer des issues pour chaque problème
             for issue_text in result.logical_issues:

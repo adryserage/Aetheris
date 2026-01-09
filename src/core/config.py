@@ -3,11 +3,120 @@ Configuration de l'analyse
 """
 
 import os
-from dataclasses import dataclass
-from dataclasses import field
-from typing import Dict
-from typing import List
-from typing import Optional
+import re
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Union
+
+# === Timeout Configuration ===
+# Default timeout: 60 minutes (v2.6.1)
+DEFAULT_TIMEOUT_SECONDS = 3600  # 60 minutes
+HEARTBEAT_INTERVAL_SECONDS = 600  # 10 minutes
+
+
+class TimeoutParseError(ValueError):
+    """Exception raised when timeout format is invalid"""
+
+    pass
+
+
+@dataclass
+class TimeoutConfig:
+    """Configuration for analysis timeout (v2.6.1)
+
+    Supports formats:
+    - Integer: seconds (e.g., 3600)
+    - String with suffix: "30m" (minutes), "2h" (hours), "3600s" (seconds)
+    - Special values: "0" or "no-limit" for unlimited
+    """
+
+    value: int  # Timeout in seconds
+    enabled: bool  # Whether timeout is active (False when value=0 or no-limit)
+
+    @classmethod
+    def parse(cls, timeout_str: Union[str, int, None]) -> "TimeoutConfig":
+        """Parse timeout from CLI string or integer
+
+        Args:
+            timeout_str: Timeout value as string ("30m", "2h", "3600", "0", "no-limit")
+                        or as integer (seconds), or None for default
+
+        Returns:
+            TimeoutConfig instance
+
+        Raises:
+            TimeoutParseError: If format is invalid or value is negative
+        """
+        # None means use default
+        if timeout_str is None:
+            return cls(value=DEFAULT_TIMEOUT_SECONDS, enabled=True)
+
+        # Already an integer
+        if isinstance(timeout_str, int):
+            if timeout_str < 0:
+                raise TimeoutParseError(
+                    f"Timeout cannot be negative: {timeout_str}. "
+                    f"Use 0 or 'no-limit' to disable timeout."
+                )
+            if timeout_str == 0:
+                return cls(value=0, enabled=False)
+            return cls(value=timeout_str, enabled=True)
+
+        # Convert to string and strip
+        timeout_str = str(timeout_str).strip().lower()
+
+        # Handle special "no-limit" value
+        if timeout_str in ("no-limit", "no_limit", "nolimit", "unlimited", "none"):
+            return cls(value=0, enabled=False)
+
+        # Handle "0" as unlimited
+        if timeout_str == "0":
+            return cls(value=0, enabled=False)
+
+        # Parse format: number + optional suffix (s/m/h)
+        pattern = r"^(\d+)(s|m|h)?$"
+        match = re.match(pattern, timeout_str)
+
+        if not match:
+            raise TimeoutParseError(
+                f"Invalid timeout format: '{timeout_str}'. "
+                f"Valid formats: 3600 (seconds), 30m (minutes), 2h (hours), 0 or no-limit (unlimited)"
+            )
+
+        value = int(match.group(1))
+        suffix = match.group(2)
+
+        # Convert to seconds based on suffix
+        if suffix == "m":
+            value = value * 60
+        elif suffix == "h":
+            value = value * 3600
+        # 's' or no suffix means seconds
+
+        if value < 0:
+            raise TimeoutParseError(
+                f"Timeout cannot be negative: {timeout_str}. "
+                f"Use 0 or 'no-limit' to disable timeout."
+            )
+
+        if value == 0:
+            return cls(value=0, enabled=False)
+
+        return cls(value=value, enabled=True)
+
+    def format_human(self) -> str:
+        """Return human-readable timeout string"""
+        if not self.enabled:
+            return "unlimited"
+
+        if self.value >= 3600 and self.value % 3600 == 0:
+            hours = self.value // 3600
+            return f"{hours}h" if hours > 1 else "1h"
+        elif self.value >= 60 and self.value % 60 == 0:
+            minutes = self.value // 60
+            return f"{minutes}m"
+        else:
+            return f"{self.value}s"
+
 
 # Modèles par défaut par fournisseur
 DEFAULT_MODELS = {
@@ -74,7 +183,12 @@ class AnalysisConfig:
     ai_model: str = ""  # Modèle à utiliser (défaut selon provider)
     batch_size: int = 15  # Optimal pour parallélisation + rate limits
     max_retries: int = 3
-    timeout_seconds: int = 60
+    timeout_seconds: int = 60  # Legacy: per-request timeout (kept for compatibility)
+
+    # === Timeout Configuration (v2.6.1) ===
+    # Global timeout for the entire analysis workflow
+    timeout_config: Optional[TimeoutConfig] = None  # Parsed from --timeout CLI flag
+    heartbeat_interval: int = HEARTBEAT_INTERVAL_SECONDS  # Heartbeat interval (default: 10 min)
     output_dir: str = "docs/analyses"
     architecture_report_path: str = "docs/architecture_overview.md"
     root_dir: str = "."
@@ -93,7 +207,7 @@ class AnalysisConfig:
     pr_number: Optional[int] = None  # Numéro de PR (optionnel)
     show_reasoning: bool = False  # Afficher le processus de reasoning du modèle (si disponible)
     enable_cache: bool = True  # Activer le cache des analyses (réduit les coûts API)
-    cache_ttl_days: int = 7  # Durée de vie du cache en jours
+    cache_ttl_seconds: int = 604800  # Durée de vie du cache en secondes (7 jours)
     analyze_dependent_files: bool = True  # Analyser les fichiers dépendants des fichiers modifiés
     max_dependency_depth: int = 2  # Profondeur maximale pour l'analyse des dépendances
     enable_metrics: bool = True  # Activer la collecte de métriques
@@ -128,7 +242,7 @@ class AnalysisConfig:
 
     # Context Caching : cache API pour réduire les coûts (~50%)
     enable_context_caching: bool = True
-    cache_ttl_seconds: int = 3600  # Durée de vie du cache en secondes (1h par défaut)
+    context_cache_ttl_seconds: int = 3600  # Durée de vie du cache contexte en secondes (1h)
 
     # Batch API : traitement en lot à coût réduit (-50%)
     enable_batch_mode: bool = True
@@ -195,14 +309,20 @@ class AnalysisConfig:
         # Normaliser le provider
         self.ai_provider = self.ai_provider.lower()
 
-        # Si le modèle n'est pas spécifié, utiliser le défaut du provider
-        if not self.ai_model:
+        # Si le modèle n'est pas spécifié ou est "default", utiliser le défaut du provider
+        # Cela permet aux utilisateurs de spécifier "default" dans config.json/.env
+        # pour toujours utiliser le modèle recommandé sans hardcoder les noms de modèles
+        if not self.ai_model or self.ai_model.lower() == "default":
             self.ai_model = get_default_model(self.ai_provider)
 
         # Valider la combinaison provider/model
         if not validate_provider_model(self.ai_provider, self.ai_model):
             # Avertir mais ne pas bloquer (certains modèles peuvent être valides mais pas dans la liste)
             pass
+
+        # Initialize timeout_config with default if not set (v2.6.1)
+        if self.timeout_config is None:
+            self.timeout_config = TimeoutConfig(value=DEFAULT_TIMEOUT_SECONDS, enabled=True)
 
 
 def load_env_file(env_path: str = ".env") -> Dict[str, str]:

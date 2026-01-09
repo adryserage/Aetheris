@@ -8,8 +8,7 @@ import pathlib
 import re
 from collections import defaultdict
 from datetime import datetime
-from typing import List
-from typing import Optional
+from typing import Dict, List, Optional
 
 from pathspec import PathSpec
 
@@ -23,13 +22,11 @@ from src.core.cache import AnalysisCache
 from src.core.config import AnalysisConfig
 from src.core.logger import log_print
 from src.core.metrics import MetricsCollector
-from src.core.orchestrator import AnalysisOrchestrator
-from src.core.orchestrator import WorkflowContext
-from src.core.orchestrator import WorkflowStage
+from src.core.orchestrator import AnalysisOrchestrator, WorkflowContext, WorkflowStage
 from src.core.parallel_analyzer import detect_independent_files
 from src.core.priority_manager import PriorityManager
 from src.core.progress import ProgressManager
-from src.models.data_models import FileAnalysis
+from src.models.data_models import FileAnalysis, ReverseDependency
 from src.services.code_generator import CodeGenerator
 from src.services.dependency_analyzer import DependencyAnalyzer
 from src.services.documentation_searcher import DocumentationSearcher
@@ -141,7 +138,7 @@ class CodeAnalyzer:
         self.files_to_analyze = (
             files_to_analyze  # Liste optionnelle de fichiers spécifiques à analyser
         )
-        self.dependency_analyzer = None  # Sera initialisé après le scan des fichiers
+        self.dependency_analyzer: Optional[DependencyAnalyzer] = None  # Sera initialisé après scan
         self.progress_manager = progress_manager or ProgressManager(enabled=False)
         self.doc_searcher = DocumentationSearcher(config) if config.enable_web_search else None
         self.code_generator = CodeGenerator(config) if config.enable_code_generation else None
@@ -168,14 +165,14 @@ class CodeAnalyzer:
         self.qaa = QualityAssuranceAgent(
             config, self.doc_searcher, self.progress_manager
         )  # Agent d'assurance qualité
-        self.gitignore_spec = None
+        self.gitignore_spec: Optional[PathSpec] = None
 
         # Initialiser le cache si activé
         self.cache = (
             AnalysisCache(
                 root_dir=config.root_dir,
                 cache_dir=".cache/aetheris",
-                ttl_days=config.cache_ttl_days,
+                ttl_seconds=config.cache_ttl_seconds,
             )
             if config.enable_cache
             else None
@@ -283,15 +280,15 @@ class CodeAnalyzer:
         for part in path_parts:
             if part in excluded_dirs:
                 return False
-            # Exclure tous les dossiers cachés sauf .github
-            if part.startswith(".") and part != "." and part != ".." and part != ".github":
+            # Exclure TOUS les dossiers cachés (commençant par .)
+            if part.startswith(".") and part != "." and part != "..":
                 return False
             # Exclure les dossiers de build même s'ils ne sont pas dans la liste
             if part in {"build", "dist", "out", "target", "bin", "obj", "generated"}:
                 return False
 
         # Vérifier .gitignore
-        if self.gitignore_spec.match_file(relative_path):
+        if self.gitignore_spec is not None and self.gitignore_spec.match_file(relative_path):
             return False
 
         # Exclure les fichiers générés/compilés par leurs noms/extensions
@@ -357,7 +354,7 @@ class CodeAnalyzer:
 
         # Autoriser tous les fichiers de code source, peu importe leur emplacement
         # On accepte tous les fichiers de code sauf ceux dans les dossiers exclus
-        # Autoriser les fichiers de configuration importants
+        # Autoriser les fichiers de configuration importants (pas de fichiers cachés .*)
         allowed_config_patterns = [
             "package.json",
             "pubspec.yaml",
@@ -366,7 +363,6 @@ class CodeAnalyzer:
             "tailwind.config",
             "vercel.json",
             "README.md",
-            ".gitignore",
             "analysis_options.yaml",
             "pyproject.toml",
             "requirements.txt",
@@ -379,19 +375,15 @@ class CodeAnalyzer:
         filename_lower = filename.lower()
         is_config_file = any(pattern in filename_lower for pattern in allowed_config_patterns)
 
-        # Autoriser les fichiers dans .github (workflows CI/CD)
-        if relative_path.startswith(".github/"):
-            pass  # Autoriser
-        elif is_config_file:
+        # Vérifier si c'est un fichier de config autorisé
+        if is_config_file:
             pass  # Autoriser les fichiers de config
         # Sinon, on continue - on accepte tous les fichiers de code source
 
-        # Exclure les fichiers cachés (commençant par .)
-        # Sauf les fichiers de config explicitement autorisés
-        if filename.startswith(".") and filename not in {".gitignore", ".github"}:
-            # Vérifier si ce n'est pas un fichier de config autorisé
-            if filename not in allowed_config_patterns:
-                return False
+        # Exclure TOUS les fichiers cachés (commençant par .)
+        # Pas d'exceptions - aucun fichier .* ne doit être analysé
+        if filename.startswith("."):
+            return False
 
         # Exclure les fichiers binaires et trop volumineux
         try:
@@ -506,11 +498,7 @@ class CodeAnalyzer:
 
         for root, dirs, filenames in os.walk(self.config.root_dir):
             # Filtrer les dossiers à exclure
-            dirs[:] = [
-                d
-                for d in dirs
-                if d not in excluded_dirs and not d.startswith(".") or d in {".github"}
-            ]
+            dirs[:] = [d for d in dirs if d not in excluded_dirs and not d.startswith(".")]
 
             # Vérifier si le dossier racine actuel est exclu
             rel_root = os.path.relpath(root, self.config.root_dir)
@@ -531,9 +519,9 @@ class CodeAnalyzer:
         tasks = [self._analyze_file_with_all_agents(file_path) for file_path in files]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        analyses = []
+        analyses: List[FileAnalysis] = []
         for i, result in enumerate(results):
-            if isinstance(result, Exception):
+            if isinstance(result, BaseException):
                 analyses.append(
                     FileAnalysis(
                         file_path=files[i],
@@ -547,7 +535,7 @@ class CodeAnalyzer:
                         error=str(result),
                     )
                 )
-            else:
+            elif isinstance(result, FileAnalysis):
                 analyses.append(result)
 
         return analyses
@@ -940,6 +928,9 @@ class CodeAnalyzer:
         else:
             self.progress_manager.print(f"\n✅ Analyse de {len(all_analyses)} fichiers terminée\n")
 
+        # Message de transition vers les étapes suivantes
+        self.progress_manager.print("⏳ Traitement des résultats en cours...\n")
+
         context.analyses = all_analyses
         return context
 
@@ -953,7 +944,9 @@ class CodeAnalyzer:
             if analysis.success and analysis.dependencies:
                 dependencies_map[analysis.file_path] = analysis.dependencies
 
-        cycles = self.dependency_analyzer.detect_circular_dependencies(dependencies_map)
+        cycles: List[List[str]] = []
+        if self.dependency_analyzer is not None:
+            cycles = self.dependency_analyzer.detect_circular_dependencies(dependencies_map)
         if cycles:
             self.progress_manager.update_task(
                 cycles_task, description=f"⚠️  {len(cycles)} cycle(s) de dépendances détecté(s)"
@@ -1016,7 +1009,11 @@ class CodeAnalyzer:
                 dependencies_map[analysis.file_path] = analysis.dependencies
 
         # Construire le graphe inverse
-        reverse_graph = self.dependency_analyzer.build_reverse_dependency_graph(dependencies_map)
+        reverse_graph: Dict[str, List[ReverseDependency]] = {}
+        if self.dependency_analyzer is not None:
+            reverse_graph = self.dependency_analyzer.build_reverse_dependency_graph(
+                dependencies_map
+            )
 
         # Stocker les dépendances inverses dans chaque analyse
         for analysis in context.analyses:
@@ -1045,14 +1042,28 @@ class CodeAnalyzer:
 
         impact_task = self.progress_manager.add_task("🎯 Analyse d'impact des bugs...", total=100)
 
+        # Skip impact analysis if dependency analyzer is not available
+        if self.dependency_analyzer is None:
+            self.progress_manager.update_task(
+                impact_task,
+                advance=100,
+                description="⚠️ Impact analysis skipped (no dependency analyzer)",
+            )
+            self.progress_manager.complete_task(impact_task)
+            self.progress_manager.print()
+            return context
+
         impact_analyzer = ImpactAnalyzer(
             self.dependency_analyzer, max_impact_depth=self.config.max_dependency_depth
         )
 
         impact_by_severity = impact_analyzer.generate_impact_report(context.analyses)
 
-        # Stocker dans le metadata
-        context.metadata["impact_analysis"] = impact_by_severity
+        # Stocker dans le metadata (convertir en dict pour la sérialisation JSON)
+        context.metadata["impact_analysis"] = {
+            severity: [impact.to_dict() for impact in impacts]
+            for severity, impacts in impact_by_severity.items()
+        }
         context.metadata["total_bugs"] = sum(
             len(impacts) for impacts in impact_by_severity.values()
         )
@@ -1290,7 +1301,7 @@ class CodeAnalyzer:
             f"  - Échecs: {sum(1 for a in context.analyses if not a.success)}"
         )
 
-        languages = {}
+        languages: Dict[str, int] = {}
         for analysis in context.analyses:
             lang = analysis.language
             languages[lang] = languages.get(lang, 0) + 1

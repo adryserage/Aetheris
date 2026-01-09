@@ -13,10 +13,7 @@ import signal
 import subprocess
 import tempfile
 from datetime import datetime
-from typing import Callable
-from typing import List
-from typing import Optional
-from typing import Tuple
+from typing import Callable, List, Optional, Tuple
 
 # Constante pour identifier les VRAIES erreurs de rate limit
 # Ces patterns doivent être TRÈS spécifiques pour éviter les faux positifs
@@ -90,15 +87,16 @@ def sanitize_terminal_output(text: str) -> str:
 
 from rich.console import Console
 from rich.panel import Panel
-from rich.progress import BarColumn
-from rich.progress import Progress
-from rich.progress import SpinnerColumn
-from rich.progress import TaskID
-from rich.progress import TaskProgressColumn
-from rich.progress import TextColumn
-from rich.progress import TimeElapsedColumn
+from rich.progress import (
+    BarColumn,
+    Progress,
+    SpinnerColumn,
+    TaskID,
+    TaskProgressColumn,
+    TextColumn,
+    TimeElapsedColumn,
+)
 from rich.prompt import Confirm
-from rich.table import Table
 
 from src.models.data_models import BugIdentifier
 
