@@ -1,0 +1,345 @@
+# Consolidated Release workflow: Build, Publish, Create Release, Deploy Docs
+# Replaces: publish.yml, build-wheels.yml, create-release.yml, auto-release.yml, docs-deploy.yml
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
+      - master
+    paths:
+      - 'pyproject.toml'
+      - 'CHANGELOG.md'
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'README.md'
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g., v2.6.2)'
+        required: false
+        type: string
+      skip_pypi:
+        description: 'Skip PyPI publish'
+        type: boolean
+        default: false
+      skip_docs:
+        description: 'Skip docs deployment'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # ============================================
+  # AUTO-RELEASE: Detect version change and create tag
+  # ============================================
+  auto-release:
+    name: Auto Release on Version Change
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
+    outputs:
+      tag_created: ${{ steps.create_tag.outputs.tag_created }}
+      tag_name: ${{ steps.create_tag.outputs.tag_name }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Detect version change and create tag
+        id: create_tag
+        run: |
+          # Extract version from pyproject.toml
+          CURRENT_VERSION=$(python3 -c "
+          import tomllib, sys
+          with open('pyproject.toml', 'rb') as f:
+              data = tomllib.load(f)
+          version = data.get('project', {}).get('version') or data.get('tool', {}).get('poetry', {}).get('version')
+          if not version:
+              print('ERREUR: Version non trouvée', file=sys.stderr)
+              sys.exit(1)
+          print(version)
+          ")
+          TAG_NAME="v$CURRENT_VERSION"
+
+          # Validate semver format
+          SEMVER_REGEX='^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*)?$'
+          if ! echo "$CURRENT_VERSION" | grep -qE "$SEMVER_REGEX"; then
+            echo "❌ Invalid version format: $CURRENT_VERSION"
+            exit 1
+          fi
+
+          echo "Current version: $CURRENT_VERSION"
+          echo "Tag: $TAG_NAME"
+
+          # Check if tag already exists
+          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+            echo "⚠️ Tag $TAG_NAME already exists. Skipping."
+            echo "tag_created=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check if version changed
+          VERSION_CHANGED=false
+          if git diff HEAD~1 HEAD -- pyproject.toml 2>/dev/null | grep -q "^+version ="; then
+            VERSION_CHANGED=true
+          elif git diff HEAD~1 HEAD --name-only | grep -q "pyproject.toml"; then
+            VERSION_CHANGED=true
+          fi
+
+          if [ "$VERSION_CHANGED" != "true" ]; then
+            echo "ℹ️ No version change detected."
+            echo "tag_created=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Create and push tag
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git tag -a "$TAG_NAME" -m "Release $TAG_NAME" 2>/dev/null; then
+            git push origin "$TAG_NAME"
+            echo "✅ Tag $TAG_NAME created and pushed"
+            echo "tag_created=true" >> $GITHUB_OUTPUT
+            echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ Tag creation failed or already exists."
+            echo "tag_created=false" >> $GITHUB_OUTPUT
+          fi
+
+  # ============================================
+  # BUILD: Source distribution and wheels
+  # ============================================
+  build-sdist:
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.tag != ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build dependencies
+        run: python -m pip install build
+
+      - name: Build sdist
+        run: python -m build --sdist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+
+  build-wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.tag != ''
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel==2.22.0
+
+      - name: Build wheels
+        run: python -m cibuildwheel --output-dir wheelhouse
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: ./wheelhouse/*.whl
+
+  # ============================================
+  # PUBLISH: Upload to PyPI
+  # ============================================
+  publish:
+    name: Publish to PyPI
+    needs: [build-sdist, build-wheels]
+    runs-on: ubuntu-latest
+    if: (startsWith(github.ref, 'refs/tags/v') || github.event.inputs.tag != '') && github.event.inputs.skip_pypi != 'true'
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download sdist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: sdist
+          path: dist
+
+      - name: Download all wheel artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: wheels-*
+          merge-multiple: true
+
+      - name: List distributions
+        run: ls -la dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@v1
+        with:
+          packages-dir: dist/
+
+  # ============================================
+  # CREATE RELEASE: GitHub Release with notes
+  # ============================================
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.tag != ''
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Extract version from tag
+        id: tag_version
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          TAG_INPUT: ${{ github.event.inputs.tag }}
+        run: |
+          if [ "$EVENT_NAME" == "workflow_dispatch" ] && [ -n "$TAG_INPUT" ]; then
+            TAG="$TAG_INPUT"
+            if [[ ! $TAG =~ ^v ]]; then
+              TAG="v$TAG"
+            fi
+            TAG_NAME=$TAG
+          else
+            TAG_NAME=${GITHUB_REF#refs/tags/}
+          fi
+          VERSION=${TAG_NAME#v}
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "✅ Version: $VERSION, Tag: $TAG_NAME"
+
+      - name: Extract release notes from CHANGELOG
+        id: release_notes
+        env:
+          VERSION: ${{ steps.tag_version.outputs.version }}
+          TAG_NAME: ${{ steps.tag_version.outputs.tag_name }}
+        run: |
+          set +e
+          python scripts/extract_release_notes.py "$VERSION" > release_notes.md 2> extraction_error.log
+          EXIT_CODE=$?
+          set -e
+
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "::warning::Release notes extraction failed"
+            cat > release_notes.md << EOF
+          ## Release $TAG_NAME
+
+          > ⚠️ **Note**: Release notes could not be extracted automatically.
+          > Please see CHANGELOG.md for details.
+          EOF
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag_version.outputs.tag_name }}
+          name: Release ${{ steps.tag_version.outputs.tag_name }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: ${{ contains(steps.tag_version.outputs.version, '-alpha') || contains(steps.tag_version.outputs.version, '-beta') || contains(steps.tag_version.outputs.version, '-rc') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ============================================
+  # DEPLOY DOCS: MkDocs to GitHub Pages
+  # ============================================
+  build-docs:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'release') ||
+      (github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.skip_docs != 'true')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install MkDocs and plugins
+        run: pip install mkdocs mkdocs-material mkdocs-minify-plugin
+
+      - name: Build documentation
+        run: mkdocs build --strict
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy-docs:
+    name: Deploy to GitHub Pages
+    needs: build-docs
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'release') ||
+      (github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.skip_docs != 'true')
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

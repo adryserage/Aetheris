@@ -1,21 +1,39 @@
-name: Aetheris Weekly Analysis
+# Consolidated Scheduled workflow: Weekly analysis, Stats, Release analysis
+# Replaces: aetheris-weekly.yml, aetheris-release.yml, update-download-stats.yml
+
+name: Scheduled
 
 on:
   schedule:
-    # Run Saturday at 3 AM UTC (off-peak, allows time for fixes before Monday)
+    # Weekly analysis: Saturday at 3 AM UTC
     - cron: '0 3 * * 6'
+    # Daily stats: 6 AM UTC
+    - cron: '0 6 * * *'
+    # Weekly security: Sunday at 4 AM UTC
+    - cron: '0 4 * * 0'
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
+      job:
+        description: 'Job to run'
+        type: choice
+        options:
+          - weekly-analysis
+          - download-stats
+          - release-analysis
+          - security-scan
+        default: weekly-analysis
       skip_issues:
-        description: 'Skip creating GitHub issues'
+        description: 'Skip creating GitHub issues (weekly only)'
         type: boolean
         default: false
       skip_pr_gen:
-        description: 'Skip generating fix PRs'
+        description: 'Skip generating fix PRs (weekly only)'
         type: boolean
         default: false
       run_autofix:
-        description: 'Run auto-fix (experimental)'
+        description: 'Run auto-fix experimental (weekly only)'
         type: boolean
         default: false
 
@@ -23,14 +41,22 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
+  security-events: write
+  actions: read
 
 env:
   PYTHON_VERSION: '3.11'
 
 jobs:
-  analysis:
+  # ============================================
+  # WEEKLY ANALYSIS: Full codebase analysis
+  # ============================================
+  weekly-analysis:
     name: Full Codebase Analysis
     runs-on: ubuntu-latest
+    if: |
+      (github.event.schedule == '0 3 * * 6') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'weekly-analysis')
     outputs:
       has_findings: ${{ steps.analyze.outputs.has_findings }}
 
@@ -55,7 +81,6 @@ jobs:
           echo "Starting Aetheris analysis..."
           aetheris analysis --timeout 60m || true
 
-          # Check if report was generated
           if [ -f "docs/analyses/quality_assurance_report.md" ]; then
             echo "has_findings=true" >> $GITHUB_OUTPUT
             echo "Analysis complete. Report generated."
@@ -88,8 +113,8 @@ jobs:
 
   create-issues:
     name: Create GitHub Issues
-    needs: analysis
-    if: needs.analysis.outputs.has_findings == 'true' && github.event.inputs.skip_issues != 'true'
+    needs: weekly-analysis
+    if: needs.weekly-analysis.outputs.has_findings == 'true' && github.event.inputs.skip_issues != 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -152,7 +177,7 @@ jobs:
 
   auto-fix:
     name: Auto-Fix (Experimental)
-    needs: analysis
+    needs: weekly-analysis
     if: github.event.inputs.run_autofix == 'true'
     runs-on: ubuntu-latest
 
@@ -182,6 +207,8 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
       - name: Create PR with fixes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -191,5 +218,118 @@ jobs:
           git diff --staged --quiet || git commit -m "fix: auto-fix from weekly analysis"
           git push -u origin "$BRANCH" || true
           gh pr create --title "Auto-fix: Weekly Analysis Fixes" --body "Automated fixes from Aetheris weekly analysis" --label "autofix,automated" || true
+
+  # ============================================
+  # RELEASE ANALYSIS: Analyze release changes
+  # ============================================
+  release-analysis:
+    name: Analyze Release Changes
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'release') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'release-analysis')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install Aetheris
+        run: pip install adryserage-aetheris
+
+      - name: Run incremental analysis
+        run: |
+          echo "Analyzing changes in release..."
+          aetheris analysis --reanalyze --timeout 30m || true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AI_PROVIDER: ${{ secrets.AI_PROVIDER || 'gemini' }}
+
+      - name: Upload analysis artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-analysis
+          path: |
+            docs/analyses/
+            docs/metrics/
+          retention-days: 90
+
+      - name: Commit analysis reports
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/analyses/ docs/metrics/ || true
+          git diff --staged --quiet || git commit -m "chore: update analysis for release"
+          git push || true
+
+  # ============================================
+  # DOWNLOAD STATS: Daily PyPI statistics
+  # ============================================
+  download-stats:
+    name: Update Download Stats
+    runs-on: ubuntu-latest
+    if: |
+      (github.event.schedule == '0 6 * * *') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'download-stats')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pypistats matplotlib
+
+      - name: Generate download chart
+        run: python scripts/generate_download_chart.py
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add assets/charts/
+          git diff --staged --quiet || git commit -m "chore: update download statistics chart"
+          git push
+
+  # ============================================
+  # WEEKLY SECURITY: CodeQL scheduled scan
+  # ============================================
+  weekly-security:
+    name: Weekly Security Scan
+    runs-on: ubuntu-latest
+    if: |
+      (github.event.schedule == '0 4 * * 0') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'security-scan')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python
+          queries: security-extended
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:python"

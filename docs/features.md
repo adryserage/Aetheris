@@ -113,6 +113,81 @@ Intelligent retry with increasing delays.
 - Permanent: Skip with logging
 - Critical: Halt and report
 
+## Package Security (v2.6.2)
+
+### Artifact Cleanup
+
+Remove development artifacts before packaging:
+
+```bash
+# Preview cleanup
+aetheris cleanup --dry-run
+
+# Standard cleanup
+aetheris cleanup
+
+# Deep cleanup (includes build/, dist/, __pycache__/)
+aetheris cleanup --deep
+```
+
+**Cleaned files include:**
+- Security files: `.env`, `*.pem`, `*.key`, `credentials.json`
+- OS artifacts: `.DS_Store`, `Thumbs.db`
+- Dev tooling: `mypy.ini`, `.eslintrc`, `.prettierrc`
+- Test files: `tests/`, `*_test.py`, `test_*.py`
+
+### Secret Scanner
+
+Detect exposed credentials with confidence levels:
+
+| Level | Detection |
+|-------|-----------|
+| HIGH | AWS keys, GitHub tokens, private keys |
+| MEDIUM | Generic API keys, JWT, connection strings |
+| LOW | Base64 strings, potential passwords |
+
+**Supported providers:**
+- AWS (Access Keys, Secret Keys)
+- GitHub (PAT, OAuth tokens)
+- Anthropic, OpenAI API keys
+- Stripe (Live/Test keys)
+- GCP, Azure credentials
+- Generic patterns (`api_key=`, `password=`)
+
+### Package Validation
+
+Pre-publication security checks:
+
+```bash
+# Validate package
+aetheris validate-package
+
+# Auto-fix issues
+aetheris validate-package --fix
+
+# Custom size limit
+aetheris validate-package --max-size 100
+```
+
+**Checks performed:**
+- Excluded files detection
+- Secret scanning with confidence levels
+- Package size validation
+
+### False Positive Management
+
+Create `.secretsignore` to ignore known false positives:
+
+```
+# File patterns
+tests/fixtures/*
+*.example
+
+# Content patterns
+CHANGEME
+test_key
+```
+
 ## Extensibility
 
 ### Hook System

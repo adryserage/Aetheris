@@ -17,6 +17,98 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ### 📦 Dépendances
 
+## [2.6.2] - 2025-01-09
+
+### ✨ Nouvelles fonctionnalités
+
+- **Commande `aetheris cleanup`** : Nettoyage des artefacts de développement avant packaging
+  - Mode `--dry-run` pour prévisualiser les fichiers à supprimer
+  - Mode `--deep` pour inclure les répertoires de build (dist/, build/, *.egg-info/)
+  - Patterns personnalisés via `--patterns`
+  - Catégories nettoyées : sécurité (.env, *.pem), OS (.DS_Store), dev tooling (mypy.ini), tests
+
+- **Commande `aetheris validate-package`** : Validation de sécurité pré-publication
+  - Détection des fichiers exclus (secrets, configs dev, tests)
+  - Scanner de secrets avec niveaux de confiance (HIGH/MEDIUM/LOW)
+  - Validation de la taille du package
+  - Mode `--fix` pour corriger automatiquement les problèmes
+  - Support `.secretsignore` pour les faux positifs
+
+- **Secret Scanner** : Détection multi-patterns des credentials exposés
+  - AWS Access Keys et Secret Keys
+  - GitHub Personal Access Tokens et OAuth tokens
+  - Anthropic, OpenAI API keys
+  - Stripe Live/Test keys
+  - GCP, Azure credentials
+  - Patterns génériques (api_key=, password=, secret=)
+  - Scan parallèle avec ThreadPoolExecutor
+
+- **Minification Python optionnelle** : Réduction de taille des fichiers Python
+  - Suppression des commentaires
+  - Suppression des docstrings
+  - Preview de la réduction de taille
+
+### 📦 Nouveaux modules
+
+- `src/config/exclusion_patterns.py` : Patterns d'exclusion par catégorie
+- `src/config/secret_patterns.py` : Patterns de détection de secrets
+- `src/models/cleanup_models.py` : Dataclasses pour les opérations de cleanup
+- `src/services/cleanup_service.py` : Service de nettoyage de fichiers
+- `src/services/secret_scanner.py` : Scanner de secrets multi-patterns
+- `src/services/package_validator.py` : Validateur de package pré-publication
+- `src/services/minifier.py` : Minification optionnelle de code Python
+
+### 🔧 Modifications
+
+- **CLI** : Ajout des sous-commandes `cleanup` et `validate-package` (alias `validate`)
+- **MANIFEST.in** : Mise à jour avec exclusions de sécurité complètes
+- **GitHub Actions** : Correction du warning `python-version` dans dependency-submission
+
+### 📝 Documentation
+
+- Documentation complète de `aetheris cleanup` dans `docs/commands/cleanup.md`
+- Documentation complète de `aetheris validate-package` dans `docs/commands/validate-package.md`
+- Mise à jour de `docs/features.md` avec la section Package Security
+- Mise à jour du README avec les nouvelles commandes et le roadmap
+- Ajout de `.secretsignore.example` comme template
+
+## [2.6.1] - 2025-01-08
+
+### ✨ Nouvelles fonctionnalités
+
+- **Gestion flexible du timeout** : Contrôle de la durée maximale d'analyse
+  - Nouveau paramètre CLI `--timeout` / `-t`
+  - Formats supportés : secondes (3600), minutes (30m), heures (2h), illimité (0)
+  - Timeout par défaut : 60 minutes
+  - Gestion gracieuse avec tentative de sauvegarde du contexte
+
+- **Heartbeat Monitor** : Indicateur de progression pour analyses longues
+  - Feedback périodique toutes les 10 minutes
+  - Affiche le nombre de fichiers analysés et le temps écoulé
+  - Empêche les timeouts silencieux sur les grandes bases de code
+
+- **Flag `--reanalyze` / `-r`** : Analyse incrémentale des fichiers modifiés
+  - Détecte les fichiers modifiés depuis la dernière analyse
+  - Utilise git diff ou timestamps (fallback)
+  - Détection automatique des fichiers supprimés
+  - Compatible avec `--changed-files-only` et `--timeout`
+
+### 📦 Nouveaux modules
+
+- `src/core/heartbeat.py` : HeartbeatMonitor pour le feedback périodique
+- `src/core/change_detector.py` : ChangeDetector pour la détection des modifications
+
+### 🔧 Modifications
+
+- **CLI** : Ajout des paramètres `--timeout`, `-t`, `--reanalyze`, `-r`
+- **Orchestrateur** : Application du timeout global sur l'ensemble du workflow
+- **Configuration** : Nouveau champ `timeout_seconds` dans AnalysisConfig
+
+### 📝 Documentation
+
+- Mise à jour du README avec documentation de l'analyse incrémentale
+- Exemples d'utilisation du timeout et de la réanalyse
+
 ## [2.5.8] - 2025-01-07
 
 > **Note** : Cette version consolide plusieurs améliorations mineures (v2.5.1-v2.5.7) publiées le même jour pour réduire la "release fatigue".
@@ -842,7 +934,9 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Génération de rapports détaillés en Markdown
 - Configuration flexible via variables d'environnement
 
-[Unreleased]: https://github.com/adryserage/aetheris/compare/v2.5.8...HEAD
+[Unreleased]: https://github.com/adryserage/aetheris/compare/v2.6.2...HEAD
+[2.6.2]: https://github.com/adryserage/aetheris/compare/v2.6.1...v2.6.2
+[2.6.1]: https://github.com/adryserage/aetheris/compare/v2.5.8...v2.6.1
 [2.5.8]: https://github.com/adryserage/aetheris/compare/v2.5.0...v2.5.8
 [2.5.0]: https://github.com/adryserage/aetheris/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/adryserage/aetheris/compare/v2.3.4...v2.4.0
