@@ -11,7 +11,7 @@ Migrer la configuration de l'outil depuis les variables d'environnement (`.env`)
 
 ## Config.json Schema (Reference)
 
-Ce schema intègre toutes les options des specs pré-v3.0 (002-timeout, 003-stats, 004-i18n, 005-cicd):
+Ce schema intègre toutes les options des specs pré-v3.0 (002-timeout, 003-stats, 005-cicd) et les profils de sécurité:
 
 ```json
 {
@@ -27,8 +27,11 @@ Ce schema intègre toutes les options des specs pré-v3.0 (002-timeout, 003-stat
     "changed_files_only": false,
     "default_preset": "full-scan"
   },
-  "i18n": {
-    "language": "fr"
+  "security": {
+    "profile": "safe",
+    "custom_allowlist": [],
+    "audit_log_enabled": false,
+    "audit_log_path": "aetheris-audit.jsonl"
   },
   "stats": {
     "hourly_rate": null,
@@ -47,6 +50,14 @@ Ce schema intègre toutes les options des specs pré-v3.0 (002-timeout, 003-stat
 }
 ```
 
+### Security Profiles
+
+| Profile | Description | Use Case |
+|---------|-------------|----------|
+| `safe` | Mode restreint, opérations lecture seule | Développement local, première utilisation |
+| `ci` | Mode CI/CD, écritures autorisées dans dossiers spécifiques | Pipelines automatisés |
+| `unrestricted` | Accès complet, toutes opérations autorisées | Utilisateurs avancés, environnements contrôlés |
+
 ### Options détaillées
 
 | Section | Clé | Type | Défaut | Description | Source |
@@ -59,7 +70,10 @@ Ce schema intègre toutes les options des specs pré-v3.0 (002-timeout, 003-stat
 | `analysis` | `exclude_patterns` | string[] | `[...]` | Patterns glob à exclure | 005 |
 | `analysis` | `changed_files_only` | bool | `false` | Analyser uniquement fichiers modifiés | 005 |
 | `analysis` | `default_preset` | string | `"full-scan"` | Preset par défaut | - |
-| `i18n` | `language` | enum | `"fr"` | Langue interface (fr, en) | 004 |
+| `security` | `profile` | enum | `"safe"` | Profil de sécurité (safe, ci, unrestricted) | - |
+| `security` | `custom_allowlist` | string[] | `[]` | Commandes additionnelles autorisées | - |
+| `security` | `audit_log_enabled` | bool | `false` | Activer le logging des opérations | - |
+| `security` | `audit_log_path` | string | `"aetheris-audit.jsonl"` | Chemin du fichier d'audit | - |
 | `stats` | `hourly_rate` | float\|null | `null` | Taux horaire custom (null = régional) | 003 |
 | `stats` | `region` | enum | `"auto"` | Région pour taux (auto, EUR, CAD, USD) | 003 |
 | `stats` | `currency` | enum | `"auto"` | Devise affichage (auto, EUR, CAD, USD) | 003 |
@@ -216,34 +230,41 @@ En tant que mainteneur de projet, je veux que le config.json soit versionnable p
 - **FR-021**: Le système DOIT supporter `ai.timeout: "no-limit"` ou `0` pour désactiver le timeout
 - **FR-022**: Le système DOIT supporter `ai.heartbeat_interval` pour configurer l'intervalle des messages heartbeat
 
-#### I18n (from 004-i18n-multilingual)
+#### Security Profiles
 
-- **FR-023**: Le système DOIT supporter `i18n.language` avec valeurs "fr" ou "en" (défaut: "fr")
-- **FR-024**: Le système DOIT valider que la langue est supportée et afficher un message d'erreur clair sinon
+- **FR-023**: Le système DOIT supporter `security.profile` avec valeurs "safe", "ci", "unrestricted" (défaut: "safe")
+- **FR-024**: Le système DOIT supporter `security.custom_allowlist` pour étendre les commandes autorisées
+- **FR-025**: Le système DOIT supporter `security.audit_log_enabled` pour activer le logging des opérations
+- **FR-026**: Le système DOIT écrire les opérations en format JSONL si `audit_log_enabled: true`
+- **FR-027**: Le profil `safe` DOIT restreindre les opérations à la lecture seule
+- **FR-028**: Le profil `ci` DOIT autoriser les écritures dans les dossiers de sortie configurés
+- **FR-029**: Le profil `unrestricted` DOIT autoriser toutes les opérations
 
 #### Stats ROI (from 003-advanced-stats)
 
-- **FR-025**: Le système DOIT supporter `stats.hourly_rate` pour surcharger le taux horaire régional
-- **FR-026**: Le système DOIT supporter `stats.region` avec valeurs "auto", "EUR", "CAD", "USD"
-- **FR-027**: Le système DOIT détecter automatiquement la région via locale système si `stats.region: "auto"`
-- **FR-028**: Le système DOIT supporter `stats.heuristics` pour personnaliser les temps de bug estimation
-- **FR-029**: Le système DOIT utiliser les taux régionaux par défaut: 85€/h (EUR), 120$CAD/h (CAD), 95$USD/h (USD)
+- **FR-030**: Le système DOIT supporter `stats.hourly_rate` pour surcharger le taux horaire régional
+- **FR-031**: Le système DOIT supporter `stats.region` avec valeurs "auto", "EUR", "CAD", "USD"
+- **FR-032**: Le système DOIT détecter automatiquement la région via locale système si `stats.region: "auto"`
+- **FR-033**: Le système DOIT supporter `stats.heuristics` pour personnaliser les temps de bug estimation
+- **FR-034**: Le système DOIT utiliser les taux régionaux par défaut: 85€/h (EUR), 120$CAD/h (CAD), 95$USD/h (USD)
 
 #### Analysis (from 005-cicd-template)
 
-- **FR-030**: Le système DOIT supporter `analysis.exclude_patterns` comme tableau de patterns glob
-- **FR-031**: Le système DOIT supporter `analysis.changed_files_only` pour le mode analyse incrémentale
+- **FR-035**: Le système DOIT supporter `analysis.exclude_patterns` comme tableau de patterns glob
+- **FR-036**: Le système DOIT supporter `analysis.changed_files_only` pour le mode analyse incrémentale
 
 ### Key Entities
 
 - **ConfigFile**: Fichier JSON de configuration (local ou global)
 - **ConfigHierarchy**: Ordre de priorité des sources de configuration
-- **ConfigSchema**: Structure et types des options de configuration (ai, analysis, i18n, stats, output)
+- **ConfigSchema**: Structure et types des options de configuration (ai, analysis, security, stats, output)
 - **SecretKeys**: Liste des clés considérées comme secrets (API keys, tokens)
 - **SettingsUI**: Interface terminal interactive avec onglets (Rich/Textual)
 - **TimeoutParser**: Parser pour formats timeout (120, 30m, 1h, no-limit)
 - **RegionDetector**: Détection automatique région via locale système
 - **HeuristicsConfig**: Configuration des temps estimés par type de bug
+- **SecurityProfile**: Profil de sécurité (safe, ci, unrestricted)
+- **AuditLogger**: Logger JSONL pour traçabilité des opérations
 
 ## Success Criteria
 
@@ -277,7 +298,6 @@ En tant que mainteneur de projet, je veux que le config.json soit versionnable p
 - Validation de schéma JSON avancée
 - Logique métier du timeout (implémentée dans 002-flexible-timeout)
 - Logique métier des stats ROI (implémentée dans 003-advanced-stats)
-- Logique métier de l'i18n (implémentée dans 004-i18n-multilingual)
 - Logique métier de l'analyse incrémentale (implémentée dans 005-cicd-template)
 
 ## Cross-Spec Dependencies
@@ -288,5 +308,5 @@ Cette spec définit le **système de stockage** des configurations. La logique m
 |--------------------|--------------------------|
 | `ai.timeout`, `ai.heartbeat_interval` | 002-flexible-timeout |
 | `stats.*` | 003-advanced-stats |
-| `i18n.language` | 004-i18n-multilingual |
 | `analysis.exclude_patterns`, `analysis.changed_files_only` | 005-cicd-template |
+| `security.*` | Cette spec (v3.0) |

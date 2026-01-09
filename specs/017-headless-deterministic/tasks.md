@@ -1,7 +1,7 @@
 # Tasks: Architecture Headless Déterministe
 
 **Input**: Design documents from `/specs/017-headless-deterministic/`
-**Target Version**: v3.2
+**Target Version**: v3.1
 **Estimated LOC**: ~600 (Python + JSON schemas)
 
 ---
@@ -55,7 +55,7 @@
 - [ ] T024 [US3] Create TaskRunner class in src/runner/executor.py
 - [ ] T025 [US3] Add --headless flag to CLI
 - [ ] T026 [US3] Disable all user prompts in headless mode
-- [ ] T027 [US3] Resolve confirmations via security profile (v3.1 integration)
+- [ ] T027 [US3] Resolve confirmations via security profile (v3.0 config integration)
 - [ ] T028 [US3] Use default values for optional parameters
 - [ ] T029 [US3] Return blocked operations in JSON without waiting
 - [ ] T030 [US3] Ensure no TTY requirement in headless mode

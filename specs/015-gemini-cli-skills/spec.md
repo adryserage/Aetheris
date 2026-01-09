@@ -1,16 +1,24 @@
-# Feature Specification: Migration Gemini CLI & Intégration Skills
+# Feature Specification: Multi-Modèles & Analysis Skills
 
 **Feature Branch**: `015-gemini-cli-skills`
 **Created**: 2026-01-09
 **Status**: Draft
 **Target Version**: v4.0
-**Depends On**: v3.0 (Persistent Config), v3.1 (Security), v3.2 (Headless Architecture)
+**Depends On**: v3.0 (Persistent Config with Security Profiles), v3.1 (Headless Architecture)
 
 ## Overview
 
-Transitionner de l'utilisation directe de l'API Gemini vers une architecture "CLI Wrapper" unifiée, similaire à Claude CLI. Cette version introduit des capacités d'agents actifs ("Skills") pour les deux modèles (Claude et Gemini) et un orchestrateur ("Conductor") spécifique pour Gemini, ainsi que l'intégration du Model Context Protocol (MCP).
+Transitionner vers une architecture multi-modèles unifiée supportant Gemini, Claude et OpenRouter. Cette version introduit des **Analysis Skills** - des outils d'analyse enrichie (pas d'exécution autonome) - pour améliorer la qualité et la profondeur des analyses de code.
 
-Cette spec combine les fonctionnalités prévues dans la roadmap pour v4.0 (Multi-Modèles & CLI Wrapper), v4.1 (Skills & Conductor) et v4.2 (TUI Interactive).
+**IMPORTANT**: Les Skills sont des outils d'**analyse enrichie uniquement**. Ils ne modifient PAS le code et n'exécutent PAS de commandes. Ils fournissent du contexte supplémentaire pour améliorer l'analyse.
+
+### Analysis Skills v4.1
+
+| Skill | Description | Valeur |
+|-------|-------------|--------|
+| `security-context` | Enrichit l'analyse avec CVE database et contexte de sécurité | Détection vulnérabilités connues |
+| `complexity-hotspots` | Identifie les fichiers/fonctions les plus complexes | Ciblage refactoring |
+| `dependency-graph` | Visualise les dépendances entre modules | Compréhension architecture |
 
 ## User Scenarios & Testing
 
@@ -31,278 +39,259 @@ En tant qu'utilisateur d'Aetheris, je veux pouvoir utiliser une interface CLI un
 
 ---
 
-### User Story 2 - External CLI Wrapper with Command Passthrough (Priority: P1)
+### User Story 2 - OpenRouter Integration (Priority: P1)
 
-En tant qu'utilisateur d'Aetheris, je veux pouvoir lancer un mode CLI interactif (`aetheris --cli`) qui encapsule les CLIs externes (Gemini CLI et Claude Code CLI) et me permette d'exécuter leurs commandes natives via une syntaxe `/command -arguments`, avec autocomplétion intelligente des commandes disponibles, tout en gardant la possibilité d'utiliser les commandes directes habituelles (`aetheris analysis`, `aetheris fix`, etc.).
+En tant qu'utilisateur d'Aetheris, je veux pouvoir utiliser OpenRouter comme provider pour accéder à une variété de modèles (Llama, Mistral, etc.) via une API unifiée.
 
-**Why this priority**: Expérience utilisateur critique - permet d'accéder aux fonctionnalités natives des CLIs sous-jacentes sans quitter Aetheris, tout en maintenant la rétrocompatibilité.
+**Why this priority**: Flexibilité - OpenRouter permet d'accéder à des modèles open-source et de réduire les coûts.
 
-**Independent Test**: Lancer `aetheris --cli`, taper `/` et vérifier que les commandes disponibles s'affichent en autocomplétion, puis exécuter `/help` et obtenir l'aide du provider actif. Vérifier aussi que `aetheris analysis` fonctionne toujours directement sans le mode CLI.
+**Independent Test**: Configurer `--provider openrouter --model meta-llama/llama-3-70b` et lancer une analyse.
 
 **Acceptance Scenarios**:
 
-1. **Given** l'utilisateur lance `aetheris --cli`, **When** le mode interactif démarre, **Then** un prompt s'affiche avec le provider actif indiqué
-2. **Given** l'utilisateur est en mode interactif, **When** il tape `/`, **Then** une liste de commandes disponibles s'affiche en suggestion
-3. **Given** l'utilisateur tape `/ana`, **When** l'autocomplétion est active, **Then** `/analysis` est suggéré
-4. **Given** l'utilisateur tape `/commit -m "message"`, **When** la commande est exécutée, **Then** elle est passée au CLI sous-jacent (Claude Code ou Gemini CLI)
-5. **Given** l'utilisateur tape une commande inconnue `/xyz`, **When** il l'exécute, **Then** un message d'erreur avec suggestions similaires est affiché
-6. **Given** le provider actif est Claude, **When** l'utilisateur tape `/`, **Then** les commandes spécifiques à Claude Code sont affichées
-7. **Given** le provider actif est Gemini, **When** l'utilisateur tape `/`, **Then** les commandes spécifiques à Gemini CLI sont affichées
-8. **Given** l'utilisateur tape `/help commit`, **When** la commande est exécutée, **Then** l'aide détaillée de la commande `commit` s'affiche
-9. **Given** l'utilisateur lance `aetheris analysis` (sans --cli), **When** la commande s'exécute, **Then** l'analyse se fait directement comme avant (rétrocompatibilité)
-10. **Given** l'utilisateur est en mode --cli, **When** il tape `/exit` ou Ctrl+C, **Then** le mode interactif se termine proprement
+1. **Given** un utilisateur configure `--provider openrouter`, **When** il lance une commande, **Then** l'API OpenRouter est utilisée
+2. **Given** un modèle spécifique via `--model`, **When** la commande s'exécute, **Then** ce modèle est utilisé
+3. **Given** une clé API OpenRouter dans `.env`, **When** Aetheris démarre, **Then** le provider est disponible
 
 ---
 
-### User Story 3 - Agent Skills for Claude (Priority: P1)
+### User Story 3 - Security Context Skill (Priority: P1)
 
-En tant qu'utilisateur d'Aetheris avec Claude, je veux que l'IA puisse interagir avec mon système de fichiers et exécuter des commandes, afin d'automatiser les corrections de code suggérées.
+En tant qu'utilisateur d'Aetheris, je veux que l'analyse de sécurité soit enrichie avec des données de CVE et des patterns de vulnérabilités connus, afin de détecter des problèmes que l'AI seule pourrait manquer.
 
-**Why this priority**: Capacité d'action critique - permet l'auto-fix et l'automatisation des corrections.
+**Why this priority**: Amélioration qualité analyse - combine AI + base de données de vulnérabilités.
 
-**Independent Test**: Lancer `aetheris fix --auto --provider claude` et vérifier que Claude modifie effectivement les fichiers sur le disque.
+**Independent Test**: Lancer `aetheris analysis --skills security-context` et vérifier que le rapport inclut des références CVE.
 
 **Acceptance Scenarios**:
 
-1. **Given** une analyse avec des issues détectées, **When** l'utilisateur demande un fix automatique avec Claude, **Then** Claude utilise ses skills pour modifier les fichiers concernés
-2. **Given** un skill de lecture de fichier, **When** Claude a besoin de contexte, **Then** il peut lire les fichiers nécessaires sans intervention utilisateur
-3. **Given** un skill d'exécution de commande, **When** Claude doit vérifier une correction, **Then** il peut exécuter des tests ou linters
-4. **Given** une action potentiellement dangereuse, **When** Claude tente de l'exécuter, **Then** une confirmation utilisateur est requise (mode safe)
+1. **Given** le skill security-context activé, **When** une dépendance vulnérable est détectée, **Then** les CVE correspondantes sont incluses dans le rapport
+2. **Given** un pattern de code vulnérable connu, **When** l'analyse s'exécute, **Then** le pattern est identifié avec référence OWASP/CWE
+3. **Given** aucune vulnérabilité connue, **When** l'analyse se termine, **Then** le skill n'ajoute pas de bruit au rapport
 
 ---
 
-### User Story 4 - Agent Skills for Gemini (Priority: P1)
+### User Story 4 - Complexity Hotspots Skill (Priority: P1)
 
-En tant qu'utilisateur d'Aetheris avec Gemini, je veux bénéficier des mêmes capacités d'action que Claude via Function Calling, afin d'avoir une parité fonctionnelle entre les providers.
+En tant qu'utilisateur d'Aetheris, je veux identifier automatiquement les fichiers et fonctions les plus complexes du codebase, afin de prioriser mes efforts de refactoring.
 
-**Why this priority**: Parité fonctionnelle - les utilisateurs de Gemini doivent avoir les mêmes capacités.
+**Why this priority**: Ciblage précis - permet de focaliser l'attention sur le code le plus problématique.
 
-**Independent Test**: Lancer `aetheris fix --auto --provider gemini` et vérifier que Gemini modifie effectivement les fichiers sur le disque via Function Calling.
+**Independent Test**: Lancer `aetheris analysis --skills complexity-hotspots` et obtenir un classement des fichiers par complexité.
 
 **Acceptance Scenarios**:
 
-1. **Given** une analyse avec des issues détectées, **When** l'utilisateur demande un fix avec Gemini, **Then** Gemini utilise Function Calling pour modifier les fichiers
-2. **Given** les mêmes skills disponibles pour Claude, **When** Gemini est utilisé, **Then** les mêmes skills sont disponibles via Function Calling
-3. **Given** un skill échoue, **When** Gemini reçoit l'erreur, **Then** il peut adapter sa stratégie et réessayer
+1. **Given** le skill complexity-hotspots activé, **When** l'analyse se termine, **Then** un classement des fichiers par complexité est inclus
+2. **Given** des métriques de complexité (cyclomatic, cognitive), **When** le rapport est généré, **Then** les scores sont affichés par fichier/fonction
+3. **Given** un seuil de complexité configurable, **When** un fichier dépasse le seuil, **Then** il est marqué comme "hotspot" prioritaire
 
 ---
 
-### User Story 5 - Gemini Conductor Orchestration (Priority: P2)
+### User Story 5 - Dependency Graph Skill (Priority: P2)
 
-En tant qu'utilisateur d'Aetheris avec Gemini, je veux qu'un module "Conductor" décompose les requêtes complexes en étapes planifiées, afin d'améliorer la qualité des réponses sur les tâches multi-étapes.
+En tant qu'utilisateur d'Aetheris, je veux visualiser les dépendances entre modules de mon codebase, afin de comprendre l'architecture et identifier les couplages problématiques.
 
-**Why this priority**: Amélioration de qualité - le Conductor permet de mieux gérer les tâches complexes avec Gemini.
+**Why this priority**: Compréhension architecture - aide à planifier les refactorings et comprendre l'impact des changements.
 
-**Independent Test**: Soumettre une tâche complexe (ex: "Analyse le projet et corrige tous les problèmes de sécurité critiques") et vérifier que le Conductor décompose en étapes.
+**Independent Test**: Lancer `aetheris analysis --skills dependency-graph` et obtenir une visualisation des dépendances.
 
 **Acceptance Scenarios**:
 
-1. **Given** une requête complexe multi-étapes, **When** elle est soumise à Gemini, **Then** le Conductor crée un plan d'exécution
-2. **Given** un plan d'exécution créé, **When** le Conductor l'exécute, **Then** chaque étape est déléguée au skill approprié
-3. **Given** une étape échoue, **When** le Conductor détecte l'échec, **Then** il peut re-planifier ou reporter l'erreur
-4. **Given** le mode verbose activé, **When** le Conductor s'exécute, **Then** le plan et la progression sont affichés
+1. **Given** le skill dependency-graph activé, **When** l'analyse se termine, **Then** un graphe des dépendances est généré
+2. **Given** des imports circulaires détectés, **When** le rapport est généré, **Then** les cycles sont mis en évidence
+3. **Given** l'option `--output-format mermaid`, **When** le skill s'exécute, **Then** le graphe est exporté en format Mermaid
+4. **Given** un module avec beaucoup de dépendants, **When** le rapport est généré, **Then** il est identifié comme "high-impact"
 
 ---
 
-### User Story 6 - MCP Integration (Priority: P2)
+### User Story 6 - MCP Integration for Context (Priority: P2)
 
-En tant qu'utilisateur d'Aetheris, je veux que l'outil supporte le Model Context Protocol (MCP), afin de pouvoir connecter des sources de contexte externes et des outils tiers.
+En tant qu'utilisateur d'Aetheris, je veux que l'outil supporte le Model Context Protocol (MCP) pour enrichir l'analyse avec des sources de contexte externes.
 
-**Why this priority**: Extensibilité - MCP permet l'intégration avec l'écosystème d'outils AI existant.
+**Why this priority**: Extensibilité - MCP permet d'intégrer des sources de documentation et de contexte projet.
 
-**Independent Test**: Configurer un serveur MCP local et vérifier qu'Aetheris peut l'utiliser comme source de contexte ou d'outils.
+**Independent Test**: Configurer un serveur MCP local et vérifier qu'Aetheris utilise le contexte MCP dans l'analyse.
 
 **Acceptance Scenarios**:
 
-1. **Given** un serveur MCP configuré, **When** Aetheris démarre, **Then** il se connecte et découvre les ressources disponibles
-2. **Given** des outils MCP disponibles, **When** l'AI a besoin d'une action, **Then** les outils MCP sont disponibles comme skills
-3. **Given** des ressources MCP (contexte), **When** l'analyse démarre, **Then** le contexte MCP est inclus dans les prompts
-4. **Given** aucun serveur MCP configuré, **When** Aetheris démarre, **Then** il fonctionne normalement sans MCP
+1. **Given** un serveur MCP configuré, **When** Aetheris démarre, **Then** il se connecte et découvre les ressources de contexte
+2. **Given** des ressources MCP (documentation, specs), **When** l'analyse démarre, **Then** le contexte MCP enrichit les prompts
+3. **Given** aucun serveur MCP configuré, **When** Aetheris démarre, **Then** il fonctionne normalement sans MCP
 
 ---
 
-### User Story 7 - Skill Registry & Discovery (Priority: P3)
+### User Story 7 - Skills Configuration (Priority: P3)
 
-En tant que développeur, je veux pouvoir enregistrer de nouveaux skills personnalisés, afin d'étendre les capacités de l'outil selon mes besoins.
+En tant qu'utilisateur, je veux pouvoir configurer quels skills sont actifs par défaut et leurs paramètres, via config.json.
 
-**Why this priority**: Extensibilité avancée - permet la personnalisation pour des cas d'usage spécifiques.
+**Why this priority**: Personnalisation - permet d'adapter les skills aux besoins du projet.
 
-**Independent Test**: Créer un skill personnalisé et vérifier qu'il est disponible pour les AI.
+**Independent Test**: Configurer `analysis.default_skills: ["security-context", "complexity-hotspots"]` et vérifier qu'ils sont utilisés par défaut.
 
 **Acceptance Scenarios**:
 
-1. **Given** un fichier de définition de skill valide, **When** Aetheris charge les skills, **Then** le skill personnalisé est disponible
-2. **Given** un skill avec des permissions requises, **When** il est invoqué, **Then** les permissions sont vérifiées
-3. **Given** un skill mal formé, **When** Aetheris tente de le charger, **Then** une erreur explicite est affichée
+1. **Given** des skills configurés dans config.json, **When** l'analyse démarre sans `--skills`, **Then** les skills configurés sont utilisés
+2. **Given** `--skills none` sur la CLI, **When** l'analyse s'exécute, **Then** aucun skill n'est utilisé
+3. **Given** un skill inconnu configuré, **When** Aetheris charge la config, **Then** un warning est affiché
 
 ---
 
 ### Edge Cases & Solutions
 
-#### CLI Wrapper & Command Passthrough
+#### Multi-Provider
 
 | Edge Case | Solution |
 |-----------|----------|
-| Commande inexistante dans aucun provider | Afficher message d'erreur avec suggestions de commandes similaires (distance de Levenshtein ≤2) et lien vers `/help` |
-| Commandes ambiguës entre CLIs | Préfixer avec le provider explicite: `/claude:commit` vs `/gemini:commit`. Par défaut, utiliser le provider actif |
-| Données d'autocomplétion indisponibles | Fallback sur liste statique des commandes de base. Régénérer le cache au prochain démarrage. Mode dégradé fonctionnel |
-| Caractères spéciaux/quotes dans arguments | Parser les arguments avec shlex (shell-like). Supporter les quotes simples, doubles et échappement backslash |
-| Changement de provider en session | Invalider le cache de commandes. Afficher avertissement. Recharger le registre du nouveau provider |
+| Provider indisponible temporairement | Circuit breaker avec 3 tentatives. Fallback sur cache local si disponible. Message d'erreur explicite |
+| Différences de capacités entre providers | Maintenir une matrice de compatibilité. Afficher warning si feature non supportée |
+| Clé API manquante pour provider | Message d'erreur explicite indiquant quelle variable d'environnement configurer |
+| Provider OpenRouter avec modèle invalide | Valider le modèle via API OpenRouter. Lister les modèles disponibles sur erreur |
 
-#### Skills & Providers
-
-| Edge Case | Solution |
-|-----------|----------|
-| Provider indisponible temporairement | Circuit breaker avec 3 tentatives. Fallback sur cache local si disponible. Message d'erreur explicite avec retry suggéré |
-| Différences de capacités entre providers | Maintenir une matrice de compatibilité. Afficher warning si skill non supporté. Suggérer alternative équivalente si existe |
-| Skill accède à fichier hors projet | Sandboxing par défaut: limiter au répertoire projet. Mode `--unsafe` pour désactiver. Log d'audit des accès |
-| Timeouts sur Function Calling | Timeout configurable (défaut: 120s). Annulation gracieuse avec sauvegarde état partiel. Option `--timeout` par commande |
-
-#### Conductor & Orchestration
+#### Analysis Skills
 
 | Edge Case | Solution |
 |-----------|----------|
-| Boucle infinie dans le plan | Limite stricte de 20 étapes (NFR-003). Détection de cycles: si même état revisité 2x, arrêt avec erreur explicative |
+| Skill security-context sans connexion OSV | Mode dégradé: utiliser cache local des CVE. Warning dans le rapport |
+| Skill complexity-hotspots sur très gros projet | Limite configurable de fichiers analysés. Progress bar pour long processing |
+| Skill dependency-graph avec imports dynamiques | Documenter les limitations. Marquer les imports non résolus dans le graphe |
+| Skill retourne données incomplètes | Continuer l'analyse. Inclure warning dans le rapport. Ne pas bloquer |
 
 #### MCP Integration
 
 | Edge Case | Solution |
 |-----------|----------|
-| Conflit nom skill MCP vs intégré | Priorité aux skills intégrés par défaut. Option `mcp.override_builtins: true` pour inverser. Afficher warning sur conflit |
-| Connexion MCP perdue | Retry automatique (3x avec backoff). Continuer sans MCP si échec. Log warning. Reconnecter automatiquement si rétablie |
+| Connexion MCP perdue | Retry automatique (3x avec backoff). Continuer sans MCP si échec. Log warning |
+| Ressource MCP trop volumineuse | Limite de taille configurable. Tronquer avec warning si dépassée |
 
 ## Requirements
 
 ### Functional Requirements
 
-#### Architecture CLI Wrapper
+#### Multi-Provider Architecture
 
 - **FR-001**: Le système DOIT fournir une interface CLI unifiée abstraisant les appels API directs
-- **FR-002**: Le système DOIT supporter les providers Claude et Gemini via le même jeu de commandes
+- **FR-002**: Le système DOIT supporter les providers Gemini, Claude et OpenRouter
 - **FR-003**: Le système DOIT permettre la sélection du provider via `--provider` flag ou configuration
 - **FR-004**: Le système DOIT maintenir une parité fonctionnelle maximale entre les providers
 - **FR-005**: Le système DOIT gérer gracieusement les fonctionnalités non supportées par un provider
+- **FR-006**: Le système DOIT supporter la sélection de modèle via `--model` flag
 
-#### Command Passthrough & Autocomplete
+#### Analysis Skills
 
-- **FR-028**: Le système DOIT fournir un mode CLI interactif via `aetheris --cli` (ou `-c`)
-- **FR-029**: Le système DOIT maintenir la rétrocompatibilité: les commandes directes (`aetheris analysis`, `aetheris fix`) DOIVENT fonctionner sans changement
-- **FR-030**: Le système DOIT permettre l'exécution de commandes natives du provider actif via la syntaxe `/command -arguments` en mode --cli
-- **FR-031**: Le système DOIT afficher une liste de commandes disponibles lorsque l'utilisateur tape `/`
-- **FR-032**: Le système DOIT fournir une autocomplétion intelligente basée sur le préfixe tapé (ex: `/ana` → `/analysis`)
-- **FR-033**: Le système DOIT filtrer les commandes affichées selon le provider actuellement actif
-- **FR-034**: Le système DOIT transmettre les commandes au CLI sous-jacent (Claude Code ou Gemini CLI) sans modification
-- **FR-035**: Le système DOIT afficher un message d'erreur avec suggestions similaires pour les commandes inconnues
-- **FR-036**: Le système DOIT maintenir un registre des commandes disponibles par provider
-- **FR-037**: Le système DOIT permettre l'accès à l'aide détaillée d'une commande via `/help <commande>`
-- **FR-038**: Le système DOIT permettre de quitter le mode interactif via `/exit` ou Ctrl+C
+- **FR-007**: Le système DOIT fournir un skill `security-context` enrichissant l'analyse avec CVE/OWASP data
+- **FR-008**: Le système DOIT fournir un skill `complexity-hotspots` identifiant les fichiers/fonctions complexes
+- **FR-009**: Le système DOIT fournir un skill `dependency-graph` visualisant les dépendances entre modules
+- **FR-010**: Le système DOIT permettre l'activation des skills via `--skills skill1,skill2`
+- **FR-011**: Le système DOIT permettre de désactiver tous les skills via `--skills none`
+- **FR-012**: Les skills NE DOIVENT PAS modifier le code ni exécuter de commandes (lecture seule)
+- **FR-013**: Les skills DOIVENT enrichir le rapport d'analyse avec leurs données
 
-#### Agent Skills - Claude
+#### Skill: Security Context
 
-- **FR-006**: Le système DOIT implémenter un skill de lecture de fichiers pour Claude
-- **FR-007**: Le système DOIT implémenter un skill d'écriture de fichiers pour Claude
-- **FR-008**: Le système DOIT implémenter un skill d'exécution de commandes shell pour Claude
-- **FR-009**: Le système DOIT implémenter un skill de recherche dans les fichiers pour Claude
-- **FR-010**: Le système DOIT implémenter un mode "safe" avec confirmation pour les actions destructives
+- **FR-014**: Le skill DOIT interroger la base OSV pour les CVE des dépendances
+- **FR-015**: Le skill DOIT identifier les patterns OWASP/CWE dans le code
+- **FR-016**: Le skill DOIT inclure les références CVE dans le rapport de sécurité
 
-#### Agent Skills - Gemini
+#### Skill: Complexity Hotspots
 
-- **FR-011**: Le système DOIT mapper les skills Claude vers des Function Calling Gemini équivalents
-- **FR-012**: Le système DOIT fournir les mêmes skills de base pour Gemini que pour Claude
-- **FR-013**: Le système DOIT gérer les différences de format de réponse entre Claude Tool Use et Gemini Function Calling
+- **FR-017**: Le skill DOIT calculer la complexité cyclomatique par fonction
+- **FR-018**: Le skill DOIT calculer la complexité cognitive par fonction
+- **FR-019**: Le skill DOIT classer les fichiers par score de complexité
+- **FR-020**: Le skill DOIT permettre de configurer un seuil de complexité
 
-#### Gemini Conductor
+#### Skill: Dependency Graph
 
-- **FR-014**: Le système DOIT fournir un module Conductor pour décomposer les requêtes complexes
-- **FR-015**: Le système DOIT permettre au Conductor de créer un plan d'exécution en étapes
-- **FR-016**: Le système DOIT permettre au Conductor de déléguer les étapes aux skills appropriés
-- **FR-017**: Le système DOIT permettre au Conductor de gérer les erreurs et re-planifier si nécessaire
-- **FR-018**: Le système DOIT afficher la progression du Conductor en mode verbose
+- **FR-021**: Le skill DOIT analyser les imports/requires du projet
+- **FR-022**: Le skill DOIT détecter les dépendances circulaires
+- **FR-023**: Le skill DOIT identifier les modules à fort impact (beaucoup de dépendants)
+- **FR-024**: Le skill DOIT exporter le graphe en format Mermaid optionnellement
 
-#### Intégration MCP
+#### MCP Integration
 
-- **FR-019**: Le système DOIT supporter la connexion à des serveurs MCP locaux
-- **FR-020**: Le système DOIT découvrir automatiquement les ressources et outils MCP disponibles
-- **FR-021**: Le système DOIT intégrer les outils MCP comme skills disponibles pour les AI
-- **FR-022**: Le système DOIT intégrer les ressources MCP comme contexte pour les analyses
-- **FR-023**: Le système DOIT fonctionner normalement en l'absence de serveur MCP
+- **FR-025**: Le système DOIT supporter la connexion à des serveurs MCP locaux
+- **FR-026**: Le système DOIT intégrer les ressources MCP comme contexte pour les analyses
+- **FR-027**: Le système DOIT fonctionner normalement en l'absence de serveur MCP
 
-#### Skill Registry
+#### Configuration
 
-- **FR-024**: Le système DOIT maintenir un registre des skills disponibles
-- **FR-025**: Le système DOIT permettre l'enregistrement de skills personnalisés via fichiers de configuration
-- **FR-026**: Le système DOIT valider les définitions de skills au chargement
-- **FR-027**: Le système DOIT documenter chaque skill avec nom, description, et paramètres
+- **FR-028**: Le système DOIT supporter `analysis.default_skills` dans config.json
+- **FR-029**: Le système DOIT supporter des paramètres par skill dans config.json
+- **FR-030**: Le système DOIT valider les noms de skills au chargement
 
 ### Non-Functional Requirements
 
-- **NFR-001**: Le temps de réponse de la CLI ne doit pas être impacté de plus de 10% par le wrapper
-- **NFR-002**: Les skills doivent s'exécuter avec les mêmes permissions que l'utilisateur lancant Aetheris
-- **NFR-003**: Le Conductor ne doit pas créer de plans avec plus de 20 étapes pour éviter les boucles
+- **NFR-001**: Les skills ne doivent pas augmenter le temps d'analyse de plus de 30%
+- **NFR-002**: Les skills doivent fonctionner en mode lecture seule uniquement
+- **NFR-003**: Les données des skills doivent être cachables pour les analyses répétées
 
 ### Key Entities
 
-- **CLIWrapper**: Abstraction unifiant les appels aux différents providers AI
-- **CommandRegistry**: Registre des commandes disponibles par provider avec métadonnées (nom, description, arguments)
-- **CommandAutocompleter**: Composant fournissant les suggestions d'autocomplétion basées sur le contexte
-- **CommandPassthrough**: Module transmettant les commandes `/command` au CLI sous-jacent
-- **Skill**: Capacité d'action atomique (lecture, écriture, exécution) disponible pour les AI
-- **SkillRegistry**: Registre central des skills disponibles par provider
-- **Conductor**: Module d'orchestration décomposant les tâches complexes en plans
-- **ExecutionPlan**: Séquence d'étapes planifiées par le Conductor
+- **AIProvider**: Abstraction unifiant les appels aux différents providers (Gemini, Claude, OpenRouter)
+- **AnalysisSkill**: Interface pour les skills d'analyse enrichie (read-only)
+- **SecurityContextSkill**: Skill enrichissant avec CVE/OWASP data
+- **ComplexityHotspotsSkill**: Skill identifiant la complexité du code
+- **DependencyGraphSkill**: Skill visualisant les dépendances
+- **SkillRegistry**: Registre des skills disponibles et leur configuration
 - **MCPClient**: Client pour la connexion aux serveurs Model Context Protocol
 - **MCPResource**: Ressource de contexte découverte via MCP
-- **MCPTool**: Outil découvert via MCP, mappé comme skill
 
 ## Success Criteria
 
 ### Measurable Outcomes
 
-- **SC-001**: Les utilisateurs peuvent exécuter 100% des commandes existantes avec les deux providers sans modifier leur syntaxe
-- **SC-002**: Le taux de succès des auto-fix est identique (±5%) entre Claude et Gemini sur le même jeu de tests
-- **SC-003**: Les tâches complexes décomposées par le Conductor ont un taux de réussite supérieur à 80%
-- **SC-004**: La connexion MCP est établie en moins de 2 secondes au démarrage
-- **SC-005**: Les skills personnalisés peuvent être ajoutés sans modification du code source
-- **SC-006**: 100% des skills de base sont disponibles pour les deux providers (Claude et Gemini)
-- **SC-007**: Les suggestions d'autocomplétion s'affichent en moins de 100ms après la frappe de `/`
-- **SC-008**: 100% des commandes natives du provider actif sont accessibles via la syntaxe `/command`
+- **SC-001**: Les utilisateurs peuvent exécuter 100% des commandes existantes avec les trois providers (Gemini, Claude, OpenRouter) sans modifier leur syntaxe
+- **SC-002**: Le skill security-context identifie 100% des CVE connues pour les dépendances du projet
+- **SC-003**: Le skill complexity-hotspots calcule les métriques de complexité en moins de 5 secondes pour un projet de 1000 fichiers
+- **SC-004**: Le skill dependency-graph génère un graphe correct pour 95% des imports analysés
+- **SC-005**: La connexion MCP est établie en moins de 2 secondes au démarrage
+- **SC-006**: Les skills n'augmentent pas le temps d'analyse de plus de 30%
 
 ## Assumptions
 
 - Les utilisateurs ont déjà configuré leurs clés API pour au moins un provider
-- L'environnement d'exécution permet les appels réseau vers les APIs AI
+- L'environnement d'exécution permet les appels réseau vers les APIs AI et OSV
 - Les serveurs MCP, s'ils sont utilisés, suivent la spécification MCP standard
-- Gemini Function Calling et Claude Tool Use ont des capacités suffisamment similaires pour une abstraction commune
-- Les utilisateurs acceptent les risques liés à l'exécution automatique de commandes (mode unsafe)
+- Les skills fonctionnent en mode lecture seule et n'ont pas besoin de permissions d'écriture
 
 ## Out of Scope
 
-- Support d'autres providers AI au-delà de Claude et Gemini (OpenAI déjà existant reste inchangé)
+- Skills qui modifient le code ou exécutent des commandes (hors scope - analyse seulement)
 - Interface graphique pour la gestion des skills
 - Création de serveurs MCP (uniquement client)
-- Marketplace ou partage de skills personnalisés
 - Mode multi-provider simultané (un seul provider actif par session)
+- TUI interactive (utiliser la CLI standard)
 
 ## Dependencies
 
-- **v2.6.1**: Architecture de base des providers (existante)
-- **v3.0** (optionnel): Persistent Config pour stocker les préférences MCP
+- **v3.0**: Persistent Config pour stocker les préférences de skills et provider
+- **v3.1**: Headless Architecture pour l'intégration CI/CD
 
 ## Config Integration (v3.0+)
 
-À partir de v3.0, les options seront configurables via `config.json`:
+Les options seront configurables via `config.json`:
 
 ```json
 {
-  "cli": {
-    "default_provider": "gemini",
-    "enable_conductor": true,
-    "conductor_max_steps": 20
+  "ai": {
+    "provider": "gemini",
+    "model": "default"
   },
-  "skills": {
-    "safe_mode": true,
-    "custom_skills_path": "./aetheris-skills/",
-    "enabled_skills": ["read_file", "write_file", "execute_command", "search_files"]
+  "analysis": {
+    "default_skills": ["security-context", "complexity-hotspots"],
+    "skills": {
+      "security-context": {
+        "include_owasp": true,
+        "cve_cache_ttl": 86400
+      },
+      "complexity-hotspots": {
+        "threshold": 15,
+        "max_files": 100
+      },
+      "dependency-graph": {
+        "output_format": "mermaid",
+        "include_external": false
+      }
+    }
   },
   "mcp": {
     "enabled": false,
