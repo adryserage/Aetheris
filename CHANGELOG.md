@@ -72,6 +72,43 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Mise à jour du README avec les nouvelles commandes et le roadmap
 - Ajout de `.secretsignore.example` comme template
 
+## [2.6.1] - 2025-01-08
+
+### ✨ Nouvelles fonctionnalités
+
+- **Gestion flexible du timeout** : Contrôle de la durée maximale d'analyse
+  - Nouveau paramètre CLI `--timeout` / `-t`
+  - Formats supportés : secondes (3600), minutes (30m), heures (2h), illimité (0)
+  - Timeout par défaut : 60 minutes
+  - Gestion gracieuse avec tentative de sauvegarde du contexte
+
+- **Heartbeat Monitor** : Indicateur de progression pour analyses longues
+  - Feedback périodique toutes les 10 minutes
+  - Affiche le nombre de fichiers analysés et le temps écoulé
+  - Empêche les timeouts silencieux sur les grandes bases de code
+
+- **Flag `--reanalyze` / `-r`** : Analyse incrémentale des fichiers modifiés
+  - Détecte les fichiers modifiés depuis la dernière analyse
+  - Utilise git diff ou timestamps (fallback)
+  - Détection automatique des fichiers supprimés
+  - Compatible avec `--changed-files-only` et `--timeout`
+
+### 📦 Nouveaux modules
+
+- `src/core/heartbeat.py` : HeartbeatMonitor pour le feedback périodique
+- `src/core/change_detector.py` : ChangeDetector pour la détection des modifications
+
+### 🔧 Modifications
+
+- **CLI** : Ajout des paramètres `--timeout`, `-t`, `--reanalyze`, `-r`
+- **Orchestrateur** : Application du timeout global sur l'ensemble du workflow
+- **Configuration** : Nouveau champ `timeout_seconds` dans AnalysisConfig
+
+### 📝 Documentation
+
+- Mise à jour du README avec documentation de l'analyse incrémentale
+- Exemples d'utilisation du timeout et de la réanalyse
+
 ## [2.5.8] - 2025-01-07
 
 > **Note** : Cette version consolide plusieurs améliorations mineures (v2.5.1-v2.5.7) publiées le même jour pour réduire la "release fatigue".
@@ -898,7 +935,8 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Configuration flexible via variables d'environnement
 
 [Unreleased]: https://github.com/adryserage/aetheris/compare/v2.6.2...HEAD
-[2.6.2]: https://github.com/adryserage/aetheris/compare/v2.5.8...v2.6.2
+[2.6.2]: https://github.com/adryserage/aetheris/compare/v2.6.1...v2.6.2
+[2.6.1]: https://github.com/adryserage/aetheris/compare/v2.5.8...v2.6.1
 [2.5.8]: https://github.com/adryserage/aetheris/compare/v2.5.0...v2.5.8
 [2.5.0]: https://github.com/adryserage/aetheris/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/adryserage/aetheris/compare/v2.3.4...v2.4.0
