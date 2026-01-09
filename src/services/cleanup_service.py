@@ -8,8 +8,8 @@ from pathlib import Path
 from typing import Generator
 
 from ..config.exclusion_patterns import (
-    DEFAULT_EXCLUSIONS,
     DEEP_CLEAN_EXCLUSIONS,
+    DEFAULT_EXCLUSIONS,
     get_exclusions,
 )
 from ..models.cleanup_models import CleanupConfig, CleanupResult, ExclusionConfig
