@@ -32,7 +32,9 @@
 ## Notes
 
 - Spec is complete and ready for `/speckit.plan`
-- 6 user stories covering: CLI wrapper, Claude skills, Gemini skills, Conductor, MCP, Skill registry
-- 27 functional requirements covering all major components
-- 6 success criteria with measurable outcomes
+- 7 user stories covering: Unified CLI, Command passthrough & autocomplete, Claude skills, Gemini skills, Conductor, MCP, Skill registry
+- 35 functional requirements covering all major components (FR-001 to FR-035)
+- 8 success criteria with measurable outcomes (SC-001 to SC-008)
+- 11 key entities including CommandRegistry and CommandAutocompleter
+- Edge cases organized by category: CLI Wrapper, Skills, Conductor, MCP
 - Dependencies on v2.6.1 (existing) and optionally v3.0 (config)

@@ -28,7 +28,27 @@ En tant qu'utilisateur d'Aetheris, je veux pouvoir utiliser une interface CLI un
 
 ---
 
-### User Story 2 - Agent Skills for Claude (Priority: P1)
+### User Story 2 - External CLI Wrapper with Command Passthrough (Priority: P1)
+
+En tant qu'utilisateur d'Aetheris, je veux que l'outil encapsule les CLIs externes (Gemini CLI et Claude Code CLI) et me permette d'exécuter leurs commandes natives via une syntaxe `/command -arguments`, avec autocomplétion intelligente des commandes disponibles.
+
+**Why this priority**: Expérience utilisateur critique - permet d'accéder aux fonctionnalités natives des CLIs sous-jacentes sans quitter Aetheris.
+
+**Independent Test**: Lancer `aetheris shell`, taper `/` et vérifier que les commandes disponibles s'affichent en autocomplétion, puis exécuter `/help` et obtenir l'aide du provider actif.
+
+**Acceptance Scenarios**:
+
+1. **Given** l'utilisateur est en mode interactif Aetheris, **When** il tape `/`, **Then** une liste de commandes disponibles s'affiche en suggestion
+2. **Given** l'utilisateur tape `/ana`, **When** l'autocomplétion est active, **Then** `/analysis` est suggéré
+3. **Given** l'utilisateur tape `/commit -m "message"`, **When** la commande est exécutée, **Then** elle est passée au CLI sous-jacent (Claude Code ou Gemini CLI)
+4. **Given** l'utilisateur tape une commande inconnue `/xyz`, **When** il l'exécute, **Then** un message d'erreur avec suggestions similaires est affiché
+5. **Given** le provider actif est Claude, **When** l'utilisateur tape `/`, **Then** les commandes spécifiques à Claude Code sont affichées
+6. **Given** le provider actif est Gemini, **When** l'utilisateur tape `/`, **Then** les commandes spécifiques à Gemini CLI sont affichées
+7. **Given** l'utilisateur tape `/help commit`, **When** la commande est exécutée, **Then** l'aide détaillée de la commande `commit` s'affiche
+
+---
+
+### User Story 3 - Agent Skills for Claude (Priority: P1)
 
 En tant qu'utilisateur d'Aetheris avec Claude, je veux que l'IA puisse interagir avec mon système de fichiers et exécuter des commandes, afin d'automatiser les corrections de code suggérées.
 
@@ -45,7 +65,7 @@ En tant qu'utilisateur d'Aetheris avec Claude, je veux que l'IA puisse interagir
 
 ---
 
-### User Story 3 - Agent Skills for Gemini (Priority: P1)
+### User Story 4 - Agent Skills for Gemini (Priority: P1)
 
 En tant qu'utilisateur d'Aetheris avec Gemini, je veux bénéficier des mêmes capacités d'action que Claude via Function Calling, afin d'avoir une parité fonctionnelle entre les providers.
 
@@ -61,7 +81,7 @@ En tant qu'utilisateur d'Aetheris avec Gemini, je veux bénéficier des mêmes c
 
 ---
 
-### User Story 4 - Gemini Conductor Orchestration (Priority: P2)
+### User Story 5 - Gemini Conductor Orchestration (Priority: P2)
 
 En tant qu'utilisateur d'Aetheris avec Gemini, je veux qu'un module "Conductor" décompose les requêtes complexes en étapes planifiées, afin d'améliorer la qualité des réponses sur les tâches multi-étapes.
 
@@ -78,7 +98,7 @@ En tant qu'utilisateur d'Aetheris avec Gemini, je veux qu'un module "Conductor" 
 
 ---
 
-### User Story 5 - MCP Integration (Priority: P2)
+### User Story 6 - MCP Integration (Priority: P2)
 
 En tant qu'utilisateur d'Aetheris, je veux que l'outil supporte le Model Context Protocol (MCP), afin de pouvoir connecter des sources de contexte externes et des outils tiers.
 
@@ -95,7 +115,7 @@ En tant qu'utilisateur d'Aetheris, je veux que l'outil supporte le Model Context
 
 ---
 
-### User Story 6 - Skill Registry & Discovery (Priority: P3)
+### User Story 7 - Skill Registry & Discovery (Priority: P3)
 
 En tant que développeur, je veux pouvoir enregistrer de nouveaux skills personnalisés, afin d'étendre les capacités de l'outil selon mes besoins.
 
@@ -113,11 +133,23 @@ En tant que développeur, je veux pouvoir enregistrer de nouveaux skills personn
 
 ### Edge Cases
 
+#### CLI Wrapper & Command Passthrough
+- Que se passe-t-il si l'utilisateur tape une commande qui n'existe dans aucun des providers?
+- Comment gérer les commandes ambiguës existant dans les deux CLIs mais avec des comportements différents?
+- Que se passe-t-il si les données d'autocomplétion ne sont pas disponibles (ex: première exécution, cache corrompu)?
+- Comment gérer les commandes avec caractères spéciaux ou quotes dans les arguments?
+- Que se passe-t-il si l'utilisateur change de provider en cours de session (commandes mémorisées deviennent invalides)?
+
+#### Skills & Providers
 - Que se passe-t-il si un provider est indisponible temporairement pendant une session?
 - Comment gérer les différences de capacités entre Claude et Gemini (certains skills non supportés)?
 - Que se passe-t-il si un skill tente d'accéder à un fichier hors du projet?
 - Comment gérer les timeouts sur les appels Function Calling de longue durée?
+
+#### Conductor & Orchestration
 - Que se passe-t-il si le Conductor détecte une boucle infinie dans le plan?
+
+#### MCP Integration
 - Comment gérer les conflits entre skills MCP et skills intégrés du même nom?
 - Que se passe-t-il si la connexion MCP est perdue en cours d'exécution?
 
@@ -132,6 +164,17 @@ En tant que développeur, je veux pouvoir enregistrer de nouveaux skills personn
 - **FR-003**: Le système DOIT permettre la sélection du provider via `--provider` flag ou configuration
 - **FR-004**: Le système DOIT maintenir une parité fonctionnelle maximale entre les providers
 - **FR-005**: Le système DOIT gérer gracieusement les fonctionnalités non supportées par un provider
+
+#### Command Passthrough & Autocomplete
+
+- **FR-028**: Le système DOIT permettre l'exécution de commandes natives du provider actif via la syntaxe `/command -arguments`
+- **FR-029**: Le système DOIT afficher une liste de commandes disponibles lorsque l'utilisateur tape `/`
+- **FR-030**: Le système DOIT fournir une autocomplétion intelligente basée sur le préfixe tapé (ex: `/ana` → `/analysis`)
+- **FR-031**: Le système DOIT filtrer les commandes affichées selon le provider actuellement actif
+- **FR-032**: Le système DOIT transmettre les commandes au CLI sous-jacent (Claude Code ou Gemini CLI) sans modification
+- **FR-033**: Le système DOIT afficher un message d'erreur avec suggestions similaires pour les commandes inconnues
+- **FR-034**: Le système DOIT maintenir un registre des commandes disponibles par provider
+- **FR-035**: Le système DOIT permettre l'accès à l'aide détaillée d'une commande via `/help <commande>`
 
 #### Agent Skills - Claude
 
@@ -179,6 +222,9 @@ En tant que développeur, je veux pouvoir enregistrer de nouveaux skills personn
 ### Key Entities
 
 - **CLIWrapper**: Abstraction unifiant les appels aux différents providers AI
+- **CommandRegistry**: Registre des commandes disponibles par provider avec métadonnées (nom, description, arguments)
+- **CommandAutocompleter**: Composant fournissant les suggestions d'autocomplétion basées sur le contexte
+- **CommandPassthrough**: Module transmettant les commandes `/command` au CLI sous-jacent
 - **Skill**: Capacité d'action atomique (lecture, écriture, exécution) disponible pour les AI
 - **SkillRegistry**: Registre central des skills disponibles par provider
 - **Conductor**: Module d'orchestration décomposant les tâches complexes en plans
@@ -197,6 +243,8 @@ En tant que développeur, je veux pouvoir enregistrer de nouveaux skills personn
 - **SC-004**: La connexion MCP est établie en moins de 2 secondes au démarrage
 - **SC-005**: Les skills personnalisés peuvent être ajoutés sans modification du code source
 - **SC-006**: 100% des skills de base sont disponibles pour les deux providers (Claude et Gemini)
+- **SC-007**: Les suggestions d'autocomplétion s'affichent en moins de 100ms après la frappe de `/`
+- **SC-008**: 100% des commandes natives du provider actif sont accessibles via la syntaxe `/command`
 
 ## Assumptions
 
