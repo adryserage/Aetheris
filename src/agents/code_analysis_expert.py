@@ -8,8 +8,7 @@ et les capacités de Thinking pour un raisonnement approfondi.
 import os
 import pathlib
 import re
-from typing import List
-from typing import Optional
+from typing import List, Optional
 
 from src.agents.base_agent import BaseAgent
 from src.core.config import AnalysisConfig

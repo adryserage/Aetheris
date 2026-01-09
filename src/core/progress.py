@@ -10,13 +10,15 @@ from typing import Optional
 try:
     from rich.console import Console
     from rich.panel import Panel
-    from rich.progress import BarColumn
-    from rich.progress import Progress
-    from rich.progress import SpinnerColumn
-    from rich.progress import TaskID
-    from rich.progress import TextColumn
-    from rich.progress import TimeElapsedColumn
-    from rich.progress import TimeRemainingColumn
+    from rich.progress import (
+        BarColumn,
+        Progress,
+        SpinnerColumn,
+        TaskID,
+        TextColumn,
+        TimeElapsedColumn,
+        TimeRemainingColumn,
+    )
 
     RICH_AVAILABLE = True
 except ImportError:

@@ -11,9 +11,7 @@ Parse les user stories depuis différentes sources :
 import os
 import re
 import uuid
-from typing import List
-from typing import Optional
-from typing import Tuple
+from typing import List, Optional, Tuple
 
 from ..models.user_story_models import UserStory
 

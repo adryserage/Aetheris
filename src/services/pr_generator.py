@@ -8,25 +8,15 @@ Generates AI-powered fixes for each bug, creates branches, and opens PRs.
 import hashlib
 import os
 import subprocess
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List
-from typing import Optional
-from typing import Set
-from typing import Tuple
+from typing import List, Optional, Set, Tuple
 
 from rich.console import Console
-from rich.panel import Panel
-from rich.progress import Progress
-from rich.progress import SpinnerColumn
-from rich.progress import TextColumn
-from rich.syntax import Syntax
+from rich.progress import Progress, SpinnerColumn, TextColumn
 
 # Reuse bug parsing from issue_creator
-from src.services.issue_creator import ExtractedBug
-from src.services.issue_creator import IssueCreator
-
+from src.services.issue_creator import ExtractedBug, IssueCreator
 
 console = Console()
 
@@ -390,6 +380,7 @@ class PRGenerator:
         elif ext in [".js", ".ts", ".jsx", ".tsx"]:
             # Write to temp file and check with node
             import tempfile
+
             with tempfile.NamedTemporaryFile(mode="w", suffix=ext, delete=False) as f:
                 f.write(fixed_code)
                 temp_path = f.name
@@ -496,11 +487,16 @@ This PR fixes a **{bug.bug_type}** issue detected by Aetheris code analysis.
     ) -> Tuple[bool, str, str]:
         """Create a GitHub PR using gh CLI."""
         args = [
-            "pr", "create",
-            "--title", title,
-            "--body", body,
-            "--base", base_branch,
-            "--head", branch_name,
+            "pr",
+            "create",
+            "--title",
+            title,
+            "--body",
+            body,
+            "--base",
+            base_branch,
+            "--head",
+            branch_name,
         ]
 
         return self._run_gh_command(args)
@@ -520,6 +516,7 @@ This PR fixes a **{bug.bug_type}** issue detected by Aetheris code analysis.
 
         try:
             import json
+
             issues = json.loads(stdout)
             return {issue["title"].lower(): issue["number"] for issue in issues}
         except Exception:
@@ -558,7 +555,9 @@ This PR fixes a **{bug.bug_type}** issue detected by Aetheris code analysis.
         console.print(f"\n[bold cyan]PR: {title}[/bold cyan]")
         console.print(f"  [dim]Branch:[/dim] {branch_name}")
         console.print(f"  [dim]File:[/dim] {bug.source_file}")
-        console.print(f"  [dim]Type:[/dim] {bug.bug_type.title()} | [dim]Severity:[/dim] {bug.severity.title()}")
+        console.print(
+            f"  [dim]Type:[/dim] {bug.bug_type.title()} | [dim]Severity:[/dim] {bug.severity.title()}"
+        )
 
         if linked_issue:
             console.print(f"  [dim]Links to:[/dim] Issue #{linked_issue}")
@@ -827,7 +826,9 @@ This PR fixes a **{bug.bug_type}** issue detected by Aetheris code analysis.
         else:
             console.print(f"Total bugs found: [bold]{summary.total_bugs}[/bold]")
             console.print(f"PRs created:      [green]{summary.created}[/green]")
-            console.print(f"PRs skipped:      [yellow]{summary.skipped}[/yellow] [dim](branch exists)[/dim]")
+            console.print(
+                f"PRs skipped:      [yellow]{summary.skipped}[/yellow] [dim](branch exists)[/dim]"
+            )
             console.print(f"PRs failed:       [red]{summary.failed}[/red]")
 
         console.print()

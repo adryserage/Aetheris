@@ -8,15 +8,13 @@ import asyncio
 import json
 import os
 import sys
-from typing import List
-from typing import Optional
+from typing import List, Optional
 
 from rich.console import Console
 from rich.prompt import Confirm
 
 # Configuration du logging et encodage UTF-8
-from src.core.logger import log_print
-from src.core.logger import setup_utf8_encoding
+from src.core.logger import log_print, setup_utf8_encoding
 
 setup_utf8_encoding()
 
@@ -32,10 +30,12 @@ from src.core.analyzer import CodeAnalyzer
 
 # Import de la configuration depuis le module dédié
 from src.core.change_detector import ChangeDetector
-from src.core.config import AnalysisConfig
-from src.core.config import load_env_file
-from src.core.config import TimeoutConfig
-from src.core.config import TimeoutParseError
+from src.core.config import (
+    AnalysisConfig,
+    TimeoutConfig,
+    TimeoutParseError,
+    load_env_file,
+)
 from src.core.progress import ProgressManager
 
 
@@ -261,7 +261,9 @@ async def run_analysis(args):
 
     # Handle --reanalyze flag (v2.6.1)
     if reanalyze_mode:
-        log_print("🔄 Mode reanalyze: détection des fichiers modifiés depuis la dernière analyse...")
+        log_print(
+            "🔄 Mode reanalyze: détection des fichiers modifiés depuis la dernière analyse..."
+        )
         detector = ChangeDetector(
             metrics_dir=os.getenv("OUTPUT_DIR", "docs/analyses") + "/../metrics",
             root_dir=os.getenv("ROOT_DIR", "."),
@@ -282,13 +284,17 @@ async def run_analysis(args):
                 analyze_changed_only = True
             else:
                 log_print("✅ Aucun fichier modifié depuis la dernière analyse")
-                log_print("   Utilisez 'aetheris analysis' sans --reanalyze pour une analyse complète")
+                log_print(
+                    "   Utilisez 'aetheris analysis' sans --reanalyze pour une analyse complète"
+                )
                 sys.exit(0)
 
             # Check for deleted files
             deleted_files = detector.get_deleted_files(last_analysis)
             if deleted_files:
-                log_print(f"🗑️  {len(deleted_files)} fichier(s) supprimé(s) depuis la dernière analyse")
+                log_print(
+                    f"🗑️  {len(deleted_files)} fichier(s) supprimé(s) depuis la dernière analyse"
+                )
         else:
             log_print("⚠️  Aucune analyse précédente trouvée, lancement d'une analyse complète...")
             # Continue with full analysis
@@ -352,7 +358,7 @@ async def run_analysis(args):
         enable_code_execution=os.getenv("ENABLE_CODE_EXECUTION", "false").lower() == "true",
         enable_function_calling=os.getenv("ENABLE_FUNCTION_CALLING", "false").lower() == "true",
         enable_context_caching=os.getenv("ENABLE_CONTEXT_CACHING", "true").lower() == "true",
-        cache_ttl_seconds=int(os.getenv("CONTEXT_CACHE_TTL_SECONDS", "3600")),
+        context_cache_ttl_seconds=int(os.getenv("CONTEXT_CACHE_TTL_SECONDS", "3600")),
         enable_batch_mode=os.getenv("ENABLE_BATCH_MODE", "false").lower() == "true",
         enable_google_search=os.getenv("ENABLE_GOOGLE_SEARCH", "false").lower() == "true",
         # Timeout configuration (v2.6.1)
@@ -365,9 +371,7 @@ async def run_analysis(args):
     log_print(f"🤖 Modèle: {config.ai_model}")
 
     if reanalyze_mode and changed_files:
-        log_print(
-            f"🔍 Mode: Reanalyse des fichiers modifiés ({len(changed_files)} fichier(s))"
-        )
+        log_print(f"🔍 Mode: Reanalyse des fichiers modifiés ({len(changed_files)} fichier(s))")
     elif analyze_changed_only:
         log_print(
             f"🔍 Mode: Analyse des fichiers modifiés uniquement ({len(changed_files)} fichier(s))"
@@ -1316,8 +1320,7 @@ async def run_pr(args):
         sys.exit(1)
 
     # Initialiser le service GitHub
-    from src.services.github_service import GitHubService
-    from src.services.github_service import GitHubServiceError
+    from src.services.github_service import GitHubService, GitHubServiceError
 
     gh_service = GitHubService()
 

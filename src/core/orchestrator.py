@@ -4,19 +4,13 @@ Sépare la logique d'orchestration de la logique métier
 """
 
 import asyncio
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any
-from typing import Callable
-from typing import Dict
-from typing import List
-from typing import Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from src.core.config import AnalysisConfig
-from src.core.error_handler import classify_error
-from src.core.error_handler import exponential_backoff
+from src.core.error_handler import classify_error, exponential_backoff
 from src.core.heartbeat import HeartbeatMonitor
 from src.core.logger import log_print
 from src.core.metrics import MetricsCollector

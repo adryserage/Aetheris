@@ -6,23 +6,21 @@ Analyse les PRs avec plusieurs providers AI et produit un consensus sur les issu
 
 import asyncio
 import hashlib
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
+from typing import Dict, List, Optional, Tuple
 
 from src.agents.base_agent import BaseAgent
-from src.core.ai_providers import AIProvider
-from src.core.ai_providers import create_ai_provider
+from src.core.ai_providers import AIProvider, create_ai_provider
 from src.core.config import AnalysisConfig
 from src.core.progress import ProgressManager
-from src.models.pr_models import PRComment
-from src.models.pr_models import PRFile
-from src.models.pr_models import PRInfo
-from src.models.pr_models import PRIssue
-from src.models.pr_models import PRIssueSeverity
-from src.models.pr_models import PRIssueType
-from src.models.pr_models import PRReviewResult
+from src.models.pr_models import (
+    PRComment,
+    PRFile,
+    PRInfo,
+    PRIssue,
+    PRIssueSeverity,
+    PRIssueType,
+    PRReviewResult,
+)
 
 
 class PRReviewAgent(BaseAgent):

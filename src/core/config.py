@@ -4,12 +4,8 @@ Configuration de l'analyse
 
 import os
 import re
-from dataclasses import dataclass
-from dataclasses import field
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Union
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Union
 
 # === Timeout Configuration ===
 # Default timeout: 60 minutes (v2.6.1)
@@ -246,7 +242,7 @@ class AnalysisConfig:
 
     # Context Caching : cache API pour réduire les coûts (~50%)
     enable_context_caching: bool = True
-    cache_ttl_seconds: int = 3600  # Durée de vie du cache en secondes (1h par défaut)
+    context_cache_ttl_seconds: int = 3600  # Durée de vie du cache contexte en secondes (1h)
 
     # Batch API : traitement en lot à coût réduit (-50%)
     enable_batch_mode: bool = True

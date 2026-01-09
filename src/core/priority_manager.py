@@ -4,9 +4,7 @@ Optimise les PR reviews en priorisant les fichiers modifiés
 """
 
 from enum import Enum
-from typing import Dict
-from typing import List
-from typing import Optional
+from typing import Dict, List, Optional
 
 
 class Priority(Enum):

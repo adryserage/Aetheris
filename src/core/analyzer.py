@@ -8,8 +8,7 @@ import pathlib
 import re
 from collections import defaultdict
 from datetime import datetime
-from typing import List
-from typing import Optional
+from typing import List, Optional
 
 from pathspec import PathSpec
 
@@ -23,9 +22,7 @@ from src.core.cache import AnalysisCache
 from src.core.config import AnalysisConfig
 from src.core.logger import log_print
 from src.core.metrics import MetricsCollector
-from src.core.orchestrator import AnalysisOrchestrator
-from src.core.orchestrator import WorkflowContext
-from src.core.orchestrator import WorkflowStage
+from src.core.orchestrator import AnalysisOrchestrator, WorkflowContext, WorkflowStage
 from src.core.parallel_analyzer import detect_independent_files
 from src.core.priority_manager import PriorityManager
 from src.core.progress import ProgressManager
@@ -501,11 +498,7 @@ class CodeAnalyzer:
 
         for root, dirs, filenames in os.walk(self.config.root_dir):
             # Filtrer les dossiers à exclure
-            dirs[:] = [
-                d
-                for d in dirs
-                if d not in excluded_dirs and not d.startswith(".")
-            ]
+            dirs[:] = [d for d in dirs if d not in excluded_dirs and not d.startswith(".")]
 
             # Vérifier si le dossier racine actuel est exclu
             rel_root = os.path.relpath(root, self.config.root_dir)

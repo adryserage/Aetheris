@@ -11,9 +11,7 @@ import subprocess
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import List
-from typing import Optional
-from typing import Tuple
+from typing import List, Optional, Tuple
 
 from src.core.logger import log_print
 
@@ -129,9 +127,7 @@ class ChangeDetector:
 
         return changed_files, method
 
-    def _get_changed_via_git(
-        self, since: LastAnalysisInfo
-    ) -> Tuple[List[str], str]:
+    def _get_changed_via_git(self, since: LastAnalysisInfo) -> Tuple[List[str], str]:
         """Detect changed files using git.
 
         Args:
@@ -202,15 +198,13 @@ class ChangeDetector:
             pass
 
         # Filter out empty strings and non-existent files
-        changed_files = [
+        filtered_files = [
             f for f in changed_files if f and os.path.exists(os.path.join(self.root_dir, f))
         ]
 
-        return changed_files, "git"
+        return filtered_files, "git"
 
-    def _get_changed_via_timestamps(
-        self, since_timestamp: datetime
-    ) -> Tuple[List[str], str]:
+    def _get_changed_via_timestamps(self, since_timestamp: datetime) -> Tuple[List[str], str]:
         """Detect changed files using file modification timestamps.
 
         Args:
