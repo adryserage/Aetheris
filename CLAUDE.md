@@ -6,6 +6,67 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Aetheris is a multi-agent code analysis system that uses AI (Gemini, OpenAI, or Claude) to analyze codebases for quality, security, architecture, and technical debt. It coordinates 6 specialized agents to produce comprehensive analysis reports.
 
+## Git Branching Strategy (MANDATORY)
+
+**CRITICAL**: This project uses a simple two-branch strategy. DO NOT create feature branches.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    BRANCHING RULES                          │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  develop ────────────────────────────────────────► main     │
+│     │                                                │      │
+│     │  All development happens here                  │      │
+│     │  - Specs creation                              │      │
+│     │  - Feature implementation                      │      │
+│     │  - Bug fixes                                   │      │
+│     │  - Refactoring                                 │      │
+│                                                      │      │
+│                                      Versions pushed │      │
+│                                      to main when    │      │
+│                                      ready for       │      │
+│                                      release         │      │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Rules
+
+| Rule | Enforcement |
+|------|-------------|
+| **NO feature branches** | All work on `develop` branch |
+| **NO hotfix branches** | Fix on `develop`, merge to `main` |
+| **Specs on develop** | Create specs directly on `develop` |
+| **Versions to main** | Push completed versions to `main` |
+
+### Workflow
+
+```bash
+# 1. Always work on develop
+git checkout develop
+
+# 2. Make changes, commit
+git add .
+git commit -m "feat: description"
+
+# 3. Push to develop
+git push origin develop
+
+# 4. When version ready, merge to main
+git checkout main
+git merge develop
+git tag vX.Y.Z
+git push origin main --tags
+```
+
+### DO NOT
+
+- ❌ Create `feature/*` branches
+- ❌ Create `016-*`, `017-*` numbered branches
+- ❌ Use Git Flow branching model
+- ❌ Create PR from feature to develop
+
 ## SpecKit Workflow Quick Reference
 
 **MANDATORY**: Every code change follows this workflow. No exceptions.
