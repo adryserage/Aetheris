@@ -80,6 +80,7 @@ v2.6.1 013-readme-restructure ✅ ─────┘ Public docs + GitHub Pages
 v2.6.2 012-artifact-cleanup           Nettoyage des Artefacts & Sécurisation des Paquets
 v2.6.5 003-advanced-stats             Statistics command (aetheris stats)
 v2.7   004-i18n-multilingual          Internationalization support
+v2.8   015-gemini-cli-skills          CLI Wrapper + Skills + MCP Integration
 v2.9   005-cicd-template              GitHub Actions templates
 
 ═══════════════════════════════════════════════════════════════════════════════
