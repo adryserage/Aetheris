@@ -1,14 +1,13 @@
 # Implementation Plan: Architecture Headless Déterministe
 
 **Branch**: `017-headless-deterministic` | **Date**: 2026-01-09 | **Spec**: [spec.md](./spec.md)
-**Target Version**: v3.2
+**Target Version**: v3.1
 
 ## Dependencies (Prerequisites)
 
 | Version | Feature | Raison de la Dépendance |
 |---------|---------|-------------------------|
-| **v3.0** | Configuration Persistante (JSON) | Task files utilisent le même format de config |
-| **v3.1** | Sécurité Renforcée | Mode headless utilise les profils de sécurité |
+| **v3.0** | Configuration Persistante (JSON) | Task files utilisent le même format de config + profils de sécurité |
 
 ## Summary
 
@@ -24,8 +23,7 @@ Implémenter une architecture headless pour Aetheris permettant:
 **Primary Dependencies**:
 - pyyaml>=6.0 (YAML parsing)
 - jsonschema>=4.0 (Schema validation)
-- existing config module (v3.0)
-- existing security module (v3.1)
+- existing config module (v3.0) with security profiles
 
 **Storage**:
 - Task files: JSON/YAML
@@ -117,7 +115,6 @@ src/
 
 ## Integration Points
 
-- **v3.0 Config**: Read default options from config.json
-- **v3.1 Security**: Apply security profile to execution
+- **v3.0 Config**: Read default options and security profiles from config.json
 - **CLI Module**: Add `aetheris run` command
 - **Existing Commands**: Wrap existing analysis/fix in runner

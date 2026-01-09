@@ -3,8 +3,8 @@
 **Feature Branch**: `017-headless-deterministic`
 **Created**: 2026-01-09
 **Status**: Draft
-**Target Version**: v3.2
-**Depends On**: v3.0 (Persistent Config), v3.1 (Security)
+**Target Version**: v3.1
+**Depends On**: v3.0 (Persistent Config with Security Profiles)
 
 ## Overview
 

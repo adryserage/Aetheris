@@ -136,24 +136,36 @@ v2.6.1 014-reanalyze-flag ✅ ─────────┤ Incremental analysi
 v2.6.1 013-readme-restructure ✅ ─────┘ Public docs + GitHub Pages
 
 ═══════════════════════════════════════════════════════════════════════════════
-                              PLANNED (Next)
+                              PLANNED (v2.6.x - v2.7)
 ═══════════════════════════════════════════════════════════════════════════════
-v2.6.2 012-artifact-cleanup           Nettoyage des Artefacts & Sécurisation des Paquets
+v2.6.2 012-artifact-cleanup           Nettoyage des Artefacts & Sécurisation
 v2.6.5 003-advanced-stats             Statistics command (aetheris stats)
-v2.7   004-i18n-multilingual          Internationalization support
-v2.8   015-gemini-cli-skills          CLI Wrapper + Skills + MCP Integration
-v2.9   005-cicd-template              GitHub Actions templates
+v2.7   005-cicd-template              GitHub Actions templates
 
 ═══════════════════════════════════════════════════════════════════════════════
-                              v3.0 CONFIG SYSTEM
+                         v3.0 CONFIG + SECURITY + HEADLESS
 ═══════════════════════════════════════════════════════════════════════════════
-v3.0   006-persistent-config ─────────┐ Core: config.json system
+v3.0   006-persistent-config ─────────┐ Core: config.json + security profiles
                                       │
 v3.0.1 007-docs-update ◄──────────────┤ Uses config.json
 v3.0.1 008-extended-agents ◄──────────┤ Uses config.json (4 new agents)
 v3.0.2 009-agent-selection ◄──────────┤ Uses config.json (--agents flag)
 v3.0.3 010-safety-profiles ◄──────────┤ Uses config.json (safety settings)
 v3.0.4 011-readme-safety-docs ◄───────┘ References config.json
+
+v3.1   017-headless-deterministic ────  Headless mode for CI/CD automation
+
+═══════════════════════════════════════════════════════════════════════════════
+                      v4.0 MULTI-MODELS & ANALYSIS SKILLS (FINAL)
+═══════════════════════════════════════════════════════════════════════════════
+v4.0   015-gemini-cli-skills ─────────┐ Multi-providers: Gemini, Claude, OpenRouter
+                                      │
+v4.1   Analysis Skills ◄──────────────┘ security-context, complexity-hotspots,
+                                        dependency-graph (read-only analysis)
+
+───────────────────────────────────────────────────────────────────────────────
+  ⚠️  AETHERIS STOPS AT v4.x - No features planned beyond this version
+───────────────────────────────────────────────────────────────────────────────
 ```
 
 ### When to Sync Specs
@@ -620,14 +632,22 @@ Reports are generated in `docs/analyses/`:
 | **CLI Framework** | Typer |
 | **Terminal UI** | Rich (progress bars, tables, panels) |
 | **Data Validation** | Pydantic, dataclasses |
-| **AI Providers** | Gemini, OpenAI, Claude (Anthropic) |
+| **AI Providers** | Gemini, OpenAI, Claude, OpenRouter (v4.0+) |
 | **File Parsing** | pathlib, re |
 | **External APIs** | GitHub CLI (gh), OSV (vulnerabilities) |
 | **Storage** | Local filesystem (JSON, Markdown) |
 
-## Active Technologies
-- Python 3.9+ (compatible 3.12) (015-gemini-cli-skills)
-- Local filesystem (JSON config, skill definitions) (015-gemini-cli-skills)
+## Version Roadmap Summary
 
-## Recent Changes
-- 015-gemini-cli-skills: Added Python 3.9+ (compatible 3.12)
+| Version | Focus | Status |
+|---------|-------|--------|
+| v2.5 - v2.6.1 | Core features, timeout, reanalyze | ✅ Implemented |
+| v2.6.2 - v2.7 | Cleanup, stats, CI/CD templates | Planned |
+| v3.0 | Config system + Security profiles | Planned |
+| v3.1 | Headless mode (CI/CD automation) | Planned |
+| v4.0 | Multi-providers (Gemini, Claude, OpenRouter) | Planned |
+| v4.1 | Analysis Skills (read-only) | Planned |
+
+**Analysis Skills (v4.1)**: `security-context`, `complexity-hotspots`, `dependency-graph`
+
+> ⚠️ **Aetheris stops at v4.x** - Mature AI code analyzer, no features beyond this version.
