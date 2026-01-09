@@ -4,12 +4,9 @@ Analyseur de dépendances entre fichiers
 
 import os
 import re
-from typing import Dict
-from typing import List
-from typing import Optional
+from typing import Dict, List, Optional
 
-from src.models.data_models import FileDependency
-from src.models.data_models import ReverseDependency
+from src.models.data_models import FileDependency, ReverseDependency
 
 
 class DependencyAnalyzer:
@@ -130,6 +127,9 @@ class DependencyAnalyzer:
 
             if not target_path:
                 return None
+
+        # At this point target_path is guaranteed to be str
+        assert target_path is not None
 
         # Essayer avec .dart
         test_path = target_path + ".dart"

@@ -8,8 +8,7 @@ import pathlib
 import re
 from collections import defaultdict
 from datetime import datetime
-from typing import List
-from typing import Optional
+from typing import Dict, List, Optional
 
 from pathspec import PathSpec
 
@@ -23,13 +22,11 @@ from src.core.cache import AnalysisCache
 from src.core.config import AnalysisConfig
 from src.core.logger import log_print
 from src.core.metrics import MetricsCollector
-from src.core.orchestrator import AnalysisOrchestrator
-from src.core.orchestrator import WorkflowContext
-from src.core.orchestrator import WorkflowStage
+from src.core.orchestrator import AnalysisOrchestrator, WorkflowContext, WorkflowStage
 from src.core.parallel_analyzer import detect_independent_files
 from src.core.priority_manager import PriorityManager
 from src.core.progress import ProgressManager
-from src.models.data_models import FileAnalysis
+from src.models.data_models import FileAnalysis, ReverseDependency
 from src.services.code_generator import CodeGenerator
 from src.services.dependency_analyzer import DependencyAnalyzer
 from src.services.documentation_searcher import DocumentationSearcher
@@ -141,7 +138,7 @@ class CodeAnalyzer:
         self.files_to_analyze = (
             files_to_analyze  # Liste optionnelle de fichiers spécifiques à analyser
         )
-        self.dependency_analyzer = None  # Sera initialisé après le scan des fichiers
+        self.dependency_analyzer: Optional[DependencyAnalyzer] = None  # Sera initialisé après scan
         self.progress_manager = progress_manager or ProgressManager(enabled=False)
         self.doc_searcher = DocumentationSearcher(config) if config.enable_web_search else None
         self.code_generator = CodeGenerator(config) if config.enable_code_generation else None
@@ -168,7 +165,7 @@ class CodeAnalyzer:
         self.qaa = QualityAssuranceAgent(
             config, self.doc_searcher, self.progress_manager
         )  # Agent d'assurance qualité
-        self.gitignore_spec = None
+        self.gitignore_spec: Optional[PathSpec] = None
 
         # Initialiser le cache si activé
         self.cache = (
@@ -291,7 +288,7 @@ class CodeAnalyzer:
                 return False
 
         # Vérifier .gitignore
-        if self.gitignore_spec.match_file(relative_path):
+        if self.gitignore_spec is not None and self.gitignore_spec.match_file(relative_path):
             return False
 
         # Exclure les fichiers générés/compilés par leurs noms/extensions
@@ -501,11 +498,7 @@ class CodeAnalyzer:
 
         for root, dirs, filenames in os.walk(self.config.root_dir):
             # Filtrer les dossiers à exclure
-            dirs[:] = [
-                d
-                for d in dirs
-                if d not in excluded_dirs and not d.startswith(".")
-            ]
+            dirs[:] = [d for d in dirs if d not in excluded_dirs and not d.startswith(".")]
 
             # Vérifier si le dossier racine actuel est exclu
             rel_root = os.path.relpath(root, self.config.root_dir)
@@ -526,9 +519,9 @@ class CodeAnalyzer:
         tasks = [self._analyze_file_with_all_agents(file_path) for file_path in files]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        analyses = []
+        analyses: List[FileAnalysis] = []
         for i, result in enumerate(results):
-            if isinstance(result, Exception):
+            if isinstance(result, BaseException):
                 analyses.append(
                     FileAnalysis(
                         file_path=files[i],
@@ -542,7 +535,7 @@ class CodeAnalyzer:
                         error=str(result),
                     )
                 )
-            else:
+            elif isinstance(result, FileAnalysis):
                 analyses.append(result)
 
         return analyses
@@ -951,7 +944,9 @@ class CodeAnalyzer:
             if analysis.success and analysis.dependencies:
                 dependencies_map[analysis.file_path] = analysis.dependencies
 
-        cycles = self.dependency_analyzer.detect_circular_dependencies(dependencies_map)
+        cycles: List[List[str]] = []
+        if self.dependency_analyzer is not None:
+            cycles = self.dependency_analyzer.detect_circular_dependencies(dependencies_map)
         if cycles:
             self.progress_manager.update_task(
                 cycles_task, description=f"⚠️  {len(cycles)} cycle(s) de dépendances détecté(s)"
@@ -1014,7 +1009,11 @@ class CodeAnalyzer:
                 dependencies_map[analysis.file_path] = analysis.dependencies
 
         # Construire le graphe inverse
-        reverse_graph = self.dependency_analyzer.build_reverse_dependency_graph(dependencies_map)
+        reverse_graph: Dict[str, List[ReverseDependency]] = {}
+        if self.dependency_analyzer is not None:
+            reverse_graph = self.dependency_analyzer.build_reverse_dependency_graph(
+                dependencies_map
+            )
 
         # Stocker les dépendances inverses dans chaque analyse
         for analysis in context.analyses:
@@ -1042,6 +1041,17 @@ class CodeAnalyzer:
         from src.services.impact_analyzer import ImpactAnalyzer
 
         impact_task = self.progress_manager.add_task("🎯 Analyse d'impact des bugs...", total=100)
+
+        # Skip impact analysis if dependency analyzer is not available
+        if self.dependency_analyzer is None:
+            self.progress_manager.update_task(
+                impact_task,
+                advance=100,
+                description="⚠️ Impact analysis skipped (no dependency analyzer)",
+            )
+            self.progress_manager.complete_task(impact_task)
+            self.progress_manager.print()
+            return context
 
         impact_analyzer = ImpactAnalyzer(
             self.dependency_analyzer, max_impact_depth=self.config.max_dependency_depth
@@ -1291,7 +1301,7 @@ class CodeAnalyzer:
             f"  - Échecs: {sum(1 for a in context.analyses if not a.success)}"
         )
 
-        languages = {}
+        languages: Dict[str, int] = {}
         for analysis in context.analyses:
             lang = analysis.language
             languages[lang] = languages.get(lang, 0) + 1

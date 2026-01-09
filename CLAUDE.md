@@ -66,7 +66,8 @@ specs/NNN-feature-name/
 
 ```
 v2.5   001-github-issues-cli (implemented)
-v2.6   002-flexible-timeout
+v2.6.1 002-flexible-timeout (implemented) ─────┐
+       014-reanalyze-flag (implemented) ◄──────┘ Uses metrics for change detection
 v2.7   003-caching-optimization
 v2.8   004-i18n-multilingual
 v2.9   005-cicd-template
@@ -194,7 +195,31 @@ aetheris analysis --changed-files-only --files src/file1.py,src/file2.py
 
 # With JSON file list (from CI)
 aetheris analysis --changed-files-only --files '["src/file1.py", "src/file2.py"]'
+
+# v2.6.1: Timeout management
+aetheris analysis --timeout 30m           # 30 minute timeout
+aetheris analysis --timeout 2h            # 2 hour timeout
+aetheris analysis --timeout 0             # Unlimited (no timeout)
+
+# v2.6.1: Incremental reanalysis
+aetheris analysis --reanalyze             # Only changed files since last analysis
+aetheris analysis -r                      # Short form
+aetheris analysis -r --timeout 30m        # Combined with timeout
 ```
+
+### v2.6.1 Feature Reference
+
+| Feature | Flag | Description |
+|---------|------|-------------|
+| **Timeout** | `--timeout <duration>` | Set max analysis time (e.g., `30m`, `2h`, `0` for unlimited) |
+| **Heartbeat** | (automatic) | Progress indicator every 10 min for long analyses |
+| **Reanalyze** | `--reanalyze` / `-r` | Detect and analyze only changed files |
+
+**Change Detection Methods:**
+- **Git-based**: Uses `git diff` when commit SHA from last analysis is available
+- **Timestamp-based**: Falls back to file modification times when git unavailable
+
+**Last Analysis Info**: Read from `docs/metrics/metrics_*.json` (most recent file)
 
 ### Development
 ```bash

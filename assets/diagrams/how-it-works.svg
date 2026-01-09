@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" width="900" height="500">
+  <defs>
+    <!-- Excalidraw-style rough filter -->
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="5" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+
+    <!-- Hand-drawn font style -->
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Virgil:wght@400&amp;display=swap');
+      .hand { font-family: 'Virgil', 'Comic Sans MS', cursive; }
+      .title { font-size: 24px; font-weight: bold; }
+      .label { font-size: 14px; }
+      .small { font-size: 11px; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="500" fill="#ffffff"/>
+
+  <!-- Title -->
+  <text x="450" y="35" text-anchor="middle" class="hand title" fill="#1e1e1e">How Aetheris Works</text>
+
+  <!-- Step 1: Your Code -->
+  <g transform="translate(50, 80)">
+    <!-- Box with hand-drawn effect -->
+    <rect x="0" y="0" width="140" height="100" rx="8" fill="#e3f2fd" stroke="#1976d2" stroke-width="2" filter="url(#rough)"/>
+    <text x="70" y="35" text-anchor="middle" class="hand label" fill="#1976d2">📁 Your Code</text>
+    <text x="70" y="55" text-anchor="middle" class="hand small" fill="#666">Python, JS, Go</text>
+    <text x="70" y="70" text-anchor="middle" class="hand small" fill="#666">Rust, Java...</text>
+    <text x="70" y="85" text-anchor="middle" class="hand small" fill="#666">Any language!</text>
+  </g>
+
+  <!-- Arrow 1 -->
+  <g>
+    <path d="M200,130 Q250,130 280,130" fill="none" stroke="#666" stroke-width="2" stroke-dasharray="5,3"/>
+    <polygon points="290,130 275,124 275,136" fill="#666"/>
+    <text x="245" y="118" class="hand small" fill="#666">analyze</text>
+  </g>
+
+  <!-- Step 2: 6 AI Agents -->
+  <g transform="translate(300, 60)">
+    <rect x="0" y="0" width="200" height="140" rx="8" fill="#fff3e0" stroke="#f57c00" stroke-width="2" filter="url(#rough)"/>
+    <text x="100" y="25" text-anchor="middle" class="hand label" fill="#e65100">🤖 6 AI Agents</text>
+
+    <!-- Agent list -->
+    <text x="20" y="48" class="hand small" fill="#666">🔒 Security</text>
+    <text x="110" y="48" class="hand small" fill="#666">🏗️ Architecture</text>
+    <text x="20" y="68" class="hand small" fill="#666">✨ Quality</text>
+    <text x="110" y="68" class="hand small" fill="#666">📊 Metrics</text>
+    <text x="20" y="88" class="hand small" fill="#666">📦 Dependencies</text>
+    <text x="110" y="88" class="hand small" fill="#666">🎯 QA Synthesis</text>
+
+    <!-- AI Providers -->
+    <line x1="10" y1="100" x2="190" y2="100" stroke="#ddd" stroke-width="1"/>
+    <text x="100" y="118" text-anchor="middle" class="hand small" fill="#888">Gemini | OpenAI | Claude</text>
+    <text x="100" y="133" text-anchor="middle" class="hand small" fill="#888">Choose your provider</text>
+  </g>
+
+  <!-- Arrow 2 -->
+  <g>
+    <path d="M510,130 Q560,130 590,130" fill="none" stroke="#666" stroke-width="2" stroke-dasharray="5,3"/>
+    <polygon points="600,130 585,124 585,136" fill="#666"/>
+    <text x="555" y="118" class="hand small" fill="#666">findings</text>
+  </g>
+
+  <!-- Step 3: Reports -->
+  <g transform="translate(610, 80)">
+    <rect x="0" y="0" width="140" height="100" rx="8" fill="#e8f5e9" stroke="#388e3c" stroke-width="2" filter="url(#rough)"/>
+    <text x="70" y="30" text-anchor="middle" class="hand label" fill="#2e7d32">📋 Reports</text>
+    <text x="70" y="52" text-anchor="middle" class="hand small" fill="#666">Markdown docs</text>
+    <text x="70" y="67" text-anchor="middle" class="hand small" fill="#666">JSON metrics</text>
+    <text x="70" y="82" text-anchor="middle" class="hand small" fill="#666">GitHub issues</text>
+  </g>
+
+  <!-- Horizontal line separator -->
+  <line x1="50" y1="220" x2="850" y2="220" stroke="#e0e0e0" stroke-width="2" stroke-dasharray="10,5"/>
+
+  <!-- Bottom Row: Features -->
+  <text x="450" y="260" text-anchor="middle" class="hand title" fill="#1e1e1e" font-size="20">Key Features</text>
+
+  <!-- Feature boxes -->
+  <!-- Incremental Analysis -->
+  <g transform="translate(50, 290)">
+    <rect x="0" y="0" width="180" height="90" rx="8" fill="#fce4ec" stroke="#c2185b" stroke-width="2" filter="url(#rough)"/>
+    <text x="90" y="25" text-anchor="middle" class="hand label" fill="#c2185b">⚡ Incremental</text>
+    <text x="90" y="48" text-anchor="middle" class="hand small" fill="#666">--reanalyze flag</text>
+    <text x="90" y="65" text-anchor="middle" class="hand small" fill="#666">Only changed files</text>
+    <text x="90" y="82" text-anchor="middle" class="hand small" fill="#666">Save time & cost</text>
+  </g>
+
+  <!-- Timeout Control -->
+  <g transform="translate(260, 290)">
+    <rect x="0" y="0" width="180" height="90" rx="8" fill="#e8eaf6" stroke="#3f51b5" stroke-width="2" filter="url(#rough)"/>
+    <text x="90" y="25" text-anchor="middle" class="hand label" fill="#3f51b5">⏱️ Timeout Control</text>
+    <text x="90" y="48" text-anchor="middle" class="hand small" fill="#666">--timeout 30m / 2h</text>
+    <text x="90" y="65" text-anchor="middle" class="hand small" fill="#666">Heartbeat monitor</text>
+    <text x="90" y="82" text-anchor="middle" class="hand small" fill="#666">Graceful stop</text>
+  </g>
+
+  <!-- Auto-Fix -->
+  <g transform="translate(470, 290)">
+    <rect x="0" y="0" width="180" height="90" rx="8" fill="#e0f7fa" stroke="#0097a7" stroke-width="2" filter="url(#rough)"/>
+    <text x="90" y="25" text-anchor="middle" class="hand label" fill="#0097a7">🔧 Auto-Fix</text>
+    <text x="90" y="48" text-anchor="middle" class="hand small" fill="#666">Claude Code integration</text>
+    <text x="90" y="65" text-anchor="middle" class="hand small" fill="#666">aetheris fix --auto</text>
+    <text x="90" y="82" text-anchor="middle" class="hand small" fill="#666">Automatic repairs</text>
+  </g>
+
+  <!-- Smart Cache -->
+  <g transform="translate(680, 290)">
+    <rect x="0" y="0" width="180" height="90" rx="8" fill="#fff8e1" stroke="#ffa000" stroke-width="2" filter="url(#rough)"/>
+    <text x="90" y="25" text-anchor="middle" class="hand label" fill="#ff8f00">💾 Smart Cache</text>
+    <text x="90" y="48" text-anchor="middle" class="hand small" fill="#666">60-80% cost savings</text>
+    <text x="90" y="65" text-anchor="middle" class="hand small" fill="#666">Skip unchanged files</text>
+    <text x="90" y="82" text-anchor="middle" class="hand small" fill="#666">Git SHA tracking</text>
+  </g>
+
+  <!-- Command example at bottom -->
+  <g transform="translate(200, 410)">
+    <rect x="0" y="0" width="500" height="50" rx="8" fill="#263238" stroke="#455a64" stroke-width="2"/>
+    <text x="250" y="20" text-anchor="middle" class="hand small" fill="#4caf50">$ pip install adryserage-aetheris</text>
+    <text x="250" y="38" text-anchor="middle" class="hand small" fill="#4caf50">$ aetheris analysis --reanalyze --timeout 30m</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="450" y="485" text-anchor="middle" class="hand small" fill="#9e9e9e">Aetheris — AI Code Review That Actually Works</text>
+</svg>

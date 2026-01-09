@@ -2,11 +2,8 @@
 Modèles de données pour le système d'analyse de code
 """
 
-from dataclasses import dataclass
-from dataclasses import field
-from typing import List
-from typing import Optional
-from typing import Tuple
+from dataclasses import dataclass, field
+from typing import List, Optional, Tuple
 
 
 @dataclass

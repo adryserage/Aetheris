@@ -13,15 +13,11 @@ import json
 import re
 import shutil
 import subprocess
-from typing import List
-from typing import Optional
-from typing import Tuple
+from typing import List, Optional, Tuple
 
 from rich.console import Console
 
-from src.models.pr_models import PRFile
-from src.models.pr_models import PRFileStatus
-from src.models.pr_models import PRInfo
+from src.models.pr_models import PRFile, PRFileStatus, PRInfo
 
 
 class GitHubServiceError(Exception):

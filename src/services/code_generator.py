@@ -3,7 +3,7 @@ Générateur de code pour les agents - permet de créer du code temporaire pour 
 """
 
 import os
-from typing import Optional
+from typing import List, Optional
 
 from src.core.ai_providers import create_ai_provider
 from src.core.config import AnalysisConfig
@@ -15,7 +15,7 @@ class CodeGenerator:
     def __init__(self, config: AnalysisConfig):
         self.config = config
         self.temp_dir = os.path.join(config.root_dir, ".analysis_temp")
-        self.generated_files = []
+        self.generated_files: List[str] = []
         os.makedirs(self.temp_dir, exist_ok=True)
         self.ai_provider = create_ai_provider(
             provider=config.ai_provider,

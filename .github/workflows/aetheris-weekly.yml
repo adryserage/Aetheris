@@ -1,0 +1,195 @@
+name: Aetheris Weekly Analysis
+
+on:
+  schedule:
+    # Run Saturday at 3 AM UTC (off-peak, allows time for fixes before Monday)
+    - cron: '0 3 * * 6'
+  workflow_dispatch:
+    inputs:
+      skip_issues:
+        description: 'Skip creating GitHub issues'
+        type: boolean
+        default: false
+      skip_pr_gen:
+        description: 'Skip generating fix PRs'
+        type: boolean
+        default: false
+      run_autofix:
+        description: 'Run auto-fix (experimental)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  analysis:
+    name: Full Codebase Analysis
+    runs-on: ubuntu-latest
+    outputs:
+      has_findings: ${{ steps.analyze.outputs.has_findings }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install Aetheris
+        run: pip install adryserage-aetheris
+
+      - name: Run full analysis
+        id: analyze
+        run: |
+          echo "Starting Aetheris analysis..."
+          aetheris analysis --timeout 60m || true
+
+          # Check if report was generated
+          if [ -f "docs/analyses/quality_assurance_report.md" ]; then
+            echo "has_findings=true" >> $GITHUB_OUTPUT
+            echo "Analysis complete. Report generated."
+          else
+            echo "has_findings=false" >> $GITHUB_OUTPUT
+            echo "No report generated."
+          fi
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          AI_PROVIDER: ${{ secrets.AI_PROVIDER || 'gemini' }}
+
+      - name: Upload analysis artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: analysis-reports
+          path: |
+            docs/analyses/
+            docs/metrics/
+          retention-days: 30
+
+      - name: Commit analysis reports
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/analyses/ docs/metrics/ || true
+          git diff --staged --quiet || git commit -m "chore: update weekly analysis reports"
+          git push || true
+
+  create-issues:
+    name: Create GitHub Issues
+    needs: analysis
+    if: needs.analysis.outputs.has_findings == 'true' && github.event.inputs.skip_issues != 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Pull latest changes
+        run: git pull origin main || true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install Aetheris
+        run: pip install adryserage-aetheris
+
+      - name: Create issues from analysis
+        run: |
+          echo "Creating GitHub issues from analysis findings..."
+          aetheris issues --labels "aetheris,automated" || true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+  generate-fix-prs:
+    name: Generate Fix PRs
+    needs: create-issues
+    if: github.event.inputs.skip_pr_gen != 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Pull latest changes
+        run: git pull origin main || true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install Aetheris
+        run: pip install adryserage-aetheris
+
+      - name: Generate fix PRs
+        run: |
+          echo "Generating fix PRs linked to issues..."
+          aetheris pr-gen --link-issues || true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+  auto-fix:
+    name: Auto-Fix (Experimental)
+    needs: analysis
+    if: github.event.inputs.run_autofix == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Pull latest changes
+        run: git pull origin main || true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install Aetheris
+        run: pip install adryserage-aetheris
+
+      - name: Run auto-fix
+        run: |
+          echo "Running auto-fix (experimental)..."
+          aetheris fix --analyze-first --auto || true
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Create PR with fixes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          BRANCH="autofix/weekly-$(date +%Y%m%d)"
+          git checkout -b "$BRANCH" || true
+          git add -A
+          git diff --staged --quiet || git commit -m "fix: auto-fix from weekly analysis"
+          git push -u origin "$BRANCH" || true
+          gh pr create --title "Auto-fix: Weekly Analysis Fixes" --body "Automated fixes from Aetheris weekly analysis" --label "autofix,automated" || true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

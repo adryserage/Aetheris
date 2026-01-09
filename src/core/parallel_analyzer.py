@@ -4,10 +4,7 @@ Analyse les fichiers indépendants en parallèle en utilisant le graphe de dépe
 """
 
 from collections import deque
-from typing import Dict
-from typing import List
-from typing import Set
-from typing import Tuple
+from typing import Dict, List, Set, Tuple
 
 
 def build_dependency_graph(
@@ -23,7 +20,7 @@ def build_dependency_graph(
     Returns:
         Graphe de dépendances: {file_path: set(dependencies)}
     """
-    graph = {file: set() for file in files}
+    graph: Dict[str, Set[str]] = {file: set() for file in files}
 
     for file_path, deps in dependencies_map.items():
         if file_path in graph:

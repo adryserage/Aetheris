@@ -3,8 +3,7 @@ Agent d'analyse de métriques de code (CMA)
 """
 
 import re
-from typing import List
-from typing import Tuple
+from typing import List, Tuple
 
 from src.core.config import AnalysisConfig
 from src.models.data_models import CodeMetrics

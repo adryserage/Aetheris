@@ -11,16 +11,8 @@ Gemini utilise le nouveau SDK google-genai avec support pour :
 """
 
 import asyncio
-from abc import ABC
-from abc import abstractmethod
-from typing import TYPE_CHECKING
-from typing import Any
-from typing import Callable
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
-from typing import Type
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Type
 
 if TYPE_CHECKING:
     from pydantic import BaseModel
@@ -394,7 +386,7 @@ class GeminiProvider(AIProvider):
         Returns:
             Nom/ID du job créé
         """
-        batch_requests = []
+        batch_requests: List[Dict[str, Any]] = []
         for req in requests:
             batch_requests.append(
                 {
@@ -548,7 +540,7 @@ class GeminiProvider(AIProvider):
         if fc.enable_google_search:
             tools.append(types.Tool(google_search=types.GoogleSearch()))
 
-        config_dict = {
+        config_dict: Dict[str, Any] = {
             "temperature": fc.temperature,
             "max_output_tokens": fc.max_output_tokens,
             "top_p": fc.top_p,

@@ -16,12 +16,10 @@ import asyncio
 import json
 import os
 import sys
-from typing import List
-from typing import Optional
+from typing import List, Optional
 
 # Configuration du logging et encodage UTF-8
-from src.core.logger import log_print
-from src.core.logger import setup_utf8_encoding
+from src.core.logger import log_print, setup_utf8_encoding
 
 setup_utf8_encoding()
 
@@ -37,8 +35,7 @@ except ImportError as e:
 from src.core.analyzer import CodeAnalyzer
 
 # Import de la configuration depuis le module dédié
-from src.core.config import AnalysisConfig
-from src.core.config import load_env_file
+from src.core.config import AnalysisConfig, load_env_file
 from src.core.progress import ProgressManager
 
 

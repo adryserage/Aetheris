@@ -11,9 +11,7 @@ Parse les user stories depuis différentes sources :
 import os
 import re
 import uuid
-from typing import List
-from typing import Optional
-from typing import Tuple
+from typing import List, Optional, Tuple
 
 from ..models.user_story_models import UserStory
 
@@ -84,8 +82,9 @@ class UserStoryParser:
                 r"(?:the\s+)?visitor",
             ]
             for pattern in actor_patterns:
-                if re.search(pattern, text, re.IGNORECASE):
-                    actor = re.search(pattern, text, re.IGNORECASE).group().strip()
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    actor = match.group().strip()
                     break
 
             # Extraire l'action principale
@@ -183,7 +182,7 @@ class UserStoryParser:
             # Parser le contenu de la section
             # Chercher des patterns de user story
             lines = section.split("\n")
-            current_story_text = []
+            current_story_text: List[str] = []
 
             for line in lines:
                 line = line.strip()

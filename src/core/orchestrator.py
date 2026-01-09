@@ -4,19 +4,14 @@ Sépare la logique d'orchestration de la logique métier
 """
 
 import asyncio
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any
-from typing import Callable
-from typing import Dict
-from typing import List
-from typing import Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from src.core.config import AnalysisConfig
-from src.core.error_handler import classify_error
-from src.core.error_handler import exponential_backoff
+from src.core.error_handler import classify_error, exponential_backoff
+from src.core.heartbeat import HeartbeatMonitor
 from src.core.logger import log_print
 from src.core.metrics import MetricsCollector
 from src.core.progress import ProgressManager
@@ -89,6 +84,9 @@ class AnalysisOrchestrator:
         self.steps: List[WorkflowStep] = []
         self.hooks: Dict[WorkflowStage, List[Callable]] = {}
         self.current_stage: Optional[WorkflowStage] = None
+
+        # Heartbeat monitor for long-running operations (v2.6.1)
+        self.heartbeat_monitor = HeartbeatMonitor(interval_seconds=config.heartbeat_interval)
 
     def register_step(
         self,
@@ -228,65 +226,112 @@ class AnalysisOrchestrator:
                 log_print("⚠️  Étape non critique échouée, continuation...")
                 return True
 
+    async def _execute_workflow_steps(self) -> None:
+        """Execute all workflow steps in order (internal method)."""
+        execution_order = self._get_execution_order()
+
+        # Grouper les étapes parallélisables
+        sequential_groups: List[List[WorkflowStep]] = []
+        current_parallel: List[WorkflowStep] = []
+
+        for step in execution_order:
+            if step.parallelizable and current_parallel:
+                current_parallel.append(step)
+            else:
+                if current_parallel:
+                    sequential_groups.append(current_parallel)
+                if step.parallelizable:
+                    current_parallel = [step]
+                else:
+                    sequential_groups.append([step])
+                    current_parallel = []
+
+        if current_parallel:
+            sequential_groups.append(current_parallel)
+
+        # Exécuter les groupes
+        for group in sequential_groups:
+            if len(group) == 1:
+                # Exécution séquentielle
+                success = await self._execute_step(group[0])
+                if not success and group[0].critical:
+                    self.context.metadata["failed_at"] = group[0].stage.value
+                    break
+            else:
+                # Exécution parallèle
+                tasks = [self._execute_step(step) for step in group]
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                # Vérifier si des étapes critiques ont échoué
+                for step, result in zip(group, results):
+                    if isinstance(result, Exception) or (not result and step.critical):
+                        log_print(f"❌ Étape critique {step.name} a échoué")
+                        self.context.metadata["failed_at"] = step.stage.value
+                        break
+
     async def execute(self) -> WorkflowContext:
-        """Exécute le workflow complet"""
+        """Exécute le workflow complet avec timeout et heartbeat (v2.6.1)"""
         self.context.start_time = datetime.now()
         workflow_id = f"wf_{datetime.now().timestamp()}"
         self.context.metadata["workflow_id"] = workflow_id
+
+        # Get timeout configuration
+        timeout_config = self.config.timeout_config
+        timeout_seconds = (
+            timeout_config.value if timeout_config and timeout_config.enabled else None
+        )
+
+        # Log timeout info
+        if timeout_seconds and timeout_config is not None:
+            log_print(f"⏱️  Timeout global: {timeout_config.format_human()}")
+        else:
+            log_print("⏱️  Timeout: illimité")
 
         # Démarrer la session de métriques
         if self.metrics_collector:
             self.metrics_collector.start_session(workflow_id)
 
+        # Start heartbeat monitor (v2.6.1)
+        await self.heartbeat_monitor.start()
+
         try:
-            execution_order = self._get_execution_order()
+            # Execute workflow with optional timeout (v2.6.1)
+            if timeout_seconds:
+                try:
+                    await asyncio.wait_for(self._execute_workflow_steps(), timeout=timeout_seconds)
+                except asyncio.TimeoutError:
+                    self.current_stage = WorkflowStage.ERROR
+                    elapsed = self.heartbeat_monitor.elapsed_seconds
+                    # timeout_config is guaranteed to be not None when timeout_seconds is set
+                    timeout_str = (
+                        timeout_config.format_human() if timeout_config else f"{timeout_seconds}s"
+                    )
+                    error_msg = (
+                        f"Analyse interrompue: timeout de {timeout_str} "
+                        f"atteint après {elapsed:.0f}s"
+                    )
+                    self.context.errors.append(error_msg)
+                    self.context.metadata["timeout_reached"] = True
+                    self.context.metadata["timeout_value"] = timeout_seconds
+                    log_print(f"\n⏰ {error_msg}")
+                    log_print(
+                        "💡 Utilisez --timeout pour augmenter le délai ou --timeout 0 pour illimité"
+                    )
+            else:
+                # No timeout (unlimited)
+                await self._execute_workflow_steps()
 
-            # Grouper les étapes parallélisables
-            sequential_groups = []
-            current_parallel = []
+            # Mark complete if no timeout occurred
+            if self.current_stage != WorkflowStage.ERROR:
+                self.current_stage = WorkflowStage.COMPLETE
 
-            for step in execution_order:
-                if step.parallelizable and current_parallel:
-                    current_parallel.append(step)
-                else:
-                    if current_parallel:
-                        sequential_groups.append(current_parallel)
-                    if step.parallelizable:
-                        current_parallel = [step]
-                    else:
-                        sequential_groups.append([step])
-                        current_parallel = []
-
-            if current_parallel:
-                sequential_groups.append(current_parallel)
-
-            # Exécuter les groupes
-            for group in sequential_groups:
-                if len(group) == 1:
-                    # Exécution séquentielle
-                    success = await self._execute_step(group[0])
-                    if not success and group[0].critical:
-                        self.context.metadata["failed_at"] = group[0].stage.value
-                        break
-                else:
-                    # Exécution parallèle
-                    tasks = [self._execute_step(step) for step in group]
-                    results = await asyncio.gather(*tasks, return_exceptions=True)
-                    # Vérifier si des étapes critiques ont échoué
-                    for step, result in zip(group, results):
-                        if isinstance(result, Exception) or (not result and step.critical):
-                            log_print(f"❌ Étape critique {step.name} a échoué")
-                            self.context.metadata["failed_at"] = step.stage.value
-                            break
-
-            self.current_stage = WorkflowStage.COMPLETE
             self.context.end_time = datetime.now()
 
             if self.context.start_time and self.context.end_time:
                 duration = (self.context.end_time - self.context.start_time).total_seconds()
                 self.context.metadata["duration_seconds"] = duration
-                log_print(f"\n🎉 Workflow terminé avec succès en {duration:.2f}s")
-                log_print("📁 Les rapports ont été générés dans le dossier de sortie.")
+                if self.current_stage == WorkflowStage.COMPLETE:
+                    log_print(f"\n🎉 Workflow terminé avec succès en {duration:.2f}s")
+                    log_print("📁 Les rapports ont été générés dans le dossier de sortie.")
 
             # Terminer la session de métriques
             if self.metrics_collector:
@@ -299,6 +344,10 @@ class AnalysisOrchestrator:
             self.context.errors.append(f"Erreur fatale: {str(e)}")
             self.context.end_time = datetime.now()
             log_print(f"❌ Erreur fatale dans le workflow: {e}")
+
+        finally:
+            # Stop heartbeat monitor (v2.6.1)
+            await self.heartbeat_monitor.stop()
 
         return self.context
 

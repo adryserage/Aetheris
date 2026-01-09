@@ -1,0 +1,84 @@
+site_name: Aetheris Documentation
+site_description: AI Code Review That Actually Works - 6 AI agents, 15+ vulnerabilities per codebase, 2 minutes instead of 2 hours
+site_url: https://adryserage.github.io/aetheris/
+repo_url: https://github.com/adryserage/aetheris
+repo_name: adryserage/aetheris
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - pymdownx.mark
+  - admonition
+  - tables
+  - attr_list
+  - md_in_html
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: installation.md
+    - Configuration: configuration.md
+    - Quick Start: quickstart.md
+  - Commands:
+    - Overview: commands/README.md
+    - analysis: commands/analysis.md
+    - fix: commands/fix.md
+    - pr: commands/pr-review.md
+    - issues: commands/issues.md
+    - pr-gen: commands/pr-gen.md
+    - user-story: commands/user-story.md
+  - Reference:
+    - AI Providers: ai-providers.md
+    - Analysis Agents: agents.md
+    - Features: features.md
+  - Advanced:
+    - GitHub Actions: github-actions.md
+    - Extending Agents: PLUGINS.md
+    - Troubleshooting: troubleshooting.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/adryserage/aetheris
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/adryserage-aetheris/
