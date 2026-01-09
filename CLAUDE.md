@@ -65,18 +65,33 @@ specs/NNN-feature-name/
 ### Dependency Chain (Current)
 
 ```
-v2.5   001-github-issues-cli (implemented)
-v2.6.1 002-flexible-timeout (implemented) ─────┐
-       014-reanalyze-flag (implemented) ◄──────┘ Uses metrics for change detection
-v2.7   003-caching-optimization
-v2.8   004-i18n-multilingual
-v2.9   005-cicd-template
-v3.0   006-persistent-config ──────────────────┐
-v3.0.1 007-docs-update                         │
-v3.0.1 008-extended-agents ◄───────────────────┤ Uses config.json
-v3.0.2 009-agent-selection ◄───────────────────┤ Uses config.json
-v3.0.3 010-safety-profiles ◄───────────────────┤ Uses config.json
-v3.0.4 011-readme-safety-docs ◄────────────────┘ References config.json
+═══════════════════════════════════════════════════════════════════════════════
+                              IMPLEMENTED (v2.6.1)
+═══════════════════════════════════════════════════════════════════════════════
+v2.5   001-github-issues-cli ✅
+v2.6.1 001-cython-binary-dist ✅ ─────┐ PyPI wheel builds
+v2.6.1 002-flexible-timeout ✅ ───────┤ Timeout management + heartbeat
+v2.6.1 014-reanalyze-flag ✅ ─────────┤ Incremental analysis (--reanalyze)
+v2.6.1 013-readme-restructure ✅ ─────┘ Public docs + GitHub Pages
+
+═══════════════════════════════════════════════════════════════════════════════
+                              PLANNED (Next)
+═══════════════════════════════════════════════════════════════════════════════
+v2.6.2 012-artifact-cleanup           Package security & size optimization
+v2.7   003-advanced-stats             Statistics command (aetheris stats)
+v2.8   004-i18n-multilingual          Internationalization support
+v2.9   005-cicd-template              GitHub Actions templates
+
+═══════════════════════════════════════════════════════════════════════════════
+                              v3.0 CONFIG SYSTEM
+═══════════════════════════════════════════════════════════════════════════════
+v3.0   006-persistent-config ─────────┐ Core: config.json system
+                                      │
+v3.0.1 007-docs-update ◄──────────────┤ Uses config.json
+v3.0.1 008-extended-agents ◄──────────┤ Uses config.json (4 new agents)
+v3.0.2 009-agent-selection ◄──────────┤ Uses config.json (--agents flag)
+v3.0.3 010-safety-profiles ◄──────────┤ Uses config.json (safety settings)
+v3.0.4 011-readme-safety-docs ◄───────┘ References config.json
 ```
 
 ### When to Sync Specs
