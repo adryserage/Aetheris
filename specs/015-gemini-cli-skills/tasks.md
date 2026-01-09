@@ -13,10 +13,10 @@
 | 4. Claude Adapter | 4 | P1 | ⬜ Pending |
 | 5. Gemini Adapter | 4 | P1 | ⬜ Pending |
 | 6. Conductor | 7 | P2 | ⬜ Pending |
-| 7. MCP Integration | 8 | P2 | ⬜ Pending |
+| 7. MCP Integration | 9 | P2 | ⬜ Pending |
 | 8. Custom Skill Registry | 5 | P3 | ⬜ Pending |
 | 9. Testing & Polish | 8 | P1 | ⬜ Pending |
-| **Total** | **57** | | |
+| **Total** | **58** | | |
 
 ---
 
@@ -342,6 +342,14 @@
 - [ ] Test with mock MCP server
 - [ ] Test connection failure handling
 - **Files**: `tests/unit/test_mcp_client.py`
+
+### T044b: Implement MCP resources as analysis context
+- [ ] Fetch resources from connected MCP servers
+- [ ] Include resource content in analysis prompts
+- [ ] Handle resource read failures gracefully
+- **FR**: FR-022
+- **US**: US6-3
+- **Files**: `src/mcp/discovery.py`, `src/core/analyzer.py`
 
 ---
 
