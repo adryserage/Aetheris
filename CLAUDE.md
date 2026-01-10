@@ -136,14 +136,15 @@ v2.6.1 014-reanalyze-flag ✅ ─────────┤ Incremental analysi
 v2.6.1 013-readme-restructure ✅ ─────┘ Public docs + GitHub Pages
 
 ═══════════════════════════════════════════════════════════════════════════════
-                              PLANNED (v2.6.x - v2.7)
+                              v2.6.x - v2.8 (IMPLEMENTED/PLANNED)
 ═══════════════════════════════════════════════════════════════════════════════
-v2.6.2 012-artifact-cleanup           Nettoyage des Artefacts & Sécurisation
-v2.6.5 003-advanced-stats             Statistics command (aetheris stats)
-v2.7   005-cicd-template              GitHub Actions templates
+v2.6.2 012-artifact-cleanup ✅         Nettoyage des Artefacts & Sécurisation
+v2.6.5 003-advanced-stats ✅           Statistics command (aetheris stats)
+v2.7   019-i18n ✅                     Multi-language support (en, fr)
+v2.8   017-headless-deterministic      Headless mode for CI/CD automation
 
 ═══════════════════════════════════════════════════════════════════════════════
-                         v3.0 CONFIG + SECURITY + HEADLESS
+                         v3.0 - v3.2 CONFIG + SECURITY + CI/CD
 ═══════════════════════════════════════════════════════════════════════════════
 v3.0   006-persistent-config ─────────┐ Core: config.json + security profiles
                                       │
@@ -153,7 +154,8 @@ v3.0.2 009-agent-selection ◄──────────┤ Uses config.json
 v3.0.3 010-safety-profiles ◄──────────┤ Uses config.json (safety settings)
 v3.0.4 011-readme-safety-docs ◄───────┘ References config.json
 
-v3.1   017-headless-deterministic ────  Headless mode for CI/CD automation
+v3.1   016-security-strategy ─────────  Sécurité Renforcée & Stratégie Git
+v3.2   005-cicd-template ─────────────  Intégration CI/CD (Templates)
 
 ═══════════════════════════════════════════════════════════════════════════════
                       v4.0 MULTI-MODELS & ANALYSIS SKILLS (FINAL)
@@ -689,10 +691,12 @@ Reports are generated in `docs/analyses/`:
 
 | Version | Focus | Status |
 |---------|-------|--------|
-| v2.5 - v2.6.1 | Core features, timeout, reanalyze | ✅ Implemented |
-| v2.6.2 - v2.7 | Cleanup, stats, CI/CD templates | Planned |
+| v2.5 - v2.6.5 | Core features, timeout, reanalyze, stats | ✅ Implemented |
+| v2.7 | Multi-language support (i18n) | ✅ Implemented |
+| v2.8 | Headless mode (CI/CD automation) | Planned |
 | v3.0 | Config system + Security profiles | Planned |
-| v3.1 | Headless mode (CI/CD automation) | Planned |
+| v3.1 | Enhanced security & Git strategy | Planned |
+| v3.2 | CI/CD templates (GitHub Actions, GitLab) | Planned |
 | v4.0 | Multi-providers (Gemini, Claude, OpenRouter) | Planned |
 | v4.1 | Analysis Skills (read-only) | Planned |
 

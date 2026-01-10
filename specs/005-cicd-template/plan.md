@@ -1,7 +1,8 @@
 # Implementation Plan: CI/CD Integration - GitHub Actions Template
 
 **Branch**: `005-cicd-template` | **Date**: 2025-01-07 | **Spec**: [spec.md](./spec.md)
-**Target Version**: v2.7
+**Target Version**: v3.2
+**Depends On**: v2.8 (Headless Mode)
 
 ## Summary
 

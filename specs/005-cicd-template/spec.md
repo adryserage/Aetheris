@@ -3,7 +3,8 @@
 **Feature Branch**: `005-cicd-template`
 **Created**: 2025-01-07
 **Status**: Draft
-**Target Version**: v2.7
+**Target Version**: v3.2
+**Depends On**: v2.8 (Headless Mode)
 
 ## Overview
 

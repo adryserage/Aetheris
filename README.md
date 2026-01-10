@@ -309,8 +309,11 @@ aetheris analysis
 | **v2.6.2** | Released | Artifact cleanup, secret scanning, package validation |
 | **v2.6.5** | Released | Advanced statistics dashboard, ROI tracking, export to JSON/CSV/MD |
 | **v2.7** | Released | Multi-language support (English, French), locale detection |
-| **v3.0** | In Progress | Persistent config, team settings |
-| **v3.0.1** | Planned | 4 new agents (Performance, API, Types, Privacy) |
+| **v2.8** | Planned | Headless mode for CI/CD automation |
+| **v3.0** | Planned | Persistent config (JSON), security profiles |
+| **v3.1** | Planned | Enhanced security & Git strategy |
+| **v3.2** | Planned | CI/CD templates (GitHub Actions, GitLab CI) |
+| **v4.0** | Planned | Multi-model support (Gemini, Claude, OpenRouter) |
 
 ---
 

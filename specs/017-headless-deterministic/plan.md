@@ -1,7 +1,7 @@
 # Implementation Plan: Architecture Headless Déterministe
 
 **Branch**: `017-headless-deterministic` | **Date**: 2026-01-09 | **Spec**: [spec.md](./spec.md)
-**Target Version**: v3.1
+**Target Version**: v2.8
 
 ## Dependencies (Prerequisites)
 
