@@ -208,6 +208,7 @@ flowchart TD
 - **Artifact Cleanup** — Remove development artifacts before packaging with `aetheris cleanup`
 - **Secret Scanner** — Detect exposed credentials with confidence levels (high/medium/low)
 - **Package Validation** — Pre-publication security checks with `aetheris validate-package`
+- **Multi-Language Support** — CLI available in English and French with `--lang` flag or `AETHERIS_LANG` env var
 
 ```bash
 # Full analysis
@@ -307,6 +308,7 @@ aetheris analysis
 | **v2.6.1** | Released | Timeout management, incremental reanalysis |
 | **v2.6.2** | Released | Artifact cleanup, secret scanning, package validation |
 | **v2.6.5** | Released | Advanced statistics dashboard, ROI tracking, export to JSON/CSV/MD |
+| **v2.7** | Released | Multi-language support (English, French), locale detection |
 | **v3.0** | In Progress | Persistent config, team settings |
 | **v3.0.1** | Planned | 4 new agents (Performance, API, Types, Privacy) |
 

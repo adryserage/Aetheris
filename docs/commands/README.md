@@ -112,6 +112,34 @@ aetheris validate-package
 aetheris validate-package --fix
 ```
 
+### Language Configuration (v2.7)
+```bash
+# List available languages
+aetheris --list-languages
+
+# Run analysis in French
+aetheris --lang fr analysis
+
+# Run analysis in English (default)
+aetheris --lang en analysis
+
+# Set language via environment variable
+export AETHERIS_LANG=fr
+aetheris analysis
+```
+
+**Language Priority** (highest to lowest):
+1. `--lang` CLI flag
+2. `AETHERIS_LANG` environment variable
+3. System locale detection
+4. Default: English (en)
+
+**Available Languages:**
+| Code | Language |
+|------|----------|
+| `en` | English (default) |
+| `fr` | Français |
+
 ## Next Steps
 
 - [Installation](/docs/installation.md) - Setup guide

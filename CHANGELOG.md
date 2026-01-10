@@ -9,6 +9,18 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ### ✨ Nouvelles fonctionnalités
 
+### 🔧 Modifications
+
+### 🐛 Corrections
+
+### 📝 Documentation
+
+### 📦 Dépendances
+
+## [2.7.0] - 2026-01-10
+
+### ✨ Nouvelles fonctionnalités
+
 - **Internationalization (i18n)** : Support multilingue pour la CLI
   - Anglais (en) comme langue par défaut
   - Français (fr) entièrement traduit
@@ -26,11 +38,11 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Messages CLI (startup, analysis, errors) traduits en français
 - Fallback automatique vers l'anglais si clé manquante
 
-### 🐛 Corrections
-
 ### 📝 Documentation
 
-### 📦 Dépendances
+- Mise à jour README.md avec la fonctionnalité multi-langue
+- Documentation de la configuration de langue dans docs/commands/README.md
+- Ajout v2.7 dans la feuille de route
 
 ## [2.6.5] - 2026-01-09
 
