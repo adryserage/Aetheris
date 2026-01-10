@@ -35,7 +35,12 @@ from src.core.analyzer import CodeAnalyzer
 
 # Import de la configuration depuis le module dédié
 from src.core.change_detector import ChangeDetector
-from src.core.config import AnalysisConfig, TimeoutConfig, TimeoutParseError, load_env_file
+from src.core.config import (
+    AnalysisConfig,
+    TimeoutConfig,
+    TimeoutParseError,
+    load_env_file,
+)
 from src.core.progress import ProgressManager
 
 
