@@ -26,7 +26,7 @@
 <p align="center">
   <a href="https://adryserage.github.io/aetheris/quickstart/">Quick Start</a> |
   <a href="https://adryserage.github.io/aetheris/">Demo</a> |
-  <a href="https://adryserage.github.io/aetheris/architecture/">Architecture</a> |
+  <a href="https://adryserage.github.io/aetheris/agents/">Architecture</a> |
   <a href="https://adryserage.github.io/aetheris/">Documentation</a>
 </p>
 
