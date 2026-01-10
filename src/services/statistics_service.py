@@ -362,15 +362,15 @@ class StatisticsService:
 
         # Summary Panel
         summary_text = Text()
-        summary_text.append(f"📈 Total Analyses: ", style="bold")
+        summary_text.append("📈 Total Analyses: ", style="bold")
         summary_text.append(f"{aggregate.total_analyses}\n")
-        summary_text.append(f"📁 Files Scanned: ", style="bold")
+        summary_text.append("📁 Files Scanned: ", style="bold")
         summary_text.append(f"{aggregate.total_files_scanned:,}\n")
-        summary_text.append(f"🔍 Issues Detected: ", style="bold")
+        summary_text.append("🔍 Issues Detected: ", style="bold")
         summary_text.append(f"{aggregate.total_issues_detected:,}\n")
-        summary_text.append(f"⏱️  Avg Duration: ", style="bold")
+        summary_text.append("⏱️  Avg Duration: ", style="bold")
         summary_text.append(f"{aggregate.average_duration:.1f}s\n")
-        summary_text.append(f"📊 Avg Issues/Analysis: ", style="bold")
+        summary_text.append("📊 Avg Issues/Analysis: ", style="bold")
         summary_text.append(f"{aggregate.average_issues_per_analysis:.1f}")
 
         self.console.print(
@@ -423,13 +423,13 @@ class StatisticsService:
         # ROI Panel
         roi_text = Text()
         roi_text.append("💰 Estimated Savings\n\n", style="bold")
-        roi_text.append(f"⏰ Developer Hours Saved: ", style="bold")
+        roi_text.append("⏰ Developer Hours Saved: ", style="bold")
         roi_text.append(f"{roi.hours_saved:.1f} hours\n")
-        roi_text.append(f"💵 Cost Saved: ", style="bold")
+        roi_text.append("💵 Cost Saved: ", style="bold")
         roi_text.append(f"${roi.cost_saved:,.2f} {roi.currency}\n")
-        roi_text.append(f"🛡️  Incidents Avoided: ", style="bold")
+        roi_text.append("🛡️  Incidents Avoided: ", style="bold")
         roi_text.append(f"{roi.incidents_avoided}\n")
-        roi_text.append(f"💸 Incident Cost Avoided: ", style="bold")
+        roi_text.append("💸 Incident Cost Avoided: ", style="bold")
         roi_text.append(f"${roi.incident_cost_avoided:,.2f}")
 
         self.console.print(Panel(roi_text, title="📈 ROI Metrics", border_style="green"))
