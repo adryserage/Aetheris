@@ -11,7 +11,7 @@ import json
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -187,7 +187,7 @@ class Translator:
             translations = self._translations.get(lang_code, {})
             meta: Dict[str, Any] = {}
             if isinstance(translations, dict):
-                meta_value = translations.get("_meta", {})
+                meta_value: Any = translations.get("_meta", {})
                 if isinstance(meta_value, dict):
                     meta = meta_value
 
