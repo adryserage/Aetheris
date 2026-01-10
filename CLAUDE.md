@@ -568,6 +568,54 @@ After completing a task, ALWAYS:
 ✅ GOOD: "Test failure → Fix now or add task"
 ```
 
+## Documentation Synchronization Policy (MANDATORY)
+
+**CRITICAL**: Documentation MUST always be synchronized with code changes. Never commit code changes without updating relevant documentation.
+
+### Enforcement Rules
+
+| Rule | Enforcement |
+|------|-------------|
+| **New Feature** | MUST update README.md, docs/commands/, CHANGELOG.md |
+| **New CLI Command** | MUST create/update docs/commands/<command>.md |
+| **API Changes** | MUST update relevant docs and README |
+| **Breaking Changes** | MUST update CHANGELOG.md with migration guide |
+| **Version Bump** | MUST update pyproject.toml, README.md roadmap, CHANGELOG.md |
+
+### Documentation Files to Sync
+
+| File | When to Update |
+|------|----------------|
+| `README.md` | New features, commands, roadmap changes, version bumps |
+| `CHANGELOG.md` | Every release with all changes listed |
+| `docs/commands/README.md` | New commands, workflow changes |
+| `docs/commands/<cmd>.md` | New or modified CLI commands |
+| `pyproject.toml` | Version bumps |
+
+### During Implementation
+
+```
+After completing a feature, ALWAYS:
+1. Update README.md with new feature mention
+2. Update/create docs/commands/<command>.md if CLI changed
+3. Update docs/commands/README.md command table
+4. Add entry to CHANGELOG.md
+5. Update version in pyproject.toml if releasing
+```
+
+### Examples
+
+```markdown
+❌ BAD: "Added aetheris stats command → No docs update"
+✅ GOOD: "Added aetheris stats command → Updated README.md, created docs/commands/stats.md, updated docs/commands/README.md"
+
+❌ BAD: "Released v2.6.5 → Only updated pyproject.toml"
+✅ GOOD: "Released v2.6.5 → Updated pyproject.toml, CHANGELOG.md, README.md roadmap"
+
+❌ BAD: "Changed CLI flag → Pushed without docs"
+✅ GOOD: "Changed CLI flag → Updated relevant command docs first"
+```
+
 ## Common Pitfalls
 
 ### SpecKit Workflow Pitfalls
@@ -651,3 +699,12 @@ Reports are generated in `docs/analyses/`:
 **Analysis Skills (v4.1)**: `security-context`, `complexity-hotspots`, `dependency-graph`
 
 > ⚠️ **Aetheris stops at v4.x** - Mature AI code analyzer, no features beyond this version.
+
+## Active Technologies
+- Python 3.9+ (compatible with existing codebase) + Pydantic (data validation), Rich (terminal UI), pathlib (file I/O) (018-advanced-stats-roi)
+- Local JSON files (~/.aetheris/statistics.json and ./aetheris-stats.json) (018-advanced-stats-roi)
+- Python 3.9+ (compatible with existing codebase) + None new required (use stdlib `json`, `locale`, `os`) (019-i18n)
+- JSON files in `src/locales/` directory (bundled with package) (019-i18n)
+
+## Recent Changes
+- 018-advanced-stats-roi: Added Python 3.9+ (compatible with existing codebase) + Pydantic (data validation), Rich (terminal UI), pathlib (file I/O)

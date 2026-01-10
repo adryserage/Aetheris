@@ -1,0 +1,82 @@
+{
+  "_meta": {
+    "language": "fr",
+    "name": "Français",
+    "version": "1.0"
+  },
+
+  "cli.startup.banner": "🚀 Aetheris par Adryan - Démarrage de l'analyse de code",
+  "cli.startup.separator": "============================================================",
+
+  "cli.analysis.complete": "✅ Analyse terminée avec succès!",
+  "cli.analysis.mode.full": "🔍 Mode: Analyse complète de la codebase",
+  "cli.analysis.mode.reanalyze": "🔍 Mode: Réanalyse des fichiers modifiés ({count} fichier(s))",
+  "cli.analysis.mode.changed": "🔍 Mode: Fichiers modifiés uniquement ({count} fichier(s))",
+  "cli.analysis.pr": "📋 PR #{number}",
+  "cli.analysis.root_dir": "📁 Répertoire racine: {path}",
+  "cli.analysis.output_dir": "📂 Répertoire de sortie: {path}",
+  "cli.analysis.provider": "🤖 Provider AI: {provider}",
+  "cli.analysis.model": "🤖 Modèle: {model}",
+  "cli.analysis.timeout": "⏱️  Timeout: {timeout}",
+  "cli.analysis.starting": "🔍 Lancement de l'analyse...",
+
+  "cli.reanalyze.last_analysis": "📅 Dernière analyse: {date}",
+  "cli.reanalyze.metrics_file": "📁 Fichier métriques: {path}",
+  "cli.reanalyze.detection_method": "🔍 Méthode de détection: {method}",
+  "cli.reanalyze.files_modified": "📝 {count} fichier(s) modifié(s) détecté(s)",
+  "cli.reanalyze.no_changes": "✅ Aucun fichier modifié depuis la dernière analyse",
+  "cli.reanalyze.no_changes_hint": "   Utilisez --force pour lancer une analyse complète quand même",
+  "cli.reanalyze.missing_files": "⚠️  Certains fichiers de la dernière analyse n'existent plus",
+  "cli.reanalyze.no_previous": "⚠️  Aucune analyse précédente trouvée, lancement d'une analyse complète...",
+
+  "cli.changed_files.no_files": "⚠️  Mode --changed-files-only activé mais aucun fichier spécifié",
+  "cli.changed_files.hint": "   Utilisez --files ou définissez CHANGED_FILES dans l'environnement",
+
+  "cli.issues.title": "🎫 Aetheris Issues - Création d'issues GitHub depuis l'analyse",
+  "cli.fix.title": "🔧 Aetheris Fix - Correction de bugs avec Claude Code",
+
+  "cli.fix.testing": "🔍 Test de Claude Code...",
+  "cli.fix.not_installed": "❌ Claude Code n'est pas installé ou introuvable",
+  "cli.fix.install_hint": "Pour installer Claude Code:",
+  "cli.fix.install_cmd": "  npm install -g @anthropic-ai/claude-code",
+  "cli.fix.found": "✅ Claude Code trouvé: {path}",
+  "cli.fix.test_running": "🧪 Test d'exécution avec un prompt simple...",
+  "cli.fix.test_success": "✅ Test réussi!",
+  "cli.fix.test_failed": "❌ Échec du test: {message}",
+  "cli.fix.cancelled": "Opération annulée.",
+  "cli.fix.analysis_only": "Mode analyse seule activé (sans correction).",
+  "cli.fix.no_bugs": "⚠️  Aucun bug détecté ou cache non créé.",
+  "cli.fix.cache_error": "❌ Erreur lors de la lecture du cache: {error}",
+  "cli.fix.bugs_fixed": "ℹ️  {count} bug(s) déjà corrigé(s) (ignorés)",
+  "cli.fix.bugs_failed": "🔄 {count} bug(s) échoué(s) à relancer",
+
+  "cli.stats.title": "📊 Statistiques Aetheris",
+
+  "cli.lang.available": "Langues disponibles:",
+  "cli.lang.default_marker": "[par défaut]",
+  "cli.lang.invalid": "Code de langue invalide: {code}. Disponibles: {available}",
+
+  "error.missing_deps": "❌ Dépendances manquantes: {deps}",
+  "error.install_hint": "   Installez avec: pip install -r requirements.txt",
+  "error.api_key_missing": "❌ Variable d'environnement {key} non définie",
+  "error.api_key_provider": "   Provider sélectionné: {provider}",
+  "error.api_key_options": "   Options:",
+  "error.api_key_option_env": "   1. Créez un fichier .env avec: {key}=votre_cle",
+  "error.api_key_option_export": "   2. Ou définissez-la avec: export {key}=votre_cle (Linux/Mac)",
+  "error.api_key_option_ps": "   3. Ou définissez-la avec: $env:{key}='votre_cle' (PowerShell)",
+  "error.api_key_option_gh": "   4. Ou configurez-la dans GitHub Secrets (pour GitHub Actions)",
+  "error.api_validation_failed": "❌ Erreur de validation de la clé API: {error}",
+  "error.api_validation_hint": "   Vérifiez que votre clé API est valide et dispose des permissions nécessaires",
+
+  "progress.api_key_display": "🔑 Clé API: {masked} (longueur: {length})",
+  "progress.api_validating": "🔄 Validation de la clé API Gemini...",
+  "progress.api_validated": "✅ Clé API validée: {response}...",
+
+  "table.header.severity": "Sévérité",
+  "table.header.file": "Fichier",
+  "table.header.issue": "Problème",
+  "table.header.line": "Ligne",
+  "table.header.language": "Langue",
+  "table.header.code": "Code",
+  "table.header.name": "Nom"
+}

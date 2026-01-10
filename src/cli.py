@@ -12,30 +12,29 @@ from typing import List, Optional
 
 from rich.console import Console
 from rich.prompt import Confirm
+from rich.table import Table
 
 # Configuration du logging et encodage UTF-8
 from src.core.logger import log_print, setup_utf8_encoding
+# Internationalization
+from src.i18n import detect_language, get_available_languages, set_language, t
 
 setup_utf8_encoding()
 
 try:
     import google.genai as _genai  # noqa: F401 - Vérifie la disponibilité du SDK
 except ImportError as e:
-    print(f"❌ Dépendances manquantes: {e}")
-    print("   Installez avec: pip install -r requirements.txt")
+    # Note: Can't use t() here as i18n may not be initialized yet
+    print(f"❌ Missing dependencies: {e}")
+    print("   Install with: pip install -r requirements.txt")
     sys.exit(1)
 
 # Import de CodeAnalyzer depuis le module dédié
 from src.core.analyzer import CodeAnalyzer
-
 # Import de la configuration depuis le module dédié
 from src.core.change_detector import ChangeDetector
-from src.core.config import (
-    AnalysisConfig,
-    TimeoutConfig,
-    TimeoutParseError,
-    load_env_file,
-)
+from src.core.config import (AnalysisConfig, TimeoutConfig, TimeoutParseError,
+                             load_env_file)
 from src.core.progress import ProgressManager
 
 
@@ -189,9 +188,9 @@ Examples:
 
 async def run_analysis(args):
     """Exécute l'analyse de code"""
-    log_print("=" * 60)
-    log_print("🚀 Aetheris by Adryan - Démarrage de l'analyse de code")
-    log_print("=" * 60)
+    log_print(t("cli.startup.separator"))
+    log_print(t("cli.startup.banner"))
+    log_print(t("cli.startup.separator"))
     log_print()
 
     # Charger le fichier .env s'il existe
@@ -211,22 +210,22 @@ async def run_analysis(args):
     ai_api_key = env_vars.get(api_key_name) or os.getenv(api_key_name)
 
     if not ai_api_key:
-        log_print(f"❌ Variable d'environnement {api_key_name} non définie")
-        log_print(f"   Provider sélectionné: {ai_provider}")
-        log_print("   Options:")
-        log_print(f"   1. Créez un fichier .env avec: {api_key_name}=votre_cle")
-        log_print(f"   2. Ou définissez-la avec: export {api_key_name}=votre_cle (Linux/Mac)")
-        log_print(f"   3. Ou définissez-la avec: $env:{api_key_name}='votre_cle' (PowerShell)")
-        log_print("   4. Ou configurez-la dans GitHub Secrets (pour GitHub Actions)")
+        log_print(t("error.api_key_missing", key=api_key_name))
+        log_print(t("error.api_key_provider", provider=ai_provider))
+        log_print(t("error.api_key_options"))
+        log_print(t("error.api_key_option_env", key=api_key_name))
+        log_print(t("error.api_key_option_export", key=api_key_name))
+        log_print(t("error.api_key_option_ps", key=api_key_name))
+        log_print(t("error.api_key_option_gh"))
         sys.exit(1)
 
     # Afficher la clé API masquée pour debug
     masked_key = ai_api_key[:8] + "..." + ai_api_key[-4:] if len(ai_api_key) > 12 else "***"
-    log_print(f"🔑 Clé API: {masked_key} (longueur: {len(ai_api_key)})")
+    log_print(t("progress.api_key_display", masked=masked_key, length=len(ai_api_key)))
 
     # Valider la clé API avec un test simple
     if ai_provider == "gemini":
-        log_print("🔄 Validation de la clé API Gemini...")
+        log_print(t("progress.api_validating"))
         try:
             from google import genai
 
@@ -235,12 +234,10 @@ async def run_analysis(args):
             test_response = test_client.models.generate_content(
                 model="gemini-2.0-flash", contents="Say 'OK' if you can hear me."
             )
-            log_print(f"✅ Clé API validée: {test_response.text[:50]}...")
+            log_print(t("progress.api_validated", response=test_response.text[:50]))
         except Exception as e:
-            log_print(f"❌ Erreur de validation de la clé API: {e}")
-            log_print(
-                "   Vérifiez que votre clé API est valide sur: https://aistudio.google.com/apikey"
-            )
+            log_print(t("error.api_validation_failed", error=str(e)))
+            log_print(t("error.api_validation_hint"))
             sys.exit(1)
 
     # Récupérer le modèle (défaut selon provider)
@@ -261,9 +258,7 @@ async def run_analysis(args):
 
     # Handle --reanalyze flag (v2.6.1)
     if reanalyze_mode:
-        log_print(
-            "🔄 Mode reanalyze: détection des fichiers modifiés depuis la dernière analyse..."
-        )
+        log_print(t("cli.analysis.starting"))
         detector = ChangeDetector(
             metrics_dir=os.getenv("OUTPUT_DIR", "docs/analyses") + "/../metrics",
             root_dir=os.getenv("ROOT_DIR", "."),
@@ -273,30 +268,31 @@ async def run_analysis(args):
 
         last_analysis = detector.get_last_analysis_info()
         if last_analysis:
-            log_print(f"📅 Dernière analyse: {last_analysis.timestamp.strftime('%Y-%m-%d %H:%M')}")
-            log_print(f"📁 Fichier métriques: {last_analysis.metrics_file}")
+            log_print(
+                t(
+                    "cli.reanalyze.last_analysis",
+                    date=last_analysis.timestamp.strftime("%Y-%m-%d %H:%M"),
+                )
+            )
+            log_print(t("cli.reanalyze.metrics_file", path=last_analysis.metrics_file))
 
             changed_files, detection_method = detector.get_changed_files(last_analysis)
-            log_print(f"🔍 Méthode de détection: {detection_method}")
+            log_print(t("cli.reanalyze.detection_method", method=detection_method))
 
             if changed_files:
-                log_print(f"📝 {len(changed_files)} fichier(s) modifié(s) détecté(s)")
+                log_print(t("cli.reanalyze.files_modified", count=len(changed_files)))
                 analyze_changed_only = True
             else:
-                log_print("✅ Aucun fichier modifié depuis la dernière analyse")
-                log_print(
-                    "   Utilisez 'aetheris analysis' sans --reanalyze pour une analyse complète"
-                )
+                log_print(t("cli.reanalyze.no_changes"))
+                log_print(t("cli.reanalyze.no_changes_hint"))
                 sys.exit(0)
 
             # Check for deleted files
             deleted_files = detector.get_deleted_files(last_analysis)
             if deleted_files:
-                log_print(
-                    f"🗑️  {len(deleted_files)} fichier(s) supprimé(s) depuis la dernière analyse"
-                )
+                log_print(t("cli.reanalyze.missing_files"))
         else:
-            log_print("⚠️  Aucune analyse précédente trouvée, lancement d'une analyse complète...")
+            log_print(t("cli.reanalyze.no_previous"))
             # Continue with full analysis
 
     elif analyze_changed_only:
@@ -305,8 +301,8 @@ async def run_analysis(args):
         changed_files = parse_changed_files(files_input)
 
         if not changed_files:
-            log_print("⚠️  Mode --changed-files-only activé mais aucun fichier spécifié")
-            log_print("   Utilisez --files ou définissez CHANGED_FILES dans l'environnement")
+            log_print(t("cli.changed_files.no_files"))
+            log_print(t("cli.changed_files.hint"))
             sys.exit(1)
 
     # Obtenir le numéro de PR depuis les arguments ou l'environnement GitHub
@@ -325,7 +321,7 @@ async def run_analysis(args):
     if timeout_arg:
         try:
             timeout_config = TimeoutConfig.parse(timeout_arg)
-            log_print(f"⏱️  Timeout: {timeout_config.format_human()}")
+            log_print(t("cli.analysis.timeout", timeout=timeout_config.format_human()))
         except TimeoutParseError as e:
             log_print(f"❌ {e}")
             sys.exit(1)
@@ -365,21 +361,19 @@ async def run_analysis(args):
         timeout_config=timeout_config,
     )
 
-    log_print(f"📁 Répertoire racine: {config.root_dir}")
-    log_print(f"📂 Répertoire de sortie: {config.output_dir}")
-    log_print(f"🤖 Provider AI: {config.ai_provider.upper()}")
-    log_print(f"🤖 Modèle: {config.ai_model}")
+    log_print(t("cli.analysis.root_dir", path=config.root_dir))
+    log_print(t("cli.analysis.output_dir", path=config.output_dir))
+    log_print(t("cli.analysis.provider", provider=config.ai_provider.upper()))
+    log_print(t("cli.analysis.model", model=config.ai_model))
 
     if reanalyze_mode and changed_files:
-        log_print(f"🔍 Mode: Reanalyse des fichiers modifiés ({len(changed_files)} fichier(s))")
+        log_print(t("cli.analysis.mode.reanalyze", count=len(changed_files)))
     elif analyze_changed_only:
-        log_print(
-            f"🔍 Mode: Analyse des fichiers modifiés uniquement ({len(changed_files)} fichier(s))"
-        )
+        log_print(t("cli.analysis.mode.changed", count=len(changed_files)))
         if pr_number:
-            log_print(f"📋 PR #{pr_number}")
+            log_print(t("cli.analysis.pr", number=pr_number))
     else:
-        log_print("🔍 Mode: Analyse complète de la codebase")
+        log_print(t("cli.analysis.mode.full"))
 
     log_print()
 
@@ -390,9 +384,9 @@ async def run_analysis(args):
     await analyzer.run()
 
     log_print()
-    log_print("=" * 60)
-    log_print("✅ Analyse terminée avec succès!")
-    log_print("=" * 60)
+    log_print(t("cli.startup.separator"))
+    log_print(t("cli.analysis.complete"))
+    log_print(t("cli.startup.separator"))
 
 
 def setup_fix_parser(subparsers):
@@ -518,7 +512,7 @@ async def run_fix(args):
     console = Console()
 
     console.print()
-    console.rule("[bold blue]🔧 Aetheris Fix - Correction de bugs avec Claude Code")
+    console.rule(f"[bold blue]{t('cli.fix.title')}")
     console.print()
 
     # Import des modules nécessaires
@@ -535,17 +529,17 @@ async def run_fix(args):
 
     # Mode test: vérifier la connexion à Claude Code
     if getattr(args, "test", False):
-        console.print("[cyan]🔍 Test de Claude Code...[/cyan]")
+        console.print(f"[cyan]{t('cli.fix.testing')}[/cyan]")
         console.print()
 
         if not claude.is_available:
-            console.print("[red]❌ Claude Code n'est pas installé ou introuvable[/red]")
+            console.print(f"[red]{t('cli.fix.not_installed')}[/red]")
             console.print()
-            console.print("[yellow]Pour installer Claude Code:[/yellow]")
-            console.print("  npm install -g @anthropic-ai/claude-code")
+            console.print(f"[yellow]{t('cli.fix.install_hint')}[/yellow]")
+            console.print(t("cli.fix.install_cmd"))
             sys.exit(1)
 
-        console.print(f"[green]✅ Claude Code trouvé: {claude.claude_path}[/green]")
+        console.print(f"[green]{t('cli.fix.found', path=claude.claude_path)}[/green]")
 
         test_ok, test_msg = claude.test_claude_code()
         if test_ok:
@@ -553,14 +547,14 @@ async def run_fix(args):
             console.print()
 
             # Test avec un prompt simple
-            console.print("[cyan]🧪 Test d'exécution avec un prompt simple...[/cyan]")
+            console.print(f"[cyan]{t('cli.fix.test_running')}[/cyan]")
             exec_ok, exec_msg = claude.test_claude_code_execution(timeout=60)
 
             if exec_ok:
-                console.print("[green]✅ Test réussi![/green]")
+                console.print(f"[green]{t('cli.fix.test_success')}[/green]")
                 console.print(f"[dim]{exec_msg}[/dim]")
             else:
-                console.print(f"[red]❌ Échec du test: {exec_msg}[/red]")
+                console.print(f"[red]{t('cli.fix.test_failed', message=exec_msg)}[/red]")
                 sys.exit(1)
         else:
             console.print(f"[red]❌ {test_msg}[/red]")
@@ -570,18 +564,18 @@ async def run_fix(args):
 
     # Vérifier si Claude Code est disponible
     if not claude.is_available:
-        console.print("[red]❌ Claude Code n'est pas installé ou introuvable[/red]")
+        console.print(f"[red]{t('cli.fix.not_installed')}[/red]")
         console.print()
-        console.print("[yellow]Pour installer Claude Code:[/yellow]")
-        console.print("  npm install -g @anthropic-ai/claude-code")
+        console.print(f"[yellow]{t('cli.fix.install_hint')}[/yellow]")
+        console.print(t("cli.fix.install_cmd"))
         console.print()
 
-        if not Confirm.ask("Voulez-vous continuer avec l'analyse seule?"):
-            console.print("[yellow]Opération annulée.[/yellow]")
+        if not Confirm.ask("Continue with analysis only?"):
+            console.print(f"[yellow]{t('cli.fix.cancelled')}[/yellow]")
             sys.exit(1)
 
         # Continuer en mode analyse seule
-        console.print("[yellow]Mode analyse seule activé (sans correction).[/yellow]")
+        console.print(f"[yellow]{t('cli.fix.analysis_only')}[/yellow]")
         args.analyze_first = True
 
     # Chemin du cache des bugs
@@ -602,7 +596,7 @@ async def run_fix(args):
 
         # Vérifier si le cache a été créé
         if not os.path.exists(bugs_cache_path):
-            console.print("[yellow]⚠️  Aucun bug détecté ou cache non créé.[/yellow]")
+            console.print(f"[yellow]{t('cli.fix.no_bugs')}[/yellow]")
             sys.exit(0)
 
     # Charger les bugs depuis le cache
@@ -610,9 +604,9 @@ async def run_fix(args):
         with open(bugs_cache_path, "r", encoding="utf-8") as f:
             bugs_data = json.load(f)
     except (json.JSONDecodeError, IOError) as e:
-        console.print(f"[red]❌ Erreur lors de la lecture du cache: {e}[/red]")
+        console.print(f"[red]{t('cli.fix.cache_error', error=str(e))}[/red]")
         console.print(
-            "[yellow]Lancez 'aetheris fix --analyze-first' pour régénérer le cache.[/yellow]"
+            "[yellow]Run 'aetheris fix --analyze-first' to regenerate the cache.[/yellow]"
         )
         sys.exit(1)
 
@@ -650,18 +644,18 @@ async def run_fix(args):
         # Mode retry-failed: uniquement les bugs échoués
         bugs = [b for b in all_bugs if b.failed and not b.fixed]
         if fixed_count > 0:
-            console.print(f"[dim]ℹ️  {fixed_count} bug(s) déjà corrigé(s) (ignorés)[/dim]")
+            console.print(f"[dim]{t('cli.fix.bugs_fixed', count=fixed_count)}[/dim]")
         if failed_count > 0:
-            console.print(f"[cyan]🔄 {failed_count} bug(s) échoué(s) à relancer[/cyan]")
+            console.print(f"[cyan]{t('cli.fix.bugs_failed', count=failed_count)}[/cyan]")
     else:
         # Mode normal: tous les bugs non corrigés
         bugs = [b for b in all_bugs if not b.fixed]
         if fixed_count > 0:
-            console.print(f"[dim]ℹ️  {fixed_count} bug(s) déjà corrigé(s) (ignorés)[/dim]")
+            console.print(f"[dim]{t('cli.fix.bugs_fixed', count=fixed_count)}[/dim]")
         if failed_count > 0:
             console.print(
-                f"[yellow]⚠️  {failed_count} bug(s) échoué(s) précédemment "
-                f"(utilisez --retry-failed pour les relancer uniquement)[/yellow]"
+                f"[yellow]⚠️  {failed_count} failed bug(s) previously "
+                f"(use --retry-failed to retry only those)[/yellow]"
             )
 
     if not bugs:
@@ -1770,6 +1764,108 @@ def run_validate_package(args):
             sys.exit(1)
 
 
+def setup_stats_parser(subparsers):
+    """Configure le parser pour la sous-commande stats (v2.6.5)"""
+    stats_parser = subparsers.add_parser(
+        "stats",
+        help="View analysis statistics and ROI metrics",
+        description="Display analysis statistics dashboard with ROI calculations",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Basic dashboard
+  aetheris stats
+
+  # Last week only
+  aetheris stats --period week
+
+  # Export to JSON
+  aetheris stats --export json
+
+  # Export monthly stats to specific file
+  aetheris stats --period month --export csv --output report.csv
+
+  # Global user statistics
+  aetheris stats --global
+        """,
+    )
+
+    stats_parser.add_argument(
+        "--period",
+        "-p",
+        type=str,
+        choices=["week", "month", "all"],
+        default="all",
+        help="Time period filter: week, month, or all (default: all)",
+    )
+
+    stats_parser.add_argument(
+        "--export",
+        "-e",
+        type=str,
+        choices=["json", "csv", "md"],
+        default=None,
+        help="Export format: json, csv, or md",
+    )
+
+    stats_parser.add_argument(
+        "--output",
+        "-o",
+        type=str,
+        default=None,
+        help="Output file path (default: auto-generated)",
+    )
+
+    stats_parser.add_argument(
+        "--global",
+        dest="use_global",
+        action="store_true",
+        help="Show global stats instead of project-local",
+    )
+
+    stats_parser.add_argument(
+        "--project",
+        type=str,
+        default=".",
+        help="Project directory to read stats from (default: current)",
+    )
+
+    return stats_parser
+
+
+def run_stats(args):
+    """Execute the stats command"""
+    from pathlib import Path
+
+    from rich.console import Console
+
+    from src.services.statistics_service import StatisticsService
+
+    console = Console()
+    project_path = Path(args.project).resolve()
+
+    service = StatisticsService(
+        project_path=project_path,
+        use_global=args.use_global,
+    )
+
+    # Export mode
+    if args.export:
+        try:
+            output_path = Path(args.output) if args.output else None
+            result_path = service.export(args.export, args.period, output_path)
+            console.print(f"[green]✓ Exported statistics to: {result_path}[/green]")
+        except ValueError as e:
+            console.print(f"[red]Error: {e}[/red]")
+            sys.exit(3)
+        except OSError as e:
+            console.print(f"[red]Cannot write to file: {e}[/red]")
+            sys.exit(4)
+    else:
+        # Dashboard mode
+        service.format_dashboard(args.period)
+
+
 def create_parser():
     """Crée le parser principal avec sous-commandes"""
     parser = argparse.ArgumentParser(
@@ -1793,6 +1889,20 @@ Exemples:
     )
 
     parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {get_version()}")
+
+    # i18n options
+    parser.add_argument(
+        "--lang",
+        type=str,
+        default=None,
+        metavar="CODE",
+        help="Set output language (e.g., en, fr). Overrides AETHERIS_LANG and system locale.",
+    )
+    parser.add_argument(
+        "--list-languages",
+        action="store_true",
+        help="List available languages and exit",
+    )
 
     subparsers = parser.add_subparsers(
         dest="command", help="Commandes disponibles", metavar="COMMANDE"
@@ -1822,13 +1932,47 @@ Exemples:
     # Ajouter la sous-commande validate-package (v2.6.2)
     setup_validate_parser(subparsers)
 
+    # Ajouter la sous-commande stats (v2.6.5)
+    setup_stats_parser(subparsers)
+
     return parser
+
+
+def _handle_list_languages():
+    """Display available languages and exit."""
+    console = Console()
+    languages = get_available_languages()
+
+    console.print()
+    console.print(t("cli.lang.available"))
+    console.print()
+
+    table = Table(show_header=True, header_style="bold cyan")
+    table.add_column(t("table.header.code"), style="green")
+    table.add_column(t("table.header.name"))
+
+    for lang in languages:
+        name = lang.name
+        if lang.is_default:
+            name += f" {t('cli.lang.default_marker')}"
+        table.add_row(lang.code, name)
+
+    console.print(table)
+    sys.exit(0)
 
 
 def main():
     """Point d'entrée principal de la CLI"""
     parser = create_parser()
     args = parser.parse_args()
+
+    # Initialize i18n with detected or specified language
+    lang = detect_language(getattr(args, "lang", None))
+    set_language(lang)
+
+    # Handle --list-languages
+    if getattr(args, "list_languages", False):
+        _handle_list_languages()
 
     if not args.command:
         parser.print_help()
@@ -1850,6 +1994,8 @@ def main():
         run_cleanup(args)
     elif args.command in ["validate-package", "validate"]:
         run_validate_package(args)
+    elif args.command == "stats":
+        run_stats(args)
     else:
         parser.print_help()
         sys.exit(1)

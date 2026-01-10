@@ -7,6 +7,7 @@ Aetheris provides several CLI commands for code analysis and automation.
 | Command | Description | Documentation |
 |---------|-------------|---------------|
 | `aetheris analysis` | Full codebase analysis | [analysis.md](./analysis.md) |
+| `aetheris stats` | Statistics dashboard & ROI tracking | [stats.md](./stats.md) |
 | `aetheris fix` | Fix bugs with Claude Code | [fix.md](./fix.md) |
 | `aetheris pr` | Review GitHub Pull Requests | [pr-review.md](./pr-review.md) |
 | `aetheris user-story` | Analyze user flows | [user-story.md](./user-story.md) |
@@ -79,6 +80,21 @@ aetheris issues
 ```bash
 # --link-issues: Link generated PRs to existing GitHub issues
 aetheris pr-gen --link-issues
+```
+
+### Statistics & ROI (v2.6.5)
+```bash
+# View statistics dashboard
+aetheris stats
+
+# Filter by period
+aetheris stats --period week
+aetheris stats --period month
+
+# Export to various formats
+aetheris stats --export json
+aetheris stats --export csv --output report.csv
+aetheris stats --export md
 ```
 
 ### Pre-Release Validation (v2.6.2)

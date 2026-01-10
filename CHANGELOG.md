@@ -9,13 +9,66 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ### ✨ Nouvelles fonctionnalités
 
+- **Internationalization (i18n)** : Support multilingue pour la CLI
+  - Anglais (en) comme langue par défaut
+  - Français (fr) entièrement traduit
+  - Détection automatique de la langue du système (LANG, LC_ALL, LC_MESSAGES)
+  - Variable d'environnement `AETHERIS_LANG` pour forcer la langue
+  - Flag CLI `--lang` pour sélectionner la langue (ex: `aetheris --lang fr analysis`)
+  - Flag CLI `--list-languages` pour afficher les langues disponibles
+  - Traductions stockées dans `src/locales/*.json`
+  - API développeur pour ajouter de nouvelles langues
+
 ### 🔧 Modifications
+
+- Nouveau module `src/i18n/` avec support de traduction
+- Fichiers de traduction JSON dans `src/locales/`
+- Messages CLI (startup, analysis, errors) traduits en français
+- Fallback automatique vers l'anglais si clé manquante
 
 ### 🐛 Corrections
 
 ### 📝 Documentation
 
 ### 📦 Dépendances
+
+## [2.6.5] - 2026-01-09
+
+### ✨ Nouvelles fonctionnalités
+
+- **Commande `aetheris stats`** : Tableau de bord des statistiques d'analyse
+  - Affichage des métriques agrégées (analyses, fichiers, issues)
+  - Filtrage par période : `--period week|month|all`
+  - Dashboard Rich avec tables et panneaux colorés
+
+- **Calcul ROI automatique** : Estimation de l'impact business
+  - Heures développeur économisées basées sur la sévérité des issues
+  - Coût évité avec taux horaire configurable (défaut: $75/h)
+  - Incidents de production évités (défaut: $5,000/incident)
+  - Paramètres configurables via statistiques
+
+- **Export multi-formats** : Génération de rapports
+  - JSON : Export complet avec tous les détails
+  - CSV : Données tabulaires pour spreadsheets
+  - Markdown : Rapports lisibles pour documentation
+  - Flag `--export json|csv|md` avec `--output` personnalisable
+
+- **Statistiques par catégorie** : Breakdown détaillé
+  - Issues par sévérité (critical, high, medium, low)
+  - Issues par catégorie (security, performance, quality, debt)
+  - Indicateurs de tendance (amélioration/régression)
+
+- **Enregistrement automatique** : Suivi historique
+  - Chaque analyse est automatiquement enregistrée
+  - Stockage local JSON par projet (aetheris-stats.json)
+  - Support du stockage global (~/.aetheris/statistics.json)
+
+### 🔧 Modifications
+
+- Nouveau module `src/models/stats_models.py` avec dataclasses de statistiques
+- Nouveau service `src/services/statistics_service.py` avec logique ROI
+- Configuration ROI dans `src/config/stats_config.py`
+- Intégration CodeAnalyzer pour enregistrement automatique après analyse
 
 ## [2.6.2] - 2025-01-09
 

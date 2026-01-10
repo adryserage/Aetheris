@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "adryserage-aetheris"
-version = "2.6.2"
+version = "2.6.5"
 description = "Aetheris - Multi-agent AI code analysis system with PR review, multi-provider consensus (Gemini/Claude/OpenAI), security analysis, and automatic bug fixing via Claude Code"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -72,10 +72,10 @@ Issues = "https://github.com/adryserage/aetheris/issues"
 "📣 Vote: Open Source?" = "https://adryanserage.ca/poll/aetheris"
 
 [tool.setuptools]
-packages = ["src", "src.agents", "src.core", "src.models", "src.services"]
+packages = ["src", "src.agents", "src.core", "src.models", "src.services", "src.i18n", "src.locales"]
 
 [tool.setuptools.package-data]
-"*" = ["*.md", "*.txt", "*.yaml", "*.yml"]
+"*" = ["*.md", "*.txt", "*.yaml", "*.yml", "*.json"]
 
 [tool.cibuildwheel]
 # Skip 32-bit builds, musllinux, and PyPy

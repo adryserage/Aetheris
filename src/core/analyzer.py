@@ -27,9 +27,11 @@ from src.core.parallel_analyzer import detect_independent_files
 from src.core.priority_manager import PriorityManager
 from src.core.progress import ProgressManager
 from src.models.data_models import FileAnalysis, ReverseDependency
+from src.models.stats_models import AnalysisRecord
 from src.services.code_generator import CodeGenerator
 from src.services.dependency_analyzer import DependencyAnalyzer
 from src.services.documentation_searcher import DocumentationSearcher
+from src.services.statistics_service import StatisticsService
 
 
 def sanitize_markdown(text: str) -> str:
@@ -1332,3 +1334,92 @@ class CodeAnalyzer:
         # Nettoyer les fichiers temporaires générés
         if self.code_generator:
             self.code_generator.cleanup()
+
+        # Record statistics for this analysis (v2.6.5)
+        self._record_analysis_statistics(context)
+
+    def _record_analysis_statistics(self, context: WorkflowContext) -> None:
+        """Record analysis results to statistics storage."""
+        try:
+            from pathlib import Path
+
+            # Count issues by severity
+            issues_by_severity = {"critical": 0, "high": 0, "medium": 0, "low": 0}
+            issues_by_category = {"security": 0, "performance": 0, "quality": 0, "debt": 0}
+
+            for analysis in context.analyses:
+                # Count security issues
+                for issue in analysis.security_issues:
+                    severity = issue.severity.lower()
+                    if severity in issues_by_severity:
+                        issues_by_severity[severity] += 1
+                    issues_by_category["security"] += 1
+
+                # Count bugs by severity
+                for bug in analysis.bugs:
+                    severity = bug.severity.lower()
+                    if severity in issues_by_severity:
+                        issues_by_severity[severity] += 1
+
+                    # Categorize bugs
+                    bug_type = bug.bug_type.lower() if bug.bug_type else ""
+                    if "security" in bug_type or "risk" in bug_type:
+                        issues_by_category["security"] += 1
+                    elif "performance" in bug_type:
+                        issues_by_category["performance"] += 1
+                    else:
+                        issues_by_category["quality"] += 1
+
+                # Count risks/suggestions as quality/debt
+                issues_by_category["quality"] += len(analysis.risks)
+                issues_by_category["debt"] += len(analysis.suggestions)
+
+            # Get duration from context
+            duration = context.metadata.get("duration_seconds", 0.0)
+
+            # Determine agents used
+            agents_used = []
+            if self.cae:
+                agents_used.append("code_analysis")
+            if self.aaa:
+                agents_used.append("architecture")
+            if self.ssa:
+                agents_used.append("security")
+            if self.cma:
+                agents_used.append("metrics")
+            if self.dva:
+                agents_used.append("vulnerability")
+            if self.qaa:
+                agents_used.append("quality")
+
+            # Get version
+            try:
+                from importlib.metadata import version
+
+                aetheris_version = version("aetheris")
+            except Exception:
+                aetheris_version = "unknown"
+
+            # Create and record the analysis record
+            record = AnalysisRecord(
+                timestamp=datetime.now(),
+                project_path=str(self.config.root_dir),
+                duration_seconds=duration,
+                files_scanned=len(context.files),
+                issues_by_severity=issues_by_severity,
+                issues_by_category=issues_by_category,
+                agents_used=agents_used,
+                ai_provider=self.config.ai_provider or "unknown",
+                version=aetheris_version,
+            )
+
+            # Save to statistics
+            stats_service = StatisticsService(project_path=Path(self.config.root_dir))
+            stats_service.record_analysis(record)
+            log_print(
+                f"📊 Statistics recorded: {len(context.files)} files, {sum(issues_by_severity.values())} issues"
+            )
+
+        except Exception as e:
+            # Don't fail the analysis if statistics recording fails
+            log_print(f"⚠️  Failed to record statistics: {e}")

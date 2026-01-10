@@ -209,6 +209,9 @@ jobs:
     needs: [build-sdist, build-wheels]
     runs-on: ubuntu-latest
     if: (startsWith(github.ref, 'refs/tags/v') || github.event.inputs.tag != '') && github.event.inputs.skip_pypi != 'true'
+    environment:
+      name: pypi
+      url: https://pypi.org/p/adryserage-aetheris
     permissions:
       id-token: write
 

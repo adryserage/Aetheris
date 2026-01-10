@@ -274,6 +274,7 @@ aetheris analysis
 | Command | Purpose | Example |
 |:--------|:--------|:--------|
 | `aetheris analysis` | Deep codebase scan | `aetheris analysis --reanalyze --timeout 30m` |
+| `aetheris stats` | View statistics & ROI dashboard | `aetheris stats --period week --export json` |
 | `aetheris fix` | Auto-fix with Claude Code | `aetheris fix --analyze-first --auto` |
 | `aetheris pr` | GitHub PR reviews | `aetheris pr --url <pr-url>` |
 | `aetheris issues` | Create GitHub issues | `aetheris issues --labels security` |
@@ -305,6 +306,7 @@ aetheris analysis
 | **v2.5** | Released | 6 core agents, GitHub Actions, auto-fix |
 | **v2.6.1** | Released | Timeout management, incremental reanalysis |
 | **v2.6.2** | Released | Artifact cleanup, secret scanning, package validation |
+| **v2.6.5** | Released | Advanced statistics dashboard, ROI tracking, export to JSON/CSV/MD |
 | **v3.0** | In Progress | Persistent config, team settings |
 | **v3.0.1** | Planned | 4 new agents (Performance, API, Types, Privacy) |
 
