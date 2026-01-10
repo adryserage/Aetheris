@@ -119,58 +119,16 @@ pip install adryserage-aetheris && aetheris analysis
 ## How It Works
 
 <p align="center">
-  <img src="assets/diagrams/how-it-works.svg" alt="How Aetheris Works" width="800">
+  <img src="https://adryserage.github.io/aetheris/assets/diagrams/how-it-works.svg" alt="How Aetheris Works" width="800">
 </p>
 
 ## Architecture
 
 Aetheris coordinates 6 specialized AI agents through a central orchestrator. Each agent analyzes a specific domain, and the QA Synthesis agent consolidates findings into prioritized, actionable reports.
 
-```mermaid
-flowchart TD
-    subgraph Input
-        CLI[aetheris CLI]
-        CFG[config.json / .env]
-    end
-
-    subgraph Core
-        ORCH[Orchestrator]
-        HB[Heartbeat Monitor]
-        CACHE[Cache Layer]
-    end
-
-    subgraph Agents
-        SEC[Security Agent]
-        ARCH[Architecture Agent]
-        QUAL[Code Quality Agent]
-        METR[Metrics Agent]
-        DEP[Dependency Agent]
-        QA[QA Synthesis Agent]
-    end
-
-    subgraph Providers
-        GEM[Gemini]
-        OAI[OpenAI]
-        CLA[Claude]
-    end
-
-    subgraph Output
-        RPT[Markdown Reports]
-        JSON[JSON Metrics]
-        GH[GitHub Issues/PRs]
-    end
-
-    CLI --> ORCH
-    CFG --> ORCH
-    ORCH --> HB
-    ORCH --> CACHE
-    ORCH --> SEC & ARCH & QUAL & METR & DEP
-    SEC & ARCH & QUAL & METR & DEP --> QA
-    SEC & ARCH & QUAL & METR & DEP --> GEM & OAI & CLA
-    QA --> RPT
-    METR --> JSON
-    RPT --> GH
-```
+<p align="center">
+  <img src="https://adryserage.github.io/aetheris/assets/diagrams/architecture.svg" alt="Aetheris Architecture" width="900">
+</p>
 
 ### 6 Specialized AI Agents
 
