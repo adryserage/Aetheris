@@ -174,7 +174,7 @@ class Translator:
         Returns:
             List of LanguageInfo objects
         """
-        languages = []
+        languages: List[LanguageInfo] = []
 
         if not LOCALES_DIR.exists():
             logger.warning(f"Locales directory not found: {LOCALES_DIR}")
@@ -185,7 +185,11 @@ class Translator:
             # Load to get _meta info
             self.load(lang_code)
             translations = self._translations.get(lang_code, {})
-            meta = translations.get("_meta", {})
+            meta: Dict[str, Any] = {}
+            if isinstance(translations, dict):
+                meta_value = translations.get("_meta", {})
+                if isinstance(meta_value, dict):
+                    meta = meta_value
 
             languages.append(
                 LanguageInfo(

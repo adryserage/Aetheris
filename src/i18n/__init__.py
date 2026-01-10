@@ -18,9 +18,15 @@ Usage:
 """
 
 from src.i18n.locale_detector import LocaleDetector, detect_language
-from src.i18n.translator import (LanguageInfo, Translator,
-                                 get_available_languages, get_language,
-                                 get_translator, set_language, t)
+from src.i18n.translator import (
+    LanguageInfo,
+    Translator,
+    get_available_languages,
+    get_language,
+    get_translator,
+    set_language,
+    t,
+)
 
 __all__ = [
     "Translator",

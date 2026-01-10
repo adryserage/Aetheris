@@ -16,6 +16,7 @@ from rich.table import Table
 
 # Configuration du logging et encodage UTF-8
 from src.core.logger import log_print, setup_utf8_encoding
+
 # Internationalization
 from src.i18n import detect_language, get_available_languages, set_language, t
 
@@ -31,10 +32,10 @@ except ImportError as e:
 
 # Import de CodeAnalyzer depuis le module dédié
 from src.core.analyzer import CodeAnalyzer
+
 # Import de la configuration depuis le module dédié
 from src.core.change_detector import ChangeDetector
-from src.core.config import (AnalysisConfig, TimeoutConfig, TimeoutParseError,
-                             load_env_file)
+from src.core.config import AnalysisConfig, TimeoutConfig, TimeoutParseError, load_env_file
 from src.core.progress import ProgressManager
 
 
