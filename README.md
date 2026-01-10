@@ -69,13 +69,39 @@ pip install adryserage-aetheris && aetheris analysis
 
 ---
 
+## Features
+
+- **Configurable Timeout** — Set analysis duration with `--timeout 30m`, `--timeout 2h`, or `--timeout 0` (unlimited)
+- **Heartbeat Monitor** — Progress indicator every 10 minutes for long-running analyses
+- **Incremental Reanalysis** — Use `--reanalyze` / `-r` to analyze only files changed since last run
+- **Smart Change Detection** — Auto-detects modifications via git diff or file timestamps
+- **Cost-Efficient Updates** — Skip unchanged files, preserve previous results, reduce API calls
+- **Graceful Interruption** — Partial results saved when timeout is reached
+- **Multi-Provider Support** — Switch between Gemini, OpenAI, and Claude with `--provider`
+- **Auto-Fix Integration** — Fix issues automatically with Claude Code via `aetheris fix --auto`
+- **GitHub Integration** — Create issues, review PRs, generate fix PRs directly
+- **Smart Caching** — 60-80% cost reduction on repeat analyses
+- **Artifact Cleanup** — Remove development artifacts before packaging with `aetheris cleanup`
+- **Secret Scanner** — Detect exposed credentials with confidence levels (high/medium/low)
+- **Package Validation** — Pre-publication security checks with `aetheris validate-package`
+- **Multi-Language Support** — CLI available in English and French with `--lang` flag or `AETHERIS_LANG` env var
+
+---
+
 ## Trusted By Developers
 
 <p align="center">
-  <a href="https://adryserage.github.io/aetheris/"><img src="https://static.pepy.tech/badge/adryserage-aetheris" alt="Total Downloads"></a>
-  <a href="https://adryserage.github.io/aetheris/"><img src="https://static.pepy.tech/badge/adryserage-aetheris/month" alt="Monthly Downloads"></a>
-  <a href="https://adryserage.github.io/aetheris/"><img src="https://static.pepy.tech/badge/adryserage-aetheris/week" alt="Weekly Downloads"></a>
+  <a href="https://pepy.tech/project/adryserage-aetheris"><img src="https://static.pepy.tech/badge/adryserage-aetheris" alt="Total Downloads"></a>
+  <a href="https://pepy.tech/project/adryserage-aetheris"><img src="https://static.pepy.tech/badge/adryserage-aetheris/month" alt="Monthly Downloads"></a>
+  <a href="https://pepy.tech/project/adryserage-aetheris"><img src="https://static.pepy.tech/badge/adryserage-aetheris/week" alt="Weekly Downloads"></a>
 </p>
+
+<p align="center">
+  <a href="https://pepy.tech/project/adryserage-aetheris">View Full Download History</a> |
+  <a href="https://pypistats.org/packages/adryserage-aetheris">Detailed Statistics</a>
+</p>
+
+---
 
 | Traditional Tools | Aetheris |
 |:-----------------|:---------|
@@ -83,8 +109,6 @@ pip install adryserage-aetheris && aetheris analysis
 | Pattern matching (shallow) | **Context-aware AI (deep)** |
 | Security OR quality OR architecture | **All 6 agents working together** |
 | Suggestions you ignore | **Auto-fix that actually works** |
-
----
 
 ## Pricing That Makes Sense
 
@@ -262,11 +286,6 @@ aetheris analysis
 
 | Version | Status | Highlights |
 |:--------|:------:|:-----------|
-| **v2.5** | Released | 6 core agents, GitHub Actions, auto-fix |
-| **v2.6.1** | Released | Timeout management, incremental reanalysis |
-| **v2.6.2** | Released | Artifact cleanup, secret scanning, package validation |
-| **v2.6.5** | Released | Advanced statistics dashboard, ROI tracking, export to JSON/CSV/MD |
-| **v2.7** | Released | Multi-language support (English, French), locale detection |
 | **v2.8** | Planned | Headless mode for CI/CD automation |
 | **v3.0** | Planned | Persistent config (JSON), security profiles |
 | **v3.1** | Planned | Enhanced security & Git strategy |
@@ -277,7 +296,7 @@ aetheris analysis
 
 ## Documentation
 
-📚 **[Full Documentation](https://adryserage.github.io/aetheris/)** — Complete guides, tutorials, and API reference
+**[Full Documentation](https://adryserage.github.io/aetheris/)** — Complete guides, tutorials, and API reference
 
 | Getting Started | Reference | Advanced |
 |:----------------|:----------|:---------|
