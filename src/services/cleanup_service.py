@@ -7,11 +7,7 @@ import shutil
 from pathlib import Path
 from typing import Generator
 
-from ..config.exclusion_patterns import (
-    DEEP_CLEAN_EXCLUSIONS,
-    DEFAULT_EXCLUSIONS,
-    get_exclusions,
-)
+from ..config.exclusion_patterns import DEEP_CLEAN_EXCLUSIONS, DEFAULT_EXCLUSIONS, get_exclusions
 from ..models.cleanup_models import CleanupConfig, CleanupResult, ExclusionConfig
 
 logger = logging.getLogger(__name__)

@@ -14,11 +14,7 @@ from ..config.secret_patterns import (
     compile_patterns,
     get_patterns_by_confidence,
 )
-from ..models.cleanup_models import (
-    ConfidenceLevel,
-    ScanConfig,
-    SecretMatch,
-)
+from ..models.cleanup_models import ConfidenceLevel, ScanConfig, SecretMatch
 
 logger = logging.getLogger(__name__)
 
