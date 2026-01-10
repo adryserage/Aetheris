@@ -19,6 +19,11 @@
 </p>
 
 <p align="center">
+  <a href="https://pepy.tech/project/adryserage-aetheris">View Full Download History</a> |
+  <a href="https://pypistats.org/packages/adryserage-aetheris">Detailed Statistics</a>
+</p>
+
+<p align="center">
   <a href="https://adryserage.github.io/aetheris/"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-blue" alt="Documentation"></a>
 </p>
 
@@ -90,16 +95,9 @@ pip install adryserage-aetheris && aetheris analysis
 
 ## Trusted By Developers
 
-<p align="center">
-  <a href="https://pepy.tech/project/adryserage-aetheris"><img src="https://static.pepy.tech/badge/adryserage-aetheris" alt="Total Downloads"></a>
-  <a href="https://pepy.tech/project/adryserage-aetheris"><img src="https://static.pepy.tech/badge/adryserage-aetheris/month" alt="Monthly Downloads"></a>
-  <a href="https://pepy.tech/project/adryserage-aetheris"><img src="https://static.pepy.tech/badge/adryserage-aetheris/week" alt="Weekly Downloads"></a>
-</p>
 
-<p align="center">
-  <a href="https://pepy.tech/project/adryserage-aetheris">View Full Download History</a> |
-  <a href="https://pypistats.org/packages/adryserage-aetheris">Detailed Statistics</a>
-</p>
+
+
 
 ---
 
