@@ -87,7 +87,7 @@
     <text x="90" y="25" text-anchor="middle" class="hand label" fill="#c2185b">⚡ Incremental</text>
     <text x="90" y="48" text-anchor="middle" class="hand small" fill="#666">--reanalyze flag</text>
     <text x="90" y="65" text-anchor="middle" class="hand small" fill="#666">Only changed files</text>
-    <text x="90" y="82" text-anchor="middle" class="hand small" fill="#666">Save time & cost</text>
+    <text x="90" y="82" text-anchor="middle" class="hand small" fill="#666">Save time &amp; cost</text>
   </g>
 
   <!-- Timeout Control -->

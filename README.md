@@ -6,7 +6,6 @@
 
 <p align="center">
   <a href="https://badge.fury.io/py/adryserage-aetheris"><img src="https://badge.fury.io/py/adryserage-aetheris.svg" alt="PyPI version"></a>
-  <a href="https://pepy.tech/project/adryserage-aetheris"><img src="https://static.pepy.tech/badge/adryserage-aetheris" alt="Downloads"></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.9+-blue.svg" alt="Python 3.9+"></a>
   <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black"></a>
   <a href="https://pypi.org/project/adryserage-aetheris/"><img src="https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey" alt="Platform"></a>
@@ -73,9 +72,9 @@ pip install adryserage-aetheris && aetheris analysis
 ## Trusted By Developers
 
 <p align="center">
-  <a href="https://pepy.tech/project/adryserage-aetheris">
-    <img src="https://adryserage.github.io/aetheris/assets/charts/downloads.svg" alt="Download History Chart" width="600">
-  </a>
+  <a href="https://adryserage.github.io/aetheris/"><img src="https://static.pepy.tech/badge/adryserage-aetheris" alt="Total Downloads"></a>
+  <a href="https://adryserage.github.io/aetheris/"><img src="https://static.pepy.tech/badge/adryserage-aetheris/month" alt="Monthly Downloads"></a>
+  <a href="https://adryserage.github.io/aetheris/"><img src="https://static.pepy.tech/badge/adryserage-aetheris/week" alt="Weekly Downloads"></a>
 </p>
 
 | Traditional Tools | Aetheris |
