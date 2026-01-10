@@ -10,6 +10,13 @@
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.9+-blue.svg" alt="Python 3.9+"></a>
   <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black"></a>
   <a href="https://pypi.org/project/adryserage-aetheris/"><img src="https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey" alt="Platform"></a>
+  
+</p>
+
+<p align="center">
+  <a href="https://pepy.tech/project/adryserage-aetheris"><img src="https://static.pepy.tech/badge/adryserage-aetheris" alt="Total Downloads"></a>
+  <a href="https://pepy.tech/project/adryserage-aetheris"><img src="https://static.pepy.tech/badge/adryserage-aetheris/month" alt="Monthly Downloads"></a>
+  <a href="https://pepy.tech/project/adryserage-aetheris"><img src="https://static.pepy.tech/badge/adryserage-aetheris/week" alt="Weekly Downloads"></a>
 </p>
 
 <p align="center">
@@ -17,10 +24,10 @@
 </p>
 
 <p align="center">
-  <a href="#-get-started-in-30-seconds">Quick Start</a> |
-  <a href="#-see-it-in-action">Demo</a> |
-  <a href="#-architecture">Architecture</a> |
-  <a href="https://adryserage.github.io/aetheris/">📚 Documentation</a>
+  <a href="https://adryserage.github.io/aetheris/quickstart/">Quick Start</a> |
+  <a href="https://adryserage.github.io/aetheris/">Demo</a> |
+  <a href="https://adryserage.github.io/aetheris/architecture/">Architecture</a> |
+  <a href="https://adryserage.github.io/aetheris/">Documentation</a>
 </p>
 
 ---
@@ -64,12 +71,6 @@ pip install adryserage-aetheris && aetheris analysis
 ---
 
 ## Trusted By Developers
-
-<p align="center">
-  <a href="https://pepy.tech/project/adryserage-aetheris"><img src="https://static.pepy.tech/badge/adryserage-aetheris" alt="Total Downloads"></a>
-  <a href="https://pepy.tech/project/adryserage-aetheris"><img src="https://static.pepy.tech/badge/adryserage-aetheris/month" alt="Monthly Downloads"></a>
-  <a href="https://pepy.tech/project/adryserage-aetheris"><img src="https://static.pepy.tech/badge/adryserage-aetheris/week" alt="Weekly Downloads"></a>
-</p>
 
 <p align="center">
   <a href="https://pepy.tech/project/adryserage-aetheris">
