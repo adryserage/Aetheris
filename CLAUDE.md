@@ -703,6 +703,8 @@ Reports are generated in `docs/analyses/`:
 ## Active Technologies
 - Python 3.9+ (compatible with existing codebase) + Pydantic (data validation), Rich (terminal UI), pathlib (file I/O) (018-advanced-stats-roi)
 - Local JSON files (~/.aetheris/statistics.json and ./aetheris-stats.json) (018-advanced-stats-roi)
+- Python 3.9+ (compatible with existing codebase) + None new required (use stdlib `json`, `locale`, `os`) (019-i18n)
+- JSON files in `src/locales/` directory (bundled with package) (019-i18n)
 
 ## Recent Changes
 - 018-advanced-stats-roi: Added Python 3.9+ (compatible with existing codebase) + Pydantic (data validation), Rich (terminal UI), pathlib (file I/O)

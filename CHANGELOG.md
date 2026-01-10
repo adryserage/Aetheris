@@ -9,7 +9,22 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ### ✨ Nouvelles fonctionnalités
 
+- **Internationalization (i18n)** : Support multilingue pour la CLI
+  - Anglais (en) comme langue par défaut
+  - Français (fr) entièrement traduit
+  - Détection automatique de la langue du système (LANG, LC_ALL, LC_MESSAGES)
+  - Variable d'environnement `AETHERIS_LANG` pour forcer la langue
+  - Flag CLI `--lang` pour sélectionner la langue (ex: `aetheris --lang fr analysis`)
+  - Flag CLI `--list-languages` pour afficher les langues disponibles
+  - Traductions stockées dans `src/locales/*.json`
+  - API développeur pour ajouter de nouvelles langues
+
 ### 🔧 Modifications
+
+- Nouveau module `src/i18n/` avec support de traduction
+- Fichiers de traduction JSON dans `src/locales/`
+- Messages CLI (startup, analysis, errors) traduits en français
+- Fallback automatique vers l'anglais si clé manquante
 
 ### 🐛 Corrections
 
