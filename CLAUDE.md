@@ -196,7 +196,9 @@ When 006-persistent-config introduced `config.json`, all post-v3.0 specs needed:
 - Tasks for adding to ConfigSchema
 - Tasks for Settings UI tab (if applicable)
 
-## Configuration Hierarchy (v3.0+)
+## Configuration Hierarchy (v3.0+ - PLANNED)
+
+> ⚠️ **NOT YET IMPLEMENTED** - This section describes planned features for v3.0+
 
 **Priority Order** (highest to lowest):
 
@@ -260,7 +262,9 @@ When 006-persistent-config introduced `config.json`, all post-v3.0 specs needed:
 | `config/presets.json` | Built-in presets | ❌ Never |
 | `config/default_allowlist.json` | Safe mode command allowlist | ❌ Never |
 
-### Settings UI Tabs (v3.0+)
+### Settings UI Tabs (v3.0+ - PLANNED)
+
+> ⚠️ **NOT YET IMPLEMENTED** - Planned for v3.0
 
 | Tab | Config Section | Features |
 |-----|----------------|----------|
@@ -296,7 +300,26 @@ aetheris analysis --timeout 0             # Unlimited (no timeout)
 aetheris analysis --reanalyze             # Only changed files since last analysis
 aetheris analysis -r                      # Short form
 aetheris analysis -r --timeout 30m        # Combined with timeout
+
+# v2.7: Multi-language support
+aetheris --lang fr analysis               # Run in French
+aetheris --list-languages                 # Show available languages
+export AETHERIS_LANG=fr && aetheris analysis  # Via environment variable
 ```
+
+### v2.7 Feature Reference (i18n)
+
+| Feature | Flag | Description |
+|---------|------|-------------|
+| **Language** | `--lang <code>` | Set CLI language (e.g., `en`, `fr`) |
+| **List Languages** | `--list-languages` | Show available languages |
+| **Environment** | `AETHERIS_LANG` | Set language via environment variable |
+
+**Language Priority** (highest to lowest):
+1. `--lang` CLI flag
+2. `AETHERIS_LANG` environment variable
+3. System locale detection
+4. Default: English (en)
 
 ### v2.6.1 Feature Reference
 
@@ -648,12 +671,14 @@ After completing a feature, ALWAYS:
 | Ignoring rate limits | Service bans | Use `CircuitBreaker` class |
 | Not caching | Excessive API costs | Use cache module with Git SHA |
 
-### Config Pitfalls (v3.0+)
+### Config Pitfalls (v3.0+ - PLANNED)
+
+> These apply once v3.0 config system is implemented
 
 | Pitfall | Consequence | Prevention |
 |---------|-------------|------------|
 | Secrets in config.json | Exposed credentials | Secrets in `.env` ONLY |
-| Missing ConfigSchema field | Config ignored | Add to config schema (find with `grep -r "ConfigSchema\|config.*schema" src/`) |
+| Missing ConfigSchema field | Config ignored | Add to config schema |
 | Wrong hierarchy lookup | Wrong values used | Test CLI > local > global > default |
 | Not handling missing config | Crashes | Use defaults, warn on missing |
 
@@ -704,11 +729,3 @@ Reports are generated in `docs/analyses/`:
 
 > ⚠️ **Aetheris stops at v4.x** - Mature AI code analyzer, no features beyond this version.
 
-## Active Technologies
-- Python 3.9+ (compatible with existing codebase) + Pydantic (data validation), Rich (terminal UI), pathlib (file I/O) (018-advanced-stats-roi)
-- Local JSON files (~/.aetheris/statistics.json and ./aetheris-stats.json) (018-advanced-stats-roi)
-- Python 3.9+ (compatible with existing codebase) + None new required (use stdlib `json`, `locale`, `os`) (019-i18n)
-- JSON files in `src/locales/` directory (bundled with package) (019-i18n)
-
-## Recent Changes
-- 018-advanced-stats-roi: Added Python 3.9+ (compatible with existing codebase) + Pydantic (data validation), Rich (terminal UI), pathlib (file I/O)
