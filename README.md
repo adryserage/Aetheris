@@ -91,16 +91,6 @@ pip install adryserage-aetheris && aetheris analysis
 - **Package Validation** — Pre-publication security checks with `aetheris validate-package`
 - **Multi-Language Support** — CLI available in English and French with `--lang` flag or `AETHERIS_LANG` env var
 
----
-
-## Trusted By Developers
-
-
-
-
-
----
-
 | Traditional Tools | Aetheris |
 |:-----------------|:---------|
 | Thousands of noisy warnings | **Actionable insights only** |
