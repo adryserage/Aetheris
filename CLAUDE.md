@@ -136,12 +136,12 @@ v2.6.1 014-reanalyze-flag ✅ ─────────┤ Incremental analysi
 v2.6.1 013-readme-restructure ✅ ─────┘ Public docs + GitHub Pages
 
 ═══════════════════════════════════════════════════════════════════════════════
-                              v2.6.x - v2.8 (IMPLEMENTED/PLANNED)
+                              v2.6.x - v2.8 (IMPLEMENTED)
 ═══════════════════════════════════════════════════════════════════════════════
 v2.6.2 012-artifact-cleanup ✅         Nettoyage des Artefacts & Sécurisation
 v2.6.5 003-advanced-stats ✅           Statistics command (aetheris stats)
 v2.7   019-i18n ✅                     Multi-language support (en, fr)
-v2.8   017-headless-deterministic      Headless mode for CI/CD automation
+v2.8   017-headless-deterministic ✅   Headless mode for CI/CD automation
 
 ═══════════════════════════════════════════════════════════════════════════════
                          v3.0 - v3.2 CONFIG + SECURITY + CI/CD
@@ -321,6 +321,45 @@ export AETHERIS_LANG=fr && aetheris analysis  # Via environment variable
 3. System locale detection
 4. Default: English (en)
 
+### v2.8 Feature Reference (Headless Mode)
+
+| Feature | Flag | Description |
+|---------|------|-------------|
+| **Run Task** | `aetheris run <file>` | Execute task from JSON/YAML file |
+| **Profile** | `--profile <name>` | Security profile: safe, ci, dev, unrestricted |
+| **Dry Run** | `--dry-run` | Validate task file without executing |
+| **Timeout** | `--timeout <duration>` | Execution timeout (e.g., `30m`, `2h`, `0`) |
+| **Seed** | `--seed <int>` | Random seed for deterministic execution |
+| **No Timestamps** | `--no-timestamps` | Disable timestamps for comparable output |
+| **Output File** | `--output-file <path>` | Write output to file instead of stdout |
+| **Format** | `--format <type>` | Output format: json (default) or yaml |
+
+**Security Profiles:**
+| Profile | Auto-Fix | File Delete | Shell Commands |
+|---------|----------|-------------|----------------|
+| `safe` | ❌ | ❌ | ❌ |
+| `ci` | ✅ | ❌ | ❌ |
+| `dev` | ✅ | ✅ | ✅ |
+| `unrestricted` | ✅ | ✅ | ✅ |
+
+**Task File Example:**
+```json
+{
+  "version": "1.0",
+  "task": {
+    "type": "analysis",
+    "target": { "files": ["src/**/*.py"] },
+    "options": { "timeout": "30m", "profile": "ci" }
+  }
+}
+```
+
+**Key Modules:**
+- `src/runner/` — TaskRunner, TaskFileParser, OutputFormatter
+- `src/schemas/` — JSON schemas for task files and output
+- `examples/tasks/` — Sample task files
+- `docs/headless.md` — Complete documentation
+
 ### v2.6.1 Feature Reference
 
 | Feature | Flag | Description |
@@ -412,6 +451,23 @@ grep -r "class AnalysisOrchestrator" src/
 | Dependency analysis | `class.*Dependency` |
 | Documentation search | `class.*Documentation`, `class.*Searcher` |
 | Code generation | `class.*Generator` |
+
+**Runner Module (`src/runner/`)** - Headless execution (v2.8)
+
+| Role | Class Pattern to Search |
+|------|-------------------------|
+| Task execution | `class TaskRunner` |
+| Task file parsing | `class TaskFileParser`, `class TaskFile` |
+| Output formatting | `class OutputFormatter`, `class ExecutionResult` |
+| Security profiles | `class SecurityProfile` |
+| Execution context | `class ExecutionContext` |
+
+**Schemas Module (`src/schemas/`)** - JSON schemas (v2.8)
+
+| Role | File |
+|------|------|
+| Task file validation | `task_file_schema.json` |
+| Output validation | `output_schema.json` |
 
 **Models Module (`src/models/`)** - Data structures
 
@@ -718,7 +774,7 @@ Reports are generated in `docs/analyses/`:
 |---------|-------|--------|
 | v2.5 - v2.6.5 | Core features, timeout, reanalyze, stats | ✅ Implemented |
 | v2.7 | Multi-language support (i18n) | ✅ Implemented |
-| v2.8 | Headless mode (CI/CD automation) | Planned |
+| v2.8 | Headless mode (CI/CD automation) | ✅ Implemented |
 | v3.0 | Config system + Security profiles | Planned |
 | v3.1 | Enhanced security & Git strategy | Planned |
 | v3.2 | CI/CD templates (GitHub Actions, GitLab) | Planned |
