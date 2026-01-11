@@ -1,0 +1,26 @@
+{
+  "version": "1.0",
+  "task": {
+    "type": "analysis",
+    "target": {
+      "files": ["src/**/*.py"],
+      "changed_only": false,
+      "exclude": ["**/test_*.py", "**/__pycache__/**"]
+    },
+    "options": {
+      "timeout": "30m",
+      "profile": "ci",
+      "verbose": false
+    }
+  },
+  "output": {
+    "format": "json",
+    "include_diff": true,
+    "include_logs": true
+  },
+  "metadata": {
+    "run_id": "ci-build-123",
+    "triggered_by": "github-actions",
+    "pipeline": "main"
+  }
+}

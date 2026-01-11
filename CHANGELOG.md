@@ -17,6 +17,37 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ### 📦 Dépendances
 
+## [2.8.0] - 2026-01-11
+
+### ✨ Nouvelles fonctionnalités
+
+- **Mode Headless Déterministe** : Exécution non-interactive pour CI/CD
+  - Nouvelle commande `aetheris run <task-file>` pour exécuter des tâches depuis JSON/YAML
+  - Sortie JSON structurée avec schéma défini pour parsing automatisé
+  - Profils de sécurité : safe, ci, dev, unrestricted
+  - Support des signaux SIGINT/SIGTERM pour arrêt gracieux
+  - Mode `--dry-run` pour validation sans exécution
+  - Seed aléatoire (`--seed`) pour reproductibilité déterministe
+  - Option `--no-timestamps` pour output comparables entre runs
+  - Timeout configurable (`--timeout 30m`, `--timeout 2h`, `--timeout 0`)
+
+### 🔧 Modifications
+
+- Nouveau module `src/runner/` avec TaskRunner, TaskFileParser, OutputFormatter
+- Nouveau module `src/schemas/` avec schémas JSON pour validation
+- Exemples de fichiers de tâches dans `examples/tasks/`
+- Intégration CLI avec `aetheris run` command
+
+### 📝 Documentation
+
+- Nouvelle documentation `docs/headless.md` avec guide complet
+- Exemples d'intégration GitHub Actions et GitLab CI
+- Schémas de fichiers de tâches et sorties documentés
+
+### 📦 Dépendances
+
+- Ajout de `jsonschema>=4.0` pour validation des fichiers de tâches
+
 ## [2.7.0] - 2026-01-10
 
 ### ✨ Nouvelles fonctionnalités

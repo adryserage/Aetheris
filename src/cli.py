@@ -1872,6 +1872,162 @@ def run_stats(args):
         service.format_dashboard(args.period)
 
 
+def setup_run_parser(subparsers):
+    """Configure le parser pour la sous-commande run (headless mode)"""
+    run_parser = subparsers.add_parser(
+        "run",
+        help="Execute a task file in headless mode (v2.8)",
+        description="Execute Aetheris tasks from JSON/YAML files in non-interactive mode",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Run a task file
+  aetheris run task.json
+
+  # Validate task file without executing
+  aetheris run task.yaml --dry-run
+
+  # Run with specific security profile
+  aetheris run task.json --profile ci
+
+  # Run with timeout and verbose output
+  aetheris run task.json --timeout 30m --verbose
+
+  # Run with reproducible seed
+  aetheris run task.json --seed 42 --no-timestamps
+
+  # Output to file instead of stdout
+  aetheris run task.json --output-file result.json
+
+Task File Format (JSON):
+  {
+    "version": "1.0",
+    "task": {
+      "type": "analysis",
+      "target": { "files": ["src/**/*.py"], "changed_only": true },
+      "options": { "timeout": 300, "profile": "ci" }
+    },
+    "output": { "format": "json", "include_diff": true }
+  }
+        """,
+    )
+
+    run_parser.add_argument(
+        "task_file",
+        type=str,
+        help="Path to task file (JSON or YAML)",
+    )
+
+    run_parser.add_argument(
+        "--profile",
+        "-p",
+        type=str,
+        choices=["safe", "ci", "dev", "unrestricted"],
+        default=None,
+        help="Security profile (overrides task file setting). Default: safe",
+    )
+
+    run_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Validate task file without executing",
+    )
+
+    run_parser.add_argument(
+        "--timeout",
+        "-t",
+        type=str,
+        default=None,
+        help="Execution timeout (overrides task file). Examples: 300, 30m, 2h, 0 (unlimited)",
+    )
+
+    run_parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Random seed for reproducible execution",
+    )
+
+    run_parser.add_argument(
+        "--no-timestamps",
+        action="store_true",
+        help="Disable timestamps in output for deterministic results",
+    )
+
+    run_parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Enable verbose logging in output",
+    )
+
+    run_parser.add_argument(
+        "--output-file",
+        "-o",
+        type=str,
+        default=None,
+        help="Write JSON output to file instead of stdout",
+    )
+
+    run_parser.add_argument(
+        "--format",
+        type=str,
+        choices=["json", "yaml"],
+        default="json",
+        help="Output format (default: json)",
+    )
+
+    return run_parser
+
+
+def run_headless(args):
+    """Execute task file in headless mode."""
+    from src.runner import TaskRunner, TaskFileValidationError
+    from src.runner.output_formatter import OutputFormatter
+
+    try:
+        runner = TaskRunner(
+            task_file_path=args.task_file,
+            profile=args.profile,
+            dry_run=args.dry_run,
+            seed=args.seed,
+            no_timestamps=args.no_timestamps,
+            verbose=args.verbose,
+            timeout=args.timeout,
+            output_file=args.output_file,
+        )
+
+        result = asyncio.run(runner.execute())
+
+        # Format and output
+        formatter = OutputFormatter(
+            format=args.format,
+            include_timestamps=not args.no_timestamps,
+            output_file=args.output_file,
+        )
+        formatter.output(result)
+
+        sys.exit(result.exit_code.value)
+
+    except TaskFileValidationError as e:
+        # Output error as JSON for consistency
+        error_json = OutputFormatter.minimal_error_json(
+            error_type=e.error_type,
+            message=str(e),
+        )
+        print(error_json, file=sys.stdout)
+        sys.exit(1)
+
+    except Exception as e:
+        # Output unexpected error as JSON
+        error_json = OutputFormatter.minimal_error_json(
+            error_type=type(e).__name__,
+            message=str(e),
+        )
+        print(error_json, file=sys.stdout)
+        sys.exit(1)
+
+
 def create_parser():
     """Crée le parser principal avec sous-commandes"""
     parser = argparse.ArgumentParser(
@@ -1941,6 +2097,9 @@ Exemples:
     # Ajouter la sous-commande stats (v2.6.5)
     setup_stats_parser(subparsers)
 
+    # Ajouter la sous-commande run (v2.8 - headless mode)
+    setup_run_parser(subparsers)
+
     return parser
 
 
@@ -2002,6 +2161,8 @@ def main():
         run_validate_package(args)
     elif args.command == "stats":
         run_stats(args)
+    elif args.command == "run":
+        run_headless(args)
     else:
         parser.print_help()
         sys.exit(1)
