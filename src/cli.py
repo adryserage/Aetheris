@@ -1872,6 +1872,316 @@ def run_stats(args):
         service.format_dashboard(args.period)
 
 
+def setup_config_parser(subparsers):
+    """Configure le parser pour la sous-commande config (v2.6.5)"""
+    config_parser = subparsers.add_parser(
+        "config",
+        help="View and modify Aetheris configuration",
+        description="Get or set configuration values for statistics and ROI parameters",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # View all ROI parameters
+  aetheris config stats
+
+  # Get a specific parameter
+  aetheris config stats.hourly_rate
+
+  # Set a parameter
+  aetheris config stats.hourly_rate 100
+
+  # Set incident cost
+  aetheris config stats.incident_cost 10000
+
+Available stats parameters:
+  stats.hourly_rate       Developer hourly rate in USD (default: 75)
+  stats.incident_cost     Cost per production incident (default: 5000)
+  stats.time_per_critical Hours to fix critical issue (default: 4)
+  stats.time_per_high     Hours to fix high severity (default: 2)
+  stats.time_per_medium   Hours to fix medium severity (default: 1)
+  stats.time_per_low      Hours to fix low severity (default: 0.5)
+        """,
+    )
+
+    config_parser.add_argument(
+        "key",
+        type=str,
+        nargs="?",
+        default=None,
+        help="Configuration key to get or set (e.g., stats.hourly_rate)",
+    )
+
+    config_parser.add_argument(
+        "value",
+        type=str,
+        nargs="?",
+        default=None,
+        help="New value to set (omit to get current value)",
+    )
+
+    config_parser.add_argument(
+        "--project",
+        type=str,
+        default=".",
+        help="Project directory (default: current)",
+    )
+
+    config_parser.add_argument(
+        "--global",
+        dest="use_global",
+        action="store_true",
+        help="Use global config instead of project-local",
+    )
+
+    return config_parser
+
+
+def run_config(args):
+    """Execute the config command"""
+    from pathlib import Path
+
+    from rich.console import Console
+    from rich.table import Table
+
+    from src.services.statistics_service import StatisticsService
+
+    console = Console()
+    project_path = Path(args.project).resolve()
+
+    service = StatisticsService(
+        project_path=project_path,
+        use_global=args.use_global,
+    )
+
+    key = args.key
+    value = args.value
+
+    # Show all stats config
+    if key is None or key == "stats":
+        params = service.get_roi_parameters()
+
+        table = Table(title="ROI Configuration", show_header=True, header_style="bold")
+        table.add_column("Parameter", style="cyan")
+        table.add_column("Value", justify="right")
+        table.add_column("Description")
+
+        table.add_row("stats.hourly_rate", f"${params.hourly_rate:.2f}", "Developer hourly rate")
+        table.add_row(
+            "stats.incident_cost", f"${params.incident_cost:.2f}", "Cost per production incident"
+        )
+        table.add_row(
+            "stats.time_per_critical", f"{params.time_per_critical:.1f}h", "Hours for critical fix"
+        )
+        table.add_row("stats.time_per_high", f"{params.time_per_high:.1f}h", "Hours for high fix")
+        table.add_row(
+            "stats.time_per_medium", f"{params.time_per_medium:.1f}h", "Hours for medium fix"
+        )
+        table.add_row("stats.time_per_low", f"{params.time_per_low:.1f}h", "Hours for low fix")
+
+        console.print(table)
+        return
+
+    # Handle stats.* keys
+    if not key.startswith("stats."):
+        console.print(f"[red]Unknown config key: {key}[/red]")
+        console.print("Use 'aetheris config stats' to see available keys")
+        sys.exit(1)
+
+    param_name = key.replace("stats.", "")
+    valid_params = [
+        "hourly_rate",
+        "incident_cost",
+        "time_per_critical",
+        "time_per_high",
+        "time_per_medium",
+        "time_per_low",
+    ]
+
+    if param_name not in valid_params:
+        console.print(f"[red]Unknown stats parameter: {param_name}[/red]")
+        console.print(f"Valid parameters: {', '.join(valid_params)}")
+        sys.exit(1)
+
+    # Get value
+    if value is None:
+        params = service.get_roi_parameters()
+        current_value = getattr(params, param_name)
+        console.print(f"{key} = {current_value}")
+        return
+
+    # Set value
+    try:
+        float_value = float(value)
+        if float_value < 0:
+            console.print("[red]Value must be non-negative[/red]")
+            sys.exit(1)
+
+        service.set_roi_parameter(param_name, float_value)
+        console.print(f"[green]Updated {key} = {float_value}[/green]")
+    except ValueError:
+        console.print(f"[red]Invalid value: {value}. Must be a number.[/red]")
+        sys.exit(1)
+    except OSError as e:
+        console.print(f"[red]Cannot save config: {e}[/red]")
+        sys.exit(2)
+
+
+def setup_run_parser(subparsers):
+    """Configure le parser pour la sous-commande run (headless mode)"""
+    run_parser = subparsers.add_parser(
+        "run",
+        help="Execute a task file in headless mode (v2.8)",
+        description="Execute Aetheris tasks from JSON/YAML files in non-interactive mode",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Run a task file
+  aetheris run task.json
+
+  # Validate task file without executing
+  aetheris run task.yaml --dry-run
+
+  # Run with specific security profile
+  aetheris run task.json --profile ci
+
+  # Run with timeout and verbose output
+  aetheris run task.json --timeout 30m --verbose
+
+  # Run with reproducible seed
+  aetheris run task.json --seed 42 --no-timestamps
+
+  # Output to file instead of stdout
+  aetheris run task.json --output-file result.json
+
+Task File Format (JSON):
+  {
+    "version": "1.0",
+    "task": {
+      "type": "analysis",
+      "target": { "files": ["src/**/*.py"], "changed_only": true },
+      "options": { "timeout": 300, "profile": "ci" }
+    },
+    "output": { "format": "json", "include_diff": true }
+  }
+        """,
+    )
+
+    run_parser.add_argument(
+        "task_file",
+        type=str,
+        help="Path to task file (JSON or YAML)",
+    )
+
+    run_parser.add_argument(
+        "--profile",
+        "-p",
+        type=str,
+        choices=["safe", "ci", "dev", "unrestricted"],
+        default=None,
+        help="Security profile (overrides task file setting). Default: safe",
+    )
+
+    run_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Validate task file without executing",
+    )
+
+    run_parser.add_argument(
+        "--timeout",
+        "-t",
+        type=str,
+        default=None,
+        help="Execution timeout (overrides task file). Examples: 300, 30m, 2h, 0 (unlimited)",
+    )
+
+    run_parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Random seed for reproducible execution",
+    )
+
+    run_parser.add_argument(
+        "--no-timestamps",
+        action="store_true",
+        help="Disable timestamps in output for deterministic results",
+    )
+
+    run_parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Enable verbose logging in output",
+    )
+
+    run_parser.add_argument(
+        "--output-file",
+        "-o",
+        type=str,
+        default=None,
+        help="Write JSON output to file instead of stdout",
+    )
+
+    run_parser.add_argument(
+        "--format",
+        type=str,
+        choices=["json", "yaml"],
+        default="json",
+        help="Output format (default: json)",
+    )
+
+    return run_parser
+
+
+def run_headless(args):
+    """Execute task file in headless mode."""
+    from src.runner import TaskRunner, TaskFileValidationError
+    from src.runner.output_formatter import OutputFormatter
+
+    try:
+        runner = TaskRunner(
+            task_file_path=args.task_file,
+            profile=args.profile,
+            dry_run=args.dry_run,
+            seed=args.seed,
+            no_timestamps=args.no_timestamps,
+            verbose=args.verbose,
+            timeout=args.timeout,
+            output_file=args.output_file,
+        )
+
+        result = asyncio.run(runner.execute())
+
+        # Format and output
+        formatter = OutputFormatter(
+            format=args.format,
+            include_timestamps=not args.no_timestamps,
+            output_file=args.output_file,
+        )
+        formatter.output(result)
+
+        sys.exit(result.exit_code.value)
+
+    except TaskFileValidationError as e:
+        # Output error as JSON for consistency
+        error_json = OutputFormatter.minimal_error_json(
+            error_type=e.error_type,
+            message=str(e),
+        )
+        print(error_json, file=sys.stdout)
+        sys.exit(1)
+
+    except Exception as e:
+        # Output unexpected error as JSON
+        error_json = OutputFormatter.minimal_error_json(
+            error_type=type(e).__name__,
+            message=str(e),
+        )
+        print(error_json, file=sys.stdout)
+        sys.exit(1)
+
+
 def create_parser():
     """Crée le parser principal avec sous-commandes"""
     parser = argparse.ArgumentParser(
@@ -1941,6 +2251,12 @@ Exemples:
     # Ajouter la sous-commande stats (v2.6.5)
     setup_stats_parser(subparsers)
 
+    # Ajouter la sous-commande config (v2.6.5)
+    setup_config_parser(subparsers)
+
+    # Ajouter la sous-commande run (v2.8 - headless mode)
+    setup_run_parser(subparsers)
+
     return parser
 
 
@@ -2002,6 +2318,10 @@ def main():
         run_validate_package(args)
     elif args.command == "stats":
         run_stats(args)
+    elif args.command == "config":
+        run_config(args)
+    elif args.command == "run":
+        run_headless(args)
     else:
         parser.print_help()
         sys.exit(1)

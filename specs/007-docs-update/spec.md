@@ -3,7 +3,7 @@
 **Feature Branch**: `007-docs-update`
 **Created**: 2025-01-07
 **Status**: Draft
-**Target Version**: v2.6.0
+**Target Version**: v2.10
 
 ## Overview
 

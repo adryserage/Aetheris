@@ -2,7 +2,7 @@
 
 **Branch**: `010-safety-profiles` | **Date**: 2026-01-07 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/specs/010-safety-profiles/spec.md`
-**Target Version**: v3.0.3
+**Target Version**: v2.12
 
 ## Summary
 
@@ -19,11 +19,11 @@ Add configurable safety profiles (`--profile safe|ci|yolo`) to control Aetheris 
 **Performance Goals**: No significant overhead from profile checks (<10ms per operation)
 **Constraints**: Must not break existing CLI commands; backward compatible
 **Scale/Scope**: ~500-700 LOC addition across 5-7 files
-**Depends On**: v3.0 (Persistent Config) for config.json integration
+**Depends On**: v2.12 (Persistent Config) for config.json integration
 
-## Configuration Integration (v3.0)
+## Configuration Integration (v2.12)
 
-Safety profile settings integrate with the config.json system from v3.0:
+Safety profile settings integrate with the config.json system from v2.12:
 
 ```json
 {

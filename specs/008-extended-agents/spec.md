@@ -3,12 +3,12 @@
 **Feature Branch**: `008-extended-agents`
 **Created**: 2025-01-07
 **Status**: Draft
-**Target Version**: v3.0.1
-**Depends On**: v3.0 (Configuration Persistante & Fichier Local)
+**Target Version**: v2.10
+**Depends On**: v2.10 (Configuration Persistante & Fichier Local)
 
 ## Overview
 
-Étendre le système d'analyse Aetheris de 6 à 10 agents spécialisés. Les 4 nouveaux agents couvrent des domaines d'analyse critiques non couverts actuellement: performance, contrats API, sécurité de typage, et conformité des données. La configuration des agents s'intègre au système config.json de la v3.0.
+Étendre le système d'analyse Aetheris de 6 à 10 agents spécialisés. Les 4 nouveaux agents couvrent des domaines d'analyse critiques non couverts actuellement: performance, contrats API, sécurité de typage, et conformité des données. La configuration des agents s'intègre au système config.json de la v2.10.
 
 **Note**: Technical Debt et Documentation agents ont été retirés du scope car:
 - Technical Debt: overlap avec Code Metrics (complexity) et Architect (circular deps)
@@ -113,7 +113,7 @@ En tant que responsable conformité, je veux détecter les violations GDPR/HIPAA
 
 ### Functional Requirements
 
-#### Configuration (intégré à v3.0)
+#### Configuration (intégré à v2.10)
 - **FR-001**: Le système DOIT supporter `enabled_agents` dans config.json (valeurs: "all" ou liste d'agents)
 - **FR-002**: Le système DOIT supporter `compliance_agents` dans config.json (valeurs: "none", "all", ou liste: gdpr, hipaa, pci_dss, ccpa)
 - **FR-003**: Le système DOIT supporter `--agents` en CLI pour override la config

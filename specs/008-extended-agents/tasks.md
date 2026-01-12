@@ -1,4 +1,4 @@
-# Tasks: Extended Analysis Agents (v3.0.1)
+# Tasks: Extended Analysis Agents (v2.10)
 
 **Branch**: `008-extended-agents`
 **Spec**: [spec.md](./spec.md)

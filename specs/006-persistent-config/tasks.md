@@ -1,7 +1,7 @@
 # Tasks: Persistent Configuration & Local Config File
 
 **Input**: Design documents from `/specs/006-persistent-config/`
-**Target Version**: v3.0
+**Target Version**: v2.9
 **Estimated LOC**: ~500-600
 
 ---

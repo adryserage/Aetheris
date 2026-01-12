@@ -434,7 +434,107 @@ class StatisticsService:
 
         self.console.print(Panel(roi_text, title="📈 ROI Metrics", border_style="green"))
 
+        # Comparison Panel (only show if we have enough data and not viewing all time)
+        if period != "all" and len(records) >= 2:
+            self._display_comparison_panel(period)
+
         return "Dashboard displayed"
+
+    def _display_comparison_panel(self, current_period: str) -> None:
+        """
+        Display comparison panel showing changes from previous period.
+
+        Args:
+            current_period: Current period being viewed (week or month)
+        """
+        # Compare with a larger period to show trends
+        previous_period = "month" if current_period == "week" else "all"
+
+        try:
+            current_agg, previous_agg, deltas = self.compare_periods(
+                current_period, previous_period
+            )
+        except Exception:
+            return  # Skip comparison if there's an issue
+
+        # Don't show if no previous data
+        if previous_agg.total_analyses == 0:
+            return
+
+        period_labels = {
+            "week": "This Week",
+            "month": "This Month",
+            "all": "All Time",
+        }
+
+        comparison_table = Table(
+            title=f"📊 Comparison: {period_labels.get(current_period, current_period)} vs "
+            f"{period_labels.get(previous_period, previous_period)}",
+            show_header=True,
+            header_style="bold",
+        )
+        comparison_table.add_column("Metric", style="cyan")
+        comparison_table.add_column("Current", justify="right")
+        comparison_table.add_column("Previous", justify="right")
+        comparison_table.add_column("Change", justify="right")
+        comparison_table.add_column("Trend")
+
+        # Helper to format change
+        def format_change(delta: int | float, reverse: bool = False) -> tuple[str, str]:
+            """Format change value and determine trend icon."""
+            if delta == 0:
+                return "0", "➡️"
+            sign = "+" if delta > 0 else ""
+            # For issues, decrease is good (reverse=True)
+            if reverse:
+                icon = "[green]📉 ↓[/]" if delta < 0 else "[red]📈 ↑[/]"
+            else:
+                icon = "[green]📈 ↑[/]" if delta > 0 else "[red]📉 ↓[/]"
+            return f"{sign}{delta}", icon
+
+        # Analyses
+        change_str, trend = format_change(deltas["analyses"])
+        comparison_table.add_row(
+            "Analyses",
+            str(current_agg.total_analyses),
+            str(previous_agg.total_analyses),
+            change_str,
+            trend,
+        )
+
+        # Files
+        change_str, trend = format_change(deltas["files"])
+        comparison_table.add_row(
+            "Files Scanned",
+            f"{current_agg.total_files_scanned:,}",
+            f"{previous_agg.total_files_scanned:,}",
+            change_str,
+            trend,
+        )
+
+        # Issues (decrease is good)
+        change_str, trend = format_change(deltas["issues"], reverse=True)
+        pct_str = f" ({deltas['issues_pct']:+.1f}%)" if deltas.get("issues_pct") else ""
+        comparison_table.add_row(
+            "Issues Detected",
+            f"{current_agg.total_issues_detected:,}",
+            f"{previous_agg.total_issues_detected:,}",
+            f"{change_str}{pct_str}",
+            trend,
+        )
+
+        # Average duration (decrease is good)
+        duration_delta = round(deltas["avg_duration"], 1)
+        change_str, trend = format_change(duration_delta, reverse=True)
+        comparison_table.add_row(
+            "Avg Duration",
+            f"{current_agg.average_duration:.1f}s",
+            f"{previous_agg.average_duration:.1f}s",
+            f"{change_str}s",
+            trend,
+        )
+
+        self.console.print(comparison_table)
 
     def export_json(self, period: str = "all", output_path: Optional[Path] = None) -> Path:
         """

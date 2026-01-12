@@ -76,6 +76,9 @@ pip install adryserage-aetheris && aetheris analysis
 
 ## Features
 
+- **Headless Mode (v2.8)** — Non-interactive execution for CI/CD with `aetheris run <task-file>`
+- **Deterministic Execution** — Reproducible results with `--seed` and `--no-timestamps` options
+- **Security Profiles** — Control operations with `--profile safe|ci|dev|unrestricted`
 - **Configurable Timeout** — Set analysis duration with `--timeout 30m`, `--timeout 2h`, or `--timeout 0` (unlimited)
 - **Heartbeat Monitor** — Progress indicator every 10 minutes for long-running analyses
 - **Incremental Reanalysis** — Use `--reanalyze` / `-r` to analyze only files changed since last run
@@ -165,6 +168,9 @@ Aetheris coordinates 6 specialized AI agents through a central orchestrator. Eac
 
 ## Features
 
+- **Headless Mode (v2.8)** — Non-interactive execution for CI/CD with `aetheris run <task-file>`
+- **Deterministic Execution** — Reproducible results with `--seed` and `--no-timestamps` options
+- **Security Profiles** — Control operations with `--profile safe|ci|dev|unrestricted`
 - **Configurable Timeout** — Set analysis duration with `--timeout 30m`, `--timeout 2h`, or `--timeout 0` (unlimited)
 - **Heartbeat Monitor** — Progress indicator every 10 minutes for long-running analyses
 - **Incremental Reanalysis** — Use `--reanalyze` / `-r` to analyze only files changed since last run
@@ -189,6 +195,9 @@ aetheris analysis --reanalyze
 
 # With timeout for large codebases
 aetheris analysis -r --timeout 30m
+
+# Headless mode for CI/CD (v2.8)
+aetheris run task.json --profile ci
 
 # Auto-fix issues
 aetheris fix --analyze-first --auto
@@ -245,6 +254,7 @@ aetheris analysis
 | Command | Purpose | Example |
 |:--------|:--------|:--------|
 | `aetheris analysis` | Deep codebase scan | `aetheris analysis --reanalyze --timeout 30m` |
+| `aetheris run` | Headless execution for CI/CD | `aetheris run task.json --profile ci` |
 | `aetheris stats` | View statistics & ROI dashboard | `aetheris stats --period week --export json` |
 | `aetheris fix` | Auto-fix with Claude Code | `aetheris fix --analyze-first --auto` |
 | `aetheris pr` | GitHub PR reviews | `aetheris pr --url <pr-url>` |
@@ -274,7 +284,7 @@ aetheris analysis
 
 | Version | Status | Highlights |
 |:--------|:------:|:-----------|
-| **v2.8** | Planned | Headless mode for CI/CD automation |
+| **v2.8** | ✅ Done | Headless mode for CI/CD automation |
 | **v3.0** | Planned | Persistent config (JSON), security profiles |
 | **v3.1** | Planned | Enhanced security & Git strategy |
 | **v3.2** | Planned | CI/CD templates (GitHub Actions, GitLab CI) |

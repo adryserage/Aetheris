@@ -1,7 +1,7 @@
 # Tasks: Agent Selection & Targeted Fix
 
 **Input**: Design documents from `/specs/009-agent-selection/`
-**Target Version**: v3.0.2
+**Target Version**: v2.11
 **Estimated LOC**: ~400-500
 
 ---

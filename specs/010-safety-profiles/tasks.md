@@ -2,7 +2,7 @@
 
 **Input**: Design documents from `/specs/010-safety-profiles/`
 **Prerequisites**: plan.md ✓, spec.md ✓, research.md ✓, data-model.md ✓, quickstart.md ✓
-**Target Version**: v3.0.3
+**Target Version**: v2.12
 **Estimated LOC**: ~500-700 across 7 files
 
 ## Format: `[ID] [P?] [Story?] Description`
@@ -240,7 +240,7 @@ Developer C: T030-T037 (US3 Yolo Mode)
 2. ✅ Complete Phase 2: Foundational (T006-T009)
 3. ✅ Complete Phase 3: User Story 1 - Safe Mode (T010-T019)
 4. **STOP and VALIDATE**: Test `--profile safe` independently
-5. Deploy v3.0.3-alpha if ready
+5. Deploy v2.12-alpha if ready
 
 ### Full Release
 
@@ -249,7 +249,7 @@ Developer C: T030-T037 (US3 Yolo Mode)
 3. US2 (CI) → Test → CI/CD integration ready
 4. US3 (Yolo) → Test → Power user features ready
 5. US4 (Config) → Test → Team configuration ready
-6. Polish → Final testing → **Release v3.0.3**
+6. Polish → Final testing → **Release v2.12**
 
 ---
 

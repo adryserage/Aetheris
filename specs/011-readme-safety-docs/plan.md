@@ -2,7 +2,7 @@
 
 **Branch**: `011-readme-safety-docs` | **Date**: 2026-01-07 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/specs/011-readme-safety-docs/spec.md`
-**Target Version**: v3.0.4
+**Target Version**: v2.12
 
 ## Summary
 
@@ -19,14 +19,14 @@ Add two new sections to README.md to improve user trust: "Safety & Execution Mod
 **Performance Goals**: N/A
 **Constraints**: Must fit README structure; maintain readability
 **Scale/Scope**: ~100-150 lines of markdown
-**Depends On**: v3.0.3 (Safety Profiles), v3.0 (Persistent Config)
+**Depends On**: v2.12.3 (Safety Profiles), v2.12 (Persistent Config)
 
 ## Configuration & Profile Integration
 
 The Safety documentation must reference:
 
-1. **Safety Profiles** (v3.0.3): `--profile safe|ci|yolo`
-2. **Config.json Settings** (v3.0): `safety.default_profile`, `safety.custom_allowlist`
+1. **Safety Profiles** (v2.12.3): `--profile safe|ci|yolo`
+2. **Config.json Settings** (v2.12): `safety.default_profile`, `safety.custom_allowlist`
 3. **Configuration Hierarchy**: CLI > config.json > defaults
 
 Document how users can:

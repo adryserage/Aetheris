@@ -7,6 +7,7 @@ Aetheris provides several CLI commands for code analysis and automation.
 | Command | Description | Documentation |
 |---------|-------------|---------------|
 | `aetheris analysis` | Full codebase analysis | [analysis.md](./analysis.md) |
+| `aetheris run` | Headless execution for CI/CD (v2.8) | [run.md](./run.md) |
 | `aetheris stats` | Statistics dashboard & ROI tracking | [stats.md](./stats.md) |
 | `aetheris fix` | Fix bugs with Claude Code | [fix.md](./fix.md) |
 | `aetheris pr` | Review GitHub Pull Requests | [pr-review.md](./pr-review.md) |
@@ -139,6 +140,46 @@ aetheris analysis
 |------|----------|
 | `en` | English (default) |
 | `fr` | Français |
+
+### Headless Mode (v2.8)
+```bash
+# Run task from JSON file
+aetheris run task.json
+
+# With CI profile (allows auto-fix)
+aetheris run task.json --profile ci
+
+# Dry run (validate only)
+aetheris run task.json --dry-run
+
+# Deterministic execution
+aetheris run task.json --seed 42 --no-timestamps
+
+# Output to file
+aetheris run task.json --output-file result.json
+```
+
+**Security Profiles:**
+| Profile | Auto-Fix | File Delete | Shell Commands |
+|---------|:--------:|:-----------:|:--------------:|
+| `safe` | No | No | No |
+| `ci` | Yes | No | No |
+| `dev` | Yes | Yes | Yes |
+| `unrestricted` | Yes | Yes | Yes |
+
+**Task File Example:**
+```json
+{
+  "version": "1.0",
+  "task": {
+    "type": "analysis",
+    "target": { "files": ["src/**/*.py"] },
+    "options": { "timeout": "30m", "profile": "ci" }
+  }
+}
+```
+
+See [run.md](./run.md) and [headless.md](../headless.md) for complete documentation.
 
 ## Next Steps
 
