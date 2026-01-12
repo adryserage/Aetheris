@@ -17,6 +17,56 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ### 📦 Dépendances
 
+## [2.12.0] - 2026-01-12
+
+### ✨ Nouvelles fonctionnalités
+
+- **Safety Profiles System** : Trois profils de sécurité pour contrôler les limites d'exécution
+  - `--profile safe` (défaut) : Réseau AI uniquement, limite de 500 lignes, 3 boucles de réparation max
+  - `--profile ci` : Mode CI/CD avec fail-fast, audit logging, pas de prompts interactifs
+  - `--profile yolo` : Accès réseau complet, limites étendues, nécessite confirmation explicite
+  - `--yes` / `-y` : Ignorer la confirmation yolo
+
+- **Command Allowlist** : Système de liste blanche pour le mode safe
+  - Patterns glob pour correspondance flexible des commandes
+  - Fichier `config/default_allowlist.json` avec commandes pré-approuvées
+  - Support pour additions utilisateur via config.json
+  - Blocage des commandes dangereuses (rm -rf, sudo, curl, etc.)
+
+- **Network Guard** : Contrôle d'accès réseau pour le mode safe
+  - Blocage des appels réseau auxiliaires (web search, etc.)
+  - Autorisation des connexions AI providers (Gemini, OpenAI, Claude)
+  - Autorisation des services essentiels (OSV, PyPI, npm)
+  - Contexte manager pour activation/désactivation propre
+
+- **Audit Logging** : Journalisation structurée pour le mode CI
+  - Format JSON Lines (`aetheris-audit.jsonl`)
+  - Événements: analysis_started, profile_applied, file_analyzed, etc.
+  - Session ID unique pour chaque exécution
+  - Détails des contraintes appliquées
+
+- **Profile Constraints** : Limites d'exécution par profil
+  - Limite de diff (lignes changées)
+  - Limite de boucles de réparation
+  - Fail-fast en mode CI (exit code non-zero)
+  - Tests obligatoires en mode safe
+
+### 🔧 Modifications
+
+- Nouveau module `src/core/profiles.py` avec ProfileType, ProfileConfig, DiffBoundary
+- Nouveau module `src/core/allowlist.py` avec AllowlistConfig, AllowlistGuard
+- Nouveau module `src/core/audit_log.py` avec AuditLogger, AuditEvent
+- Nouveau module `src/services/network_guard.py` avec NetworkGuard
+- Nouveau fichier `config/default_allowlist.json` avec patterns autorisés
+- Extension de `src/core/orchestrator.py` avec intégration des profils
+- Extension de `src/cli.py` avec options --profile et --yes
+- Extension de `src/core/__init__.py` avec exports des profils
+
+### 📝 Documentation
+
+- Section Safety Profiles ajoutée au README.md
+- Mise à jour du roadmap (v2.9-v2.12 marqués comme complétés)
+
 ## [2.11.0] - 2026-01-12
 
 ### ✨ Nouvelles fonctionnalités
@@ -1147,7 +1197,8 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Génération de rapports détaillés en Markdown
 - Configuration flexible via variables d'environnement
 
-[Unreleased]: https://github.com/adryserage/aetheris/compare/v2.11.0...HEAD
+[Unreleased]: https://github.com/adryserage/aetheris/compare/v2.12.0...HEAD
+[2.12.0]: https://github.com/adryserage/aetheris/compare/v2.11.0...v2.12.0
 [2.11.0]: https://github.com/adryserage/aetheris/compare/v2.10.0...v2.11.0
 [2.10.0]: https://github.com/adryserage/aetheris/compare/v2.9.0...v2.10.0
 [2.9.0]: https://github.com/adryserage/aetheris/compare/v2.8.0...v2.9.0

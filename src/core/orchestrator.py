@@ -4,6 +4,7 @@ Sépare la logique d'orchestration de la logique métier
 """
 
 import asyncio
+import sys
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -16,6 +17,14 @@ from src.core.logger import log_print
 from src.core.metrics import MetricsCollector
 from src.core.progress import ProgressManager
 from src.models.data_models import FileAnalysis
+
+# v2.12: Safety profiles imports
+from src.core.profiles import (
+    ProfileType,
+    ProfileConfig,
+    get_profile_config,
+)
+from src.core.audit_log import AuditLogger, AuditEvent, create_audit_logger
 
 
 class WorkflowStage(Enum):
@@ -58,6 +67,11 @@ class WorkflowContext:
     metadata: Dict[str, Any] = field(default_factory=dict)
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
+    # v2.12: Safety profile context
+    profile_type: Optional[ProfileType] = None
+    profile_config: Optional[ProfileConfig] = None
+    repair_loop_count: int = 0
+    total_lines_changed: int = 0
 
 
 @dataclass
@@ -81,6 +95,7 @@ class AnalysisOrchestrator:
         config: AnalysisConfig,
         progress_manager: Optional[ProgressManager] = None,
         metrics_collector: Optional[MetricsCollector] = None,
+        profile_type: Optional[ProfileType] = None,
     ):
         self.config = config
         self.progress_manager = progress_manager or ProgressManager(enabled=False)
@@ -92,6 +107,17 @@ class AnalysisOrchestrator:
 
         # Heartbeat monitor for long-running operations (v2.6.1)
         self.heartbeat_monitor = HeartbeatMonitor(interval_seconds=config.heartbeat_interval)
+
+        # v2.12: Safety profiles
+        self.profile_type = profile_type or ProfileType.SAFE
+        self.profile_config = get_profile_config(self.profile_type)
+        self.context.profile_type = self.profile_type
+        self.context.profile_config = self.profile_config
+
+        # v2.12: Audit logger for CI mode
+        self.audit_logger: Optional[AuditLogger] = None
+        if self.profile_config.audit_logging:
+            self.audit_logger = create_audit_logger(self.profile_type)
 
     def register_step(
         self,
@@ -274,10 +300,11 @@ class AnalysisOrchestrator:
                         break
 
     async def execute(self) -> WorkflowContext:
-        """Exécute le workflow complet avec timeout et heartbeat (v2.6.1)"""
+        """Exécute le workflow complet avec timeout et heartbeat (v2.6.1, v2.12 profiles)"""
         self.context.start_time = datetime.now()
         workflow_id = f"wf_{datetime.now().timestamp()}"
         self.context.metadata["workflow_id"] = workflow_id
+        self.context.metadata["profile"] = self.profile_type.value
 
         # Get timeout configuration
         timeout_config = self.config.timeout_config
@@ -294,6 +321,28 @@ class AnalysisOrchestrator:
         # Démarrer la session de métriques
         if self.metrics_collector:
             self.metrics_collector.start_session(workflow_id)
+
+        # v2.12: Log analysis start for CI audit
+        if self.audit_logger:
+            # Get enabled agents from config
+            agents = getattr(self.config, "enabled_agents", ["all"])
+            if isinstance(agents, str):
+                agents = [agents]
+            self.audit_logger.log_analysis_started(
+                root_dir=str(self.config.root_dir) if hasattr(self.config, "root_dir") else ".",
+                files_count=len(self.context.files),
+                agents=agents,
+            )
+            # Log profile constraints
+            self.audit_logger.log_profile_applied(
+                profile_name=self.profile_type.value,
+                constraints={
+                    "max_diff_lines": self.profile_config.max_diff_lines,
+                    "max_repair_loops": self.profile_config.max_repair_loops,
+                    "network_allowed": self.profile_config.network_allowed,
+                    "fail_fast": self.profile_config.fail_fast,
+                },
+            )
 
         # Start heartbeat monitor (v2.6.1)
         await self.heartbeat_monitor.start()
@@ -338,6 +387,17 @@ class AnalysisOrchestrator:
                     log_print(f"\n🎉 Workflow terminé avec succès en {duration:.2f}s")
                     log_print("📁 Les rapports ont été générés dans le dossier de sortie.")
 
+                    # v2.12: Log completion for CI audit
+                    if self.audit_logger:
+                        total_issues = sum(
+                            len(a.issues) for a in self.context.analyses if hasattr(a, "issues")
+                        )
+                        self.audit_logger.log_analysis_completed(
+                            total_files=len(self.context.analyses),
+                            total_issues=total_issues,
+                            duration_seconds=duration,
+                        )
+
             # Terminer la session de métriques
             if self.metrics_collector:
                 metrics_file = self.metrics_collector.end_session(self.context.metadata)
@@ -350,9 +410,26 @@ class AnalysisOrchestrator:
             self.context.end_time = datetime.now()
             log_print(f"❌ Erreur fatale dans le workflow: {e}")
 
+            # v2.12: Log failure for CI audit and handle fail-fast
+            if self.audit_logger:
+                self.audit_logger.log_analysis_failed(
+                    error=str(e),
+                    files_processed=len(self.context.analyses),
+                )
+
+            # v2.12: CI mode fail-fast
+            if self.profile_config.fail_fast:
+                self._handle_ci_failure(str(e))
+
         finally:
             # Stop heartbeat monitor (v2.6.1)
             await self.heartbeat_monitor.stop()
+
+            # v2.12: Flush audit log
+            if self.audit_logger:
+                self.audit_logger.flush()
+                if self.audit_logger.enabled:
+                    log_print(f"📋 Audit log: {self.audit_logger.get_log_path()}")
 
         return self.context
 
@@ -365,4 +442,81 @@ class AnalysisOrchestrator:
             "errors_count": len(self.context.errors),
             "start_time": self.context.start_time.isoformat() if self.context.start_time else None,
             "end_time": self.context.end_time.isoformat() if self.context.end_time else None,
+            "profile": self.profile_type.value if self.profile_type else None,
         }
+
+    # =========================================================================
+    # v2.12: Safety Profile Constraint Methods
+    # =========================================================================
+
+    def check_diff_limit(self, lines_changed: int) -> bool:
+        """
+        Check if diff size exceeds profile limit (v2.12)
+
+        Args:
+            lines_changed: Number of lines changed
+
+        Returns:
+            True if within limit, False if exceeded
+        """
+        max_diff = self.profile_config.max_diff_lines
+        if max_diff is None:
+            return True  # No limit (yolo mode)
+
+        self.context.total_lines_changed += lines_changed
+
+        if self.context.total_lines_changed > max_diff:
+            log_print(
+                f"🛡️  Diff limit exceeded: {self.context.total_lines_changed} lines "
+                f"(max: {max_diff} for {self.profile_type.value} profile)"
+            )
+            if self.audit_logger:
+                self.audit_logger.log_warn(
+                    AuditEvent.DIFF_EXCEEDED,
+                    lines_changed=lines_changed,
+                    total_lines=self.context.total_lines_changed,
+                    max_allowed=max_diff,
+                )
+            return False
+        return True
+
+    def check_repair_loop_limit(self) -> bool:
+        """
+        Check if repair loop count exceeds profile limit (v2.12)
+
+        Returns:
+            True if can continue, False if limit exceeded
+        """
+        max_loops = self.profile_config.max_repair_loops
+        self.context.repair_loop_count += 1
+
+        if self.context.repair_loop_count > max_loops:
+            log_print(
+                f"🛡️  Repair loop limit exceeded: {self.context.repair_loop_count} "
+                f"(max: {max_loops} for {self.profile_type.value} profile)"
+            )
+            if self.audit_logger:
+                self.audit_logger.log_warn(
+                    AuditEvent.REPAIR_LOOP,
+                    loop_count=self.context.repair_loop_count,
+                    max_allowed=max_loops,
+                )
+            return False
+        return True
+
+    def _handle_ci_failure(self, error_msg: str) -> None:
+        """
+        Handle failure in CI mode with fail-fast behavior (v2.12)
+
+        Args:
+            error_msg: Error message to log
+        """
+        if self.profile_config.fail_fast:
+            log_print(f"❌ CI mode fail-fast: {error_msg}")
+            if self.audit_logger:
+                self.audit_logger.log_analysis_failed(
+                    error=error_msg,
+                    files_processed=len(self.context.analyses),
+                )
+                self.audit_logger.flush()
+            sys.exit(1)

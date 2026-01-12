@@ -296,10 +296,12 @@ aetheris analysis
 | Version | Status | Highlights |
 |:--------|:------:|:-----------|
 | **v2.8** | ✅ Done | Headless mode for CI/CD automation |
-| **v3.0** | Planned | Persistent config (JSON), security profiles |
-| **v3.1** | Planned | Enhanced security & Git strategy |
-| **v3.2** | Planned | CI/CD templates (GitHub Actions, GitLab CI) |
-| **v4.0** | Planned | Multi-model support (Gemini, Claude, OpenRouter) |
+| **v2.9** | ✅ Done | Persistent config (config.json) |
+| **v2.10** | ✅ Done | 4 new agents (performance, API, type safety, data privacy) |
+| **v2.11** | ✅ Done | Agent selection (`--agents`, `--preset`, `--category`) |
+| **v2.12** | ✅ Done | Safety profiles (`--profile safe\|ci\|yolo`) |
+| **v2.13** | Planned | CI/CD templates (GitHub Actions, GitLab CI) |
+| **v3.0** | Planned | Multi-provider (Gemini, Claude, OpenRouter) |
 
 ---
 
@@ -318,6 +320,42 @@ aetheris analysis
 ---
 
 ## Important Safety Information
+
+<details>
+<summary><strong>Safety Profiles (v2.12)</strong></summary>
+
+Aetheris provides three safety profiles to control execution boundaries:
+
+| Profile | Network | Diff Limit | Repair Loops | Best For |
+|:--------|:-------:|:----------:|:------------:|:---------|
+| `safe` (default) | AI only | 500 lines | 3 | Local development |
+| `ci` | Full | 1000 lines | 5 | CI/CD automation |
+| `yolo` | Full | Unlimited | 10 | Power users |
+
+```bash
+# Safe mode (default) - recommended
+aetheris analysis --profile safe
+
+# CI mode - for automated pipelines
+aetheris analysis --profile ci
+
+# YOLO mode - requires confirmation
+aetheris analysis --profile yolo --yes
+```
+
+**Safe mode restrictions:**
+- Blocks auxiliary network calls (web search disabled)
+- Validates commands against allowlist
+- Limits diff size to 500 lines
+- Limits repair loops to 3 iterations
+
+**CI mode features:**
+- Fail-fast on errors (non-zero exit)
+- No interactive prompts
+- Audit logging to `aetheris-audit.jsonl`
+- Machine-readable output
+
+</details>
 
 <details>
 <summary><strong>Data Privacy Notice</strong></summary>

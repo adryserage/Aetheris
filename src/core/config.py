@@ -272,6 +272,11 @@ class AnalysisConfig:
     # Compliance frameworks for privacy analysis (gdpr, hipaa, pci_dss, ccpa)
     compliance_agents: List[str] = field(default_factory=list)
 
+    # === Safety Profile Options (v2.12) ===
+    # Configurable safety profiles: safe (default), ci, yolo
+    profile: str = "safe"  # Active safety profile
+    profile_acknowledged: bool = False  # Yolo profile acknowledgment flag
+
     # === User Story Analysis Options ===
     # Analyse des flux frontend ↔ backend et détection d'incohérences
 

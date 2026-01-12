@@ -183,6 +183,26 @@ Exemples:
         ),
     )
 
+    # v2.12: Safety profile options
+    analysis_parser.add_argument(
+        "--profile",
+        type=str,
+        default=None,
+        choices=["safe", "ci", "yolo"],
+        help=(
+            "Safety profile to use. Options: safe (default, maximum guardrails), "
+            "ci (non-interactive, fail-fast), yolo (extended limits, requires confirmation). "
+            "Default: auto-detect (CI env → ci, otherwise → safe)"
+        ),
+    )
+
+    analysis_parser.add_argument(
+        "--yes",
+        "-y",
+        action="store_true",
+        help="Skip confirmation prompts (required for --profile yolo in non-interactive mode)",
+    )
+
     return analysis_parser
 
 
@@ -439,6 +459,58 @@ async def run_analysis(args):
         if enabled_agents and enabled_agents != ["all"]:
             log_print(t("cli.analysis.selected_agents", agents=", ".join(enabled_agents)))
 
+    # v2.12: Safety profile handling
+    from src.core.profiles import (
+        ProfileType,
+        get_default_profile,
+        get_profile_config,
+        is_ci_environment,
+        is_interactive_terminal,
+    )
+
+    profile_arg = getattr(args, "profile", None)
+    yes_flag = getattr(args, "yes", False)
+
+    # Determine profile: explicit flag > auto-detect
+    if profile_arg:
+        profile_type = ProfileType.from_string(profile_arg)
+    else:
+        profile_type = get_default_profile()
+
+    profile_config = get_profile_config(profile_type)
+
+    # Display active profile
+    profile_emoji = {"safe": "🛡️", "ci": "🔧", "yolo": "⚡"}
+    emoji = profile_emoji.get(profile_type.value, "")
+    log_print(f"{emoji} Profile: {profile_type.value.upper()}")
+
+    # Handle yolo profile confirmation
+    if profile_type == ProfileType.YOLO and profile_config.require_acknowledgment:
+        if not yes_flag and is_interactive_terminal():
+            console = Console()
+            console.print()
+            console.print("[bold red]⚠️  YOLO MODE WARNING[/bold red]")
+            console.print("This profile removes safety guardrails:")
+            console.print("  • No diff size limits")
+            console.print("  • Extended repair loops (10 iterations)")
+            console.print("  • Tests are optional")
+            console.print()
+            if not Confirm.ask("[yellow]Proceed with YOLO mode?[/yellow]", default=False):
+                log_print("❌ Analysis cancelled.")
+                sys.exit(0)
+        elif not yes_flag and not is_interactive_terminal():
+            log_print("❌ YOLO profile requires --yes flag in non-interactive mode.")
+            sys.exit(1)
+
+    # Warn if yolo in CI
+    if profile_type == ProfileType.YOLO and is_ci_environment():
+        log_print("⚠️  Warning: YOLO profile used in CI environment. Proceed with caution.")
+
+    # Apply profile constraints to config
+    profile_acknowledged = (
+        profile_type == ProfileType.YOLO and (yes_flag or not profile_config.require_acknowledgment)
+    )
+
     config = AnalysisConfig(
         ai_provider=ai_provider,
         ai_api_key=ai_api_key,
@@ -449,7 +521,6 @@ async def run_analysis(args):
         output_dir=os.getenv("OUTPUT_DIR", "docs/analyses"),
         architecture_report_path=os.getenv("ARCHITECTURE_REPORT", "docs/architecture_overview.md"),
         root_dir=os.getenv("ROOT_DIR", "."),
-        enable_web_search=os.getenv("ENABLE_WEB_SEARCH", "true").lower() == "true",
         max_web_results=int(os.getenv("MAX_WEB_RESULTS", "3")),
         enable_security_analysis=os.getenv("ENABLE_SECURITY_ANALYSIS", "true").lower() == "true",
         enable_metrics_analysis=os.getenv("ENABLE_METRICS_ANALYSIS", "true").lower() == "true",
@@ -480,6 +551,13 @@ async def run_analysis(args):
         enable_performance_analysis="performance" not in skip_agents and ("all" in enabled_agents or "performance" in enabled_agents),
         enable_api_contract_analysis="api-contract" not in skip_agents and ("all" in enabled_agents or "api-contract" in enabled_agents),
         enable_privacy_analysis="privacy" not in skip_agents and ("all" in enabled_agents or "privacy" in enabled_agents),
+        # Safety Profile (v2.12)
+        profile=profile_type.value,
+        profile_acknowledged=profile_acknowledged,
+        # Apply profile constraints to web search (safe mode blocks auxiliary network)
+        enable_web_search=(
+            os.getenv("ENABLE_WEB_SEARCH", "true").lower() == "true" and profile_config.network_allowed
+        ) if profile_type == ProfileType.SAFE else os.getenv("ENABLE_WEB_SEARCH", "true").lower() == "true",
     )
 
     log_print(t("cli.analysis.root_dir", path=config.root_dir))

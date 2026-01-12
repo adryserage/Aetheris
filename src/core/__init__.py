@@ -42,6 +42,18 @@ from src.core.fix_categories import (
     list_categories,
 )
 
+# v2.12: Safety profiles exports
+from src.core.profiles import (
+    ProfileType,
+    ProfileConfig,
+    DiffBoundary,
+    get_profile_config,
+    get_default_profile,
+    is_ci_environment,
+    is_interactive_terminal,
+    PROFILE_CONFIGS,
+)
+
 __all__ = [
     # Config file
     "ConfigFile",
@@ -75,4 +87,13 @@ __all__ = [
     "FixCategory",
     "CATEGORY_MAPPINGS",
     "list_categories",
+    # Safety profiles (v2.12)
+    "ProfileType",
+    "ProfileConfig",
+    "DiffBoundary",
+    "get_profile_config",
+    "get_default_profile",
+    "is_ci_environment",
+    "is_interactive_terminal",
+    "PROFILE_CONFIGS",
 ]
