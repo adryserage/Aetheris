@@ -1872,6 +1872,160 @@ def run_stats(args):
         service.format_dashboard(args.period)
 
 
+def setup_config_parser(subparsers):
+    """Configure le parser pour la sous-commande config (v2.6.5)"""
+    config_parser = subparsers.add_parser(
+        "config",
+        help="View and modify Aetheris configuration",
+        description="Get or set configuration values for statistics and ROI parameters",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # View all ROI parameters
+  aetheris config stats
+
+  # Get a specific parameter
+  aetheris config stats.hourly_rate
+
+  # Set a parameter
+  aetheris config stats.hourly_rate 100
+
+  # Set incident cost
+  aetheris config stats.incident_cost 10000
+
+Available stats parameters:
+  stats.hourly_rate       Developer hourly rate in USD (default: 75)
+  stats.incident_cost     Cost per production incident (default: 5000)
+  stats.time_per_critical Hours to fix critical issue (default: 4)
+  stats.time_per_high     Hours to fix high severity (default: 2)
+  stats.time_per_medium   Hours to fix medium severity (default: 1)
+  stats.time_per_low      Hours to fix low severity (default: 0.5)
+        """,
+    )
+
+    config_parser.add_argument(
+        "key",
+        type=str,
+        nargs="?",
+        default=None,
+        help="Configuration key to get or set (e.g., stats.hourly_rate)",
+    )
+
+    config_parser.add_argument(
+        "value",
+        type=str,
+        nargs="?",
+        default=None,
+        help="New value to set (omit to get current value)",
+    )
+
+    config_parser.add_argument(
+        "--project",
+        type=str,
+        default=".",
+        help="Project directory (default: current)",
+    )
+
+    config_parser.add_argument(
+        "--global",
+        dest="use_global",
+        action="store_true",
+        help="Use global config instead of project-local",
+    )
+
+    return config_parser
+
+
+def run_config(args):
+    """Execute the config command"""
+    from pathlib import Path
+
+    from rich.console import Console
+    from rich.table import Table
+
+    from src.services.statistics_service import StatisticsService
+
+    console = Console()
+    project_path = Path(args.project).resolve()
+
+    service = StatisticsService(
+        project_path=project_path,
+        use_global=args.use_global,
+    )
+
+    key = args.key
+    value = args.value
+
+    # Show all stats config
+    if key is None or key == "stats":
+        params = service.get_roi_parameters()
+
+        table = Table(title="ROI Configuration", show_header=True, header_style="bold")
+        table.add_column("Parameter", style="cyan")
+        table.add_column("Value", justify="right")
+        table.add_column("Description")
+
+        table.add_row("stats.hourly_rate", f"${params.hourly_rate:.2f}", "Developer hourly rate")
+        table.add_row(
+            "stats.incident_cost", f"${params.incident_cost:.2f}", "Cost per production incident"
+        )
+        table.add_row(
+            "stats.time_per_critical", f"{params.time_per_critical:.1f}h", "Hours for critical fix"
+        )
+        table.add_row("stats.time_per_high", f"{params.time_per_high:.1f}h", "Hours for high fix")
+        table.add_row(
+            "stats.time_per_medium", f"{params.time_per_medium:.1f}h", "Hours for medium fix"
+        )
+        table.add_row("stats.time_per_low", f"{params.time_per_low:.1f}h", "Hours for low fix")
+
+        console.print(table)
+        return
+
+    # Handle stats.* keys
+    if not key.startswith("stats."):
+        console.print(f"[red]Unknown config key: {key}[/red]")
+        console.print("Use 'aetheris config stats' to see available keys")
+        sys.exit(1)
+
+    param_name = key.replace("stats.", "")
+    valid_params = [
+        "hourly_rate",
+        "incident_cost",
+        "time_per_critical",
+        "time_per_high",
+        "time_per_medium",
+        "time_per_low",
+    ]
+
+    if param_name not in valid_params:
+        console.print(f"[red]Unknown stats parameter: {param_name}[/red]")
+        console.print(f"Valid parameters: {', '.join(valid_params)}")
+        sys.exit(1)
+
+    # Get value
+    if value is None:
+        params = service.get_roi_parameters()
+        current_value = getattr(params, param_name)
+        console.print(f"{key} = {current_value}")
+        return
+
+    # Set value
+    try:
+        float_value = float(value)
+        if float_value < 0:
+            console.print("[red]Value must be non-negative[/red]")
+            sys.exit(1)
+
+        service.set_roi_parameter(param_name, float_value)
+        console.print(f"[green]Updated {key} = {float_value}[/green]")
+    except ValueError:
+        console.print(f"[red]Invalid value: {value}. Must be a number.[/red]")
+        sys.exit(1)
+    except OSError as e:
+        console.print(f"[red]Cannot save config: {e}[/red]")
+        sys.exit(2)
+
+
 def setup_run_parser(subparsers):
     """Configure le parser pour la sous-commande run (headless mode)"""
     run_parser = subparsers.add_parser(
@@ -2097,6 +2251,9 @@ Exemples:
     # Ajouter la sous-commande stats (v2.6.5)
     setup_stats_parser(subparsers)
 
+    # Ajouter la sous-commande config (v2.6.5)
+    setup_config_parser(subparsers)
+
     # Ajouter la sous-commande run (v2.8 - headless mode)
     setup_run_parser(subparsers)
 
@@ -2161,6 +2318,8 @@ def main():
         run_validate_package(args)
     elif args.command == "stats":
         run_stats(args)
+    elif args.command == "config":
+        run_config(args)
     elif args.command == "run":
         run_headless(args)
     else:
