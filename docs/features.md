@@ -63,6 +63,53 @@ ENABLE_BATCH_MODE=true
 - CVE identification
 - Fixed version recommendations
 
+### Extended Analysis Agents (v2.10)
+
+Four additional specialized agents for deep analysis:
+
+#### Type Safety Agent
+```bash
+aetheris analysis --agents type_safety
+```
+- Detects `any` usage in TypeScript/Python
+- Finds unsafe type casts (`as any`, `# type: ignore`)
+- Identifies `@ts-ignore`, `@ts-nocheck` directives
+- Checks for null safety issues
+
+#### Performance Analysis Agent
+```bash
+aetheris analysis --agents performance
+```
+- Detects O(n²) complexity (nested loops)
+- Finds N+1 query patterns in database code
+- Identifies memory leaks (unclosed resources)
+- Detects blocking operations in async context
+
+#### API Contract Agent
+```bash
+aetheris analysis --agents api_contract
+```
+- HTTP method violations (GET with body)
+- REST naming issues (verbs in URLs)
+- Breaking API changes detection
+- Undocumented endpoint warnings
+
+#### Data Privacy Agent
+```bash
+aetheris analysis --agents data_privacy --compliance gdpr,hipaa
+```
+- PII logging detection (email, phone, SSN)
+- Missing encryption warnings
+- Insecure storage patterns
+- Compliance framework checks:
+
+| Framework | Focus Areas |
+|-----------|-------------|
+| GDPR | Email, name, phone, address, IP |
+| HIPAA | SSN, medical records, health data |
+| PCI-DSS | Credit cards, CVV, cardholder data |
+| CCPA | Email, name, financial data |
+
 ### Incremental Analysis
 - Transitive dependencies analysis
 - Configurable depth (default: 2)

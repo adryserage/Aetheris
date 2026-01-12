@@ -141,6 +141,47 @@ aetheris analysis
 | `en` | English (default) |
 | `fr` | Français |
 
+### Agent Selection (v2.10)
+```bash
+# Run specific agents only
+aetheris analysis --agents security,performance,type_safety
+
+# Skip specific agents
+aetheris analysis --skip-agents metrics,architecture
+
+# Run all agents (default)
+aetheris analysis --agents all
+
+# Enable compliance frameworks for privacy analysis
+aetheris analysis --compliance gdpr,hipaa
+
+# Combine agent selection with compliance
+aetheris analysis --agents data_privacy --compliance gdpr,pci_dss
+```
+
+**Available Agents:**
+
+| Agent | Abbreviation | Description |
+|-------|--------------|-------------|
+| `code_analysis` | CAE | Individual file analysis |
+| `architecture` | AAA | Architecture overview |
+| `security` | SSA | Vulnerability detection |
+| `metrics` | CMA | Code metrics and complexity |
+| `vulnerability` | DVA | CVE scanning |
+| `qa` | QAA | Final synthesis |
+| `type_safety` | TSA | Type safety issues (v2.10) |
+| `performance` | PAA | Performance anti-patterns (v2.10) |
+| `api_contract` | ACA | REST API violations (v2.10) |
+| `data_privacy` | DPA | PII and compliance (v2.10) |
+
+**Compliance Frameworks:**
+| Framework | Description |
+|-----------|-------------|
+| `gdpr` | EU General Data Protection Regulation |
+| `hipaa` | US Health Insurance Portability Act |
+| `pci_dss` | Payment Card Industry Data Security Standard |
+| `ccpa` | California Consumer Privacy Act |
+
 ### Headless Mode (v2.8)
 ```bash
 # Run task from JSON file

@@ -124,6 +124,16 @@ jobs:
           aetheris analysis --changed-files-only \
             --files '${{ steps.files.outputs.all }}'
 
+      # v2.10: Run with specific agents
+      - name: Run Security-Focused Analysis
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          aetheris analysis --changed-files-only \
+            --files '${{ steps.files.outputs.all }}' \
+            --agents security,type_safety,data_privacy \
+            --compliance gdpr,pci_dss
+
       - name: Upload Reports
         uses: actions/upload-artifact@v4
         with:

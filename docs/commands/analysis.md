@@ -17,6 +17,9 @@ aetheris analysis [options]
 | `--pr-number NUM` | | PR number (optional, for information) |
 | `--timeout DURATION` | | **(v2.6.1)** Set analysis timeout. Formats: `30m`, `2h`, `90s`, or `0` for unlimited |
 | `--reanalyze` | `-r` | **(v2.6.1)** Only analyze files changed since the last analysis. Auto-detects via git or timestamps |
+| `--agents AGENTS` | | **(v2.10)** Comma-separated list of agents to run. Use `all` for all agents (default) |
+| `--skip-agents AGENTS` | | **(v2.10)** Comma-separated list of agents to skip |
+| `--compliance FRAMEWORKS` | | **(v2.10)** Compliance frameworks for privacy analysis: `gdpr`, `hipaa`, `pci_dss`, `ccpa` |
 
 ### `--files` Format
 
@@ -127,6 +130,62 @@ aetheris analysis --changed-files-only --files src/file1.py --pr-number 123
 | Requires previous analysis | ✅ Yes | ❌ No |
 | Preserves old findings | ✅ Yes | ❌ No |
 
+## Agent Selection (v2.10)
+
+Control which agents run during analysis:
+
+```bash
+# Run specific agents only
+aetheris analysis --agents security,performance,type_safety
+
+# Skip specific agents
+aetheris analysis --skip-agents metrics,architecture
+
+# Run all agents (default)
+aetheris analysis --agents all
+
+# Enable compliance frameworks for privacy analysis
+aetheris analysis --compliance gdpr,hipaa
+
+# Combine agent selection with compliance
+aetheris analysis --agents data_privacy --compliance gdpr,pci_dss
+```
+
+### Available Agents
+
+| Agent | Abbreviation | Description |
+|-------|--------------|-------------|
+| `code_analysis` | CAE | Individual file analysis |
+| `architecture` | AAA | Architecture overview |
+| `security` | SSA | Vulnerability detection |
+| `metrics` | CMA | Code metrics and complexity |
+| `vulnerability` | DVA | CVE scanning |
+| `qa` | QAA | Final synthesis |
+| `type_safety` | TSA | Type safety issues (v2.10) |
+| `performance` | PAA | Performance anti-patterns (v2.10) |
+| `api_contract` | ACA | REST API violations (v2.10) |
+| `data_privacy` | DPA | PII and compliance (v2.10) |
+
+### Extended Agents (v2.10)
+
+Four new specialized agents for deep analysis:
+
+- **Type Safety (TSA)**: Detects `any` usage, unsafe casts, type ignores, null safety issues
+- **Performance (PAA)**: Detects O(n²) complexity, N+1 queries, memory leaks, blocking async
+- **API Contract (ACA)**: HTTP method violations, REST naming issues, breaking changes
+- **Data Privacy (DPA)**: PII logging, missing encryption, compliance violations
+
+### Compliance Frameworks
+
+Available frameworks for the Data Privacy Agent:
+
+| Framework | Focus Areas |
+|-----------|-------------|
+| `gdpr` | Email, name, phone, address, IP address |
+| `hipaa` | SSN, medical records, health data |
+| `pci_dss` | Credit cards, CVV, cardholder data |
+| `ccpa` | Email, name, financial data |
+
 ## What Gets Analyzed
 
 The analysis includes:
@@ -136,6 +195,10 @@ The analysis includes:
 3. **Architecture** - Module structure, dependencies, cohesion
 4. **Metrics** - Complexity, duplication, nesting depth
 5. **Dependencies** - CVE scanning via OSV API
+6. **Type Safety** - (v2.10) `any` usage, unsafe casts, type ignores
+7. **Performance** - (v2.10) O(n²), N+1 queries, memory leaks
+8. **API Contracts** - (v2.10) REST violations, breaking changes
+9. **Data Privacy** - (v2.10) PII logging, compliance violations
 
 ## Output
 
