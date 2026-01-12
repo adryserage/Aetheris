@@ -6,7 +6,7 @@ performance anti-patterns in code.
 """
 
 import re
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from src.agents.base_agent import BaseAgent
 from src.core.config import AnalysisConfig
@@ -126,10 +126,10 @@ class PerformanceAnalysisAgent(BaseAgent):
 
     def _detect_multiline_patterns(self, content: str, lines: List[str]) -> List[PerformanceIssue]:
         """Detect patterns that span multiple lines"""
-        issues = []
+        issues: List[PerformanceIssue] = []
 
         # Detect nested loops by tracking indentation
-        loop_stack = []
+        loop_stack: List[Dict[str, Any]] = []
         for i, line in enumerate(lines, 1):
             stripped = line.strip()
             indent = len(line) - len(line.lstrip())

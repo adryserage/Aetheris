@@ -221,7 +221,7 @@ class APIContractAgent(BaseAgent):
         self, file_path: str, content: str, language: Optional[str] = None
     ) -> List[APIContractViolation]:
         """Analyze a file for API contract violations"""
-        issues = []
+        issues: List[APIContractViolation] = []
 
         # Detect language if not provided
         if not language:

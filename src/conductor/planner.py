@@ -10,7 +10,6 @@ from typing import Any, Dict, List, Optional
 
 from src.skills.base_skill import SkillCall
 
-
 MAX_PLAN_STEPS = 20
 PLANNING_PROMPT_TEMPLATE = """You are a task planning assistant. Given a user request, create an execution plan using the available skills.
 

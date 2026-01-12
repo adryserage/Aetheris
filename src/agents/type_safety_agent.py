@@ -105,7 +105,7 @@ class TypeSafetyAgent(BaseAgent):
         self, content: str, file_path: str, language: str
     ) -> List[TypeSafetyIssue]:
         """Detect type safety issues via patterns"""
-        issues = []
+        issues: List[TypeSafetyIssue] = []
 
         if language not in self.patterns:
             return issues
@@ -178,7 +178,7 @@ class TypeSafetyAgent(BaseAgent):
         self, file_path: str, content: str, language: Optional[str] = None
     ) -> List[TypeSafetyIssue]:
         """Analyze a file for type safety issues"""
-        issues = []
+        issues: List[TypeSafetyIssue] = []
 
         # Detect language if not provided
         if not language:

@@ -8,13 +8,13 @@ Provides an interactive REPL interface with:
 - Conductor orchestration
 """
 
-from src.cli_interactive.interactive import InteractiveSession
+from src.cli_interactive.autocomplete import CommandCompleter
 from src.cli_interactive.command_registry import (
     Command,
     CommandArgument,
     CommandRegistry,
 )
-from src.cli_interactive.autocomplete import CommandCompleter
+from src.cli_interactive.interactive import InteractiveSession
 
 __all__ = [
     "InteractiveSession",

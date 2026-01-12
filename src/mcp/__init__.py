@@ -6,7 +6,7 @@ MCP is optional - if not available, Aetheris will work without it.
 """
 
 from src.mcp.client import MCPClient, MCPConnectionError
-from src.mcp.discovery import MCPDiscovery, MCPTool, MCPResource
+from src.mcp.discovery import MCPDiscovery, MCPResource, MCPTool
 from src.mcp.skill_bridge import MCPToolBridge
 
 __all__ = [

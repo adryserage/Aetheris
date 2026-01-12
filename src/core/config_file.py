@@ -373,7 +373,7 @@ def warn_unknown_keys(config: Dict[str, Any], known_keys: Optional[List[str]] = 
                 warnings.append(
                     t(
                         "config.unknown_key",
-                        key=full_key,
+                        config_key=full_key,
                         fallback=f"⚠️  Unknown config key: '{full_key}'. Possible typo?",
                     )
                 )

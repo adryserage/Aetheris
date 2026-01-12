@@ -10,21 +10,21 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
+from src.core.audit_log import AuditEvent, AuditLogger, create_audit_logger
 from src.core.config import AnalysisConfig
 from src.core.error_handler import classify_error, exponential_backoff
 from src.core.heartbeat import HeartbeatMonitor
 from src.core.logger import log_print
 from src.core.metrics import MetricsCollector
-from src.core.progress import ProgressManager
-from src.models.data_models import FileAnalysis
 
 # v2.12: Safety profiles imports
 from src.core.profiles import (
-    ProfileType,
     ProfileConfig,
+    ProfileType,
     get_profile_config,
 )
-from src.core.audit_log import AuditLogger, AuditEvent, create_audit_logger
+from src.core.progress import ProgressManager
+from src.models.data_models import FileAnalysis
 
 
 class WorkflowStage(Enum):

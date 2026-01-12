@@ -105,12 +105,12 @@ class DataPrivacyAgent(BaseAgent):
         self, pii_type: str, configured_frameworks: List[str]
     ) -> List[str]:
         """Get compliance frameworks that apply to this PII type"""
-        applicable = []
+        applicable: List[str] = []
         for framework_id, framework in self.COMPLIANCE_FRAMEWORKS.items():
             if configured_frameworks and framework_id not in configured_frameworks:
                 continue
             if pii_type in framework["pii_types"]:
-                applicable.append(framework["name"])
+                applicable.append(str(framework["name"]))
         return applicable
 
     def _detect_pattern_issues(
@@ -268,7 +268,7 @@ class DataPrivacyAgent(BaseAgent):
         if self.config.enable_privacy_analysis and content.strip():
             try:
                 framework_names = ", ".join(
-                    self.COMPLIANCE_FRAMEWORKS[f]["name"]
+                    str(self.COMPLIANCE_FRAMEWORKS[f]["name"])
                     for f in frameworks
                     if f in self.COMPLIANCE_FRAMEWORKS
                 )

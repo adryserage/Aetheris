@@ -228,7 +228,7 @@ def validate_no_secrets(config_dict: Dict[str, Any], path: str = "") -> List[str
                 warnings.append(
                     t(
                         "config.secret_detected",
-                        key=current_path,
+                        config_key=current_path,
                         fallback=f"⚠️  Secret detected in config.json: '{current_path}'. "
                         f"Move to .env file for security.",
                     )
