@@ -109,7 +109,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -e .
-          pip install mypy types-requests
+          pip install mypy types-requests types-PyYAML
 
       - name: Run mypy
         run: mypy src/ --ignore-missing-imports --no-error-summary
