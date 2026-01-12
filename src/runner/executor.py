@@ -260,7 +260,7 @@ class TaskRunner:
                 if self._task_file_path is None:
                     return ExecutionResult.create_error(
                         duration_ms=0,
-                        error=ErrorInfo(
+                        error_info=ErrorInfo(
                             type="configuration_error",
                             message="No task file provided",
                         ),
@@ -271,7 +271,7 @@ class TaskRunner:
                 except TaskFileValidationError as e:
                     return ExecutionResult.create_error(
                         duration_ms=int((time.time() - start_time) * 1000),
-                        error=ErrorInfo(
+                        error_info=ErrorInfo(
                             type=e.error_type,
                             message=str(e),
                             details=e.details,
@@ -395,7 +395,7 @@ class TaskRunner:
             duration_ms = int((time.time() - start_time) * 1000)
             return ExecutionResult.create_error(
                 duration_ms=duration_ms,
-                error=ErrorInfo(
+                error_info=ErrorInfo(
                     type=type(e).__name__,
                     message=str(e),
                     traceback=traceback.format_exc() if self._verbose else None,
@@ -450,7 +450,7 @@ class TaskRunner:
         else:
             return ExecutionResult.create_error(
                 duration_ms=self._context.elapsed_ms,
-                error=ErrorInfo(
+                error_info=ErrorInfo(
                     type="unsupported_task",
                     message=f"Unsupported task type: {task_type}",
                     details={
@@ -529,7 +529,7 @@ class TaskRunner:
             self._context.log(f"Analysis failed: {e}", "ERROR")
             return ExecutionResult.create_error(
                 duration_ms=self._context.elapsed_ms,
-                error=ErrorInfo(
+                error_info=ErrorInfo(
                     type="analysis_error",
                     message=str(e),
                     traceback=traceback.format_exc() if self._context.verbose else None,
@@ -595,7 +595,7 @@ class TaskRunner:
             self._context.log(f"Stats failed: {e}", "ERROR")
             return ExecutionResult.create_error(
                 duration_ms=self._context.elapsed_ms,
-                error=ErrorInfo(
+                error_info=ErrorInfo(
                     type="stats_error",
                     message=str(e),
                 ),
@@ -630,7 +630,11 @@ class TaskRunner:
                 duration_ms=self._context.elapsed_ms,
                 task=TaskInfo(type="cleanup"),
                 results=ResultsSummary(
-                    extra={"cleaned": result.__dict__ if hasattr(result, "__dict__") else {}} if result else {},
+                    extra=(
+                        {"cleaned": result.__dict__ if hasattr(result, "__dict__") else {}}
+                        if result
+                        else {}
+                    ),
                 ),
                 logs=self._context.logs,
                 version=self._get_version(),
@@ -640,7 +644,7 @@ class TaskRunner:
             self._context.log(f"Cleanup failed: {e}", "ERROR")
             return ExecutionResult.create_error(
                 duration_ms=self._context.elapsed_ms,
-                error=ErrorInfo(
+                error_info=ErrorInfo(
                     type="cleanup_error",
                     message=str(e),
                 ),
@@ -690,7 +694,7 @@ class TaskRunner:
             self._context.log(f"Validation failed: {e}", "ERROR")
             return ExecutionResult.create_error(
                 duration_ms=self._context.elapsed_ms,
-                error=ErrorInfo(
+                error_info=ErrorInfo(
                     type="validation_error",
                     message=str(e),
                 ),
