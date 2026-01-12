@@ -258,7 +258,7 @@ class TaskRunner:
             # Parse task file if needed
             if self._task_file is None:
                 if self._task_file_path is None:
-                    return ExecutionResult.error(
+                    return ExecutionResult.create_error(
                         duration_ms=0,
                         error=ErrorInfo(
                             type="configuration_error",
@@ -269,7 +269,7 @@ class TaskRunner:
                     parser = TaskFileParser()
                     self._task_file = parser.parse(self._task_file_path)
                 except TaskFileValidationError as e:
-                    return ExecutionResult.error(
+                    return ExecutionResult.create_error(
                         duration_ms=int((time.time() - start_time) * 1000),
                         error=ErrorInfo(
                             type=e.error_type,
@@ -393,7 +393,7 @@ class TaskRunner:
 
         except Exception as e:
             duration_ms = int((time.time() - start_time) * 1000)
-            return ExecutionResult.error(
+            return ExecutionResult.create_error(
                 duration_ms=duration_ms,
                 error=ErrorInfo(
                     type=type(e).__name__,
@@ -424,12 +424,15 @@ class TaskRunner:
 
         This is where we dispatch to the appropriate Aetheris command.
         """
+        assert self._task_file is not None
+        assert self._context is not None
+
         task_type = self._task_file.task.type
         self._context.log(f"Executing task type: {task_type}")
 
         # Import here to avoid circular imports
         from src.core.analyzer import CodeAnalyzer
-        from src.core.config import AnalysisConfig, load_env_file
+        from src.core.config import AnalysisConfig, TimeoutConfig, load_env_file
 
         # Load environment
         load_env_file()
@@ -445,7 +448,7 @@ class TaskRunner:
         elif task_type == "validate-package":
             return await self._execute_validate_package()
         else:
-            return ExecutionResult.error(
+            return ExecutionResult.create_error(
                 duration_ms=self._context.elapsed_ms,
                 error=ErrorInfo(
                     type="unsupported_task",
@@ -464,23 +467,28 @@ class TaskRunner:
         from src.core.analyzer import CodeAnalyzer
         from src.core.config import AnalysisConfig, TimeoutConfig
 
+        assert self._task_file is not None
+        assert self._context is not None
+
         self._context.log("Initializing CodeAnalyzer...")
 
         # Build config from task options
         target = self._task_file.task.target
         options = self._task_file.task.options
 
-        # Parse timeout
+        # Parse timeout - TimeoutConfig expects (value, enabled)
         timeout_config = None
         if self._context.timeout_seconds:
-            timeout_config = TimeoutConfig(timeout_seconds=int(self._context.timeout_seconds))
+            timeout_config = TimeoutConfig(
+                value=int(self._context.timeout_seconds),
+                enabled=True,
+            )
 
         config = AnalysisConfig(
-            changed_files_only=target.changed_only,
-            specific_files=target.files if target.files else None,
+            analyze_changed_files_only=target.changed_only,
+            changed_files=target.files if target.files else [],
             pr_number=None,
             timeout_config=timeout_config,
-            reanalyze=target.changed_only,
         )
 
         try:
@@ -488,7 +496,7 @@ class TaskRunner:
             self._context.log("Starting analysis...")
 
             # Run analysis
-            await analyzer.analyze()
+            await analyzer.run()
 
             self._context.log("Analysis completed successfully")
 
@@ -519,7 +527,7 @@ class TaskRunner:
 
         except Exception as e:
             self._context.log(f"Analysis failed: {e}", "ERROR")
-            return ExecutionResult.error(
+            return ExecutionResult.create_error(
                 duration_ms=self._context.elapsed_ms,
                 error=ErrorInfo(
                     type="analysis_error",
@@ -533,6 +541,9 @@ class TaskRunner:
 
     async def _execute_fix(self) -> ExecutionResult:
         """Execute fix task."""
+        assert self._task_file is not None
+        assert self._context is not None
+
         # Check if auto-fix is allowed
         if not self._context.profile.allow_auto_fix:
             self._context.block_operation(
@@ -560,17 +571,21 @@ class TaskRunner:
         """Execute stats task."""
         from src.services.statistics_service import StatisticsService
 
+        assert self._task_file is not None
+        assert self._context is not None
+
         self._context.log("Generating statistics...")
 
         try:
             stats_service = StatisticsService()
-            stats = stats_service.get_statistics()
+            # aggregate_statistics returns (ProjectAggregation | None, ProjectAggregation | None, dict)
+            stats = stats_service.aggregate_statistics()
 
             return ExecutionResult.success(
                 duration_ms=self._context.elapsed_ms,
                 task=TaskInfo(type="stats"),
                 results=ResultsSummary(
-                    extra={"statistics": stats} if stats else {},
+                    extra={"statistics": stats[0].__dict__ if stats[0] else {}} if stats else {},
                 ),
                 logs=self._context.logs,
                 version=self._get_version(),
@@ -578,7 +593,7 @@ class TaskRunner:
             )
         except Exception as e:
             self._context.log(f"Stats failed: {e}", "ERROR")
-            return ExecutionResult.error(
+            return ExecutionResult.create_error(
                 duration_ms=self._context.elapsed_ms,
                 error=ErrorInfo(
                     type="stats_error",
@@ -591,22 +606,31 @@ class TaskRunner:
 
     async def _execute_cleanup(self) -> ExecutionResult:
         """Execute cleanup task."""
+        from src.models.cleanup_models import CleanupConfig
         from src.services.cleanup_service import CleanupService
+
+        assert self._task_file is not None
+        assert self._context is not None
 
         self._context.log("Running cleanup...")
 
         try:
-            cleanup_service = CleanupService(
-                dry_run=self._context.dry_run,
-                verbose=self._context.verbose,
-            )
-            result = cleanup_service.cleanup()
+            # Create cleanup config with dry_run setting
+            cleanup_config = CleanupConfig(dry_run=self._context.dry_run)
+            cleanup_service = CleanupService(config=cleanup_config)
+
+            # Get target directory from task file or use current directory
+            target_dir = "."
+            if self._task_file.task.target and self._task_file.task.target.files:
+                target_dir = self._task_file.task.target.files[0]
+
+            result = cleanup_service.cleanup(target_dir)
 
             return ExecutionResult.success(
                 duration_ms=self._context.elapsed_ms,
                 task=TaskInfo(type="cleanup"),
                 results=ResultsSummary(
-                    extra={"cleaned": result} if result else {},
+                    extra={"cleaned": result.__dict__ if hasattr(result, "__dict__") else {}} if result else {},
                 ),
                 logs=self._context.logs,
                 version=self._get_version(),
@@ -614,7 +638,7 @@ class TaskRunner:
             )
         except Exception as e:
             self._context.log(f"Cleanup failed: {e}", "ERROR")
-            return ExecutionResult.error(
+            return ExecutionResult.create_error(
                 duration_ms=self._context.elapsed_ms,
                 error=ErrorInfo(
                     type="cleanup_error",
@@ -629,11 +653,19 @@ class TaskRunner:
         """Execute validate-package task."""
         from src.services.secret_scanner import SecretScanner
 
+        assert self._task_file is not None
+        assert self._context is not None
+
         self._context.log("Validating package...")
 
         try:
             scanner = SecretScanner()
-            findings = scanner.scan()
+            # scan_directory requires a directory path
+            target_dir = "."
+            if self._task_file.task.target and self._task_file.task.target.files:
+                target_dir = self._task_file.task.target.files[0]
+
+            findings = scanner.scan_directory(target_dir)
 
             has_issues = len(findings) > 0
 
@@ -656,7 +688,7 @@ class TaskRunner:
             )
         except Exception as e:
             self._context.log(f"Validation failed: {e}", "ERROR")
-            return ExecutionResult.error(
+            return ExecutionResult.create_error(
                 duration_ms=self._context.elapsed_ms,
                 error=ErrorInfo(
                     type="validation_error",

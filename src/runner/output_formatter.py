@@ -44,7 +44,7 @@ class ErrorInfo:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        result = {
+        result: Dict[str, Any] = {
             "type": self.type,
             "message": self.message,
         }
@@ -108,7 +108,7 @@ class ResultsSummary:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
-        result = {
+        result: Dict[str, Any] = {
             "issues_found": self.issues_found,
             "issues_fixed": self.issues_fixed,
             "critical": self.critical,
@@ -170,10 +170,10 @@ class ExecutionResult:
         )
 
     @classmethod
-    def error(
+    def create_error(
         cls,
         duration_ms: int,
-        error: ErrorInfo,
+        error_info: ErrorInfo,
         task: Optional[TaskInfo] = None,
         logs: Optional[List[str]] = None,
         **kwargs,
@@ -183,7 +183,7 @@ class ExecutionResult:
             status=ExecutionStatus.ERROR,
             exit_code=ExitCode.ERROR,
             duration_ms=duration_ms,
-            error=error,
+            error=error_info,
             task=task,
             logs=logs or [],
             **kwargs,
