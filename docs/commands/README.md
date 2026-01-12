@@ -2,6 +2,10 @@
 
 Aetheris provides several CLI commands for code analysis and automation.
 
+## Command Overview
+
+![Commands Overview](../assets/images/commands-overview.svg)
+
 ## Available Commands
 
 | Command | Description | Documentation |

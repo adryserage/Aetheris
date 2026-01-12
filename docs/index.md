@@ -2,7 +2,7 @@
 
 **AI Code Review That Actually Works**
 
-6 AI agents. Automated vulnerability detection. Minutes instead of hours.
+10 AI agents. Automated vulnerability detection. Minutes instead of hours.
 
 ## Quick Install
 
@@ -14,7 +14,7 @@ aetheris analysis
 
 ## What is Aetheris?
 
-Aetheris is a multi-agent AI code analysis system that coordinates 6 specialized agents to review your codebase for:
+Aetheris is a multi-agent AI code analysis system that coordinates **10 specialized AI agents** to review your codebase for:
 
 - **Security vulnerabilities** — SQL injection, XSS, hardcoded secrets, OWASP Top 10
 - **Architecture issues** — Circular dependencies, coupling problems, anti-patterns
@@ -28,8 +28,12 @@ Aetheris is a multi-agent AI code analysis system that coordinates 6 specialized
 |:-----------------|:---------:|
 | Thousands of noisy warnings | **Actionable insights only** |
 | Pattern matching (shallow) | **Context-aware AI (deep)** |
-| Security OR quality OR architecture | **All 6 agents working together** |
+| Security OR quality OR architecture | **All 10 agents working together** |
 | Suggestions you ignore | **Auto-fix that actually works** |
+
+## How It Works
+
+![Aetheris Workflow](./assets/images/workflow-diagram.svg)
 
 ## Get Started
 
