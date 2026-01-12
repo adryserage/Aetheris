@@ -2,6 +2,8 @@
 
 Aetheris supports three AI providers: Google Gemini, OpenAI, and Anthropic Claude.
 
+![AI Providers](./assets/images/ai-providers.svg)
+
 ## Configuration
 
 Set the provider in `.env`:

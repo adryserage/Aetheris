@@ -173,6 +173,8 @@ Options:
 
 ## Security Profiles
 
+![Security Profiles](./assets/images/security-profiles.svg)
+
 | Profile | Description | Auto-Fix | File Delete |
 |---------|-------------|----------|-------------|
 | `safe` | Most restrictive (default) | No | No |

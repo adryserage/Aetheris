@@ -2,6 +2,10 @@
 
 Aetheris uses **10 specialized AI agents** that work together to analyze your code.
 
+## Agent Architecture
+
+![Agent Architecture](./assets/images/agent-architecture.svg)
+
 ## Agent Overview
 
 ### Core Agents (6)
@@ -156,6 +160,8 @@ aetheris analysis --compliance gdpr,hipaa
 ## Data Security
 
 Before sending code to external AI providers, Aetheris applies **automatic sensitive data filtering** to protect secrets and intellectual property.
+
+![Data Security](./assets/images/data-security.svg)
 
 ### Pre-processing (Scrubbing)
 
