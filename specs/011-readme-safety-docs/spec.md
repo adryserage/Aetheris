@@ -3,7 +3,7 @@
 **Feature Branch**: `011-readme-safety-docs`
 **Created**: 2026-01-07
 **Status**: Draft
-**Target Version**: v3.0.4
+**Target Version**: v2.12
 **Input**: User description: "Add Safety & Execution Model section and Fix Guarantees section to README to improve user trust"
 
 ## User Scenarios & Testing *(mandatory)*

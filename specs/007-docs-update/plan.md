@@ -1,7 +1,7 @@
 # Implementation Plan: Documentation Update
 
 **Branch**: `007-docs-update` | **Date**: 2025-01-07 | **Spec**: [spec.md](./spec.md)
-**Target Version**: v2.6.0
+**Target Version**: v2.10
 
 ## Summary
 

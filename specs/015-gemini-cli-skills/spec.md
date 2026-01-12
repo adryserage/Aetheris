@@ -3,7 +3,7 @@
 **Feature Branch**: `015-gemini-cli-skills`
 **Created**: 2026-01-09
 **Status**: Draft
-**Target Version**: v4.0
+**Target Version**: v3.0
 **Depends On**: v3.0 (Persistent Config with Security Profiles), v3.1 (Headless Architecture)
 
 ## Overview

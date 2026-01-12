@@ -144,29 +144,25 @@ v2.7   019-i18n ✅                     Multi-language support (en, fr)
 v2.8   017-headless-deterministic ✅   Headless mode for CI/CD automation
 
 ═══════════════════════════════════════════════════════════════════════════════
-                         v3.0 - v3.2 CONFIG + SECURITY + CI/CD
+                         v2.9 - v2.13 CONFIG + AGENTS + CI/CD
 ═══════════════════════════════════════════════════════════════════════════════
-v3.0   006-persistent-config ─────────┐ Core: config.json + security profiles
+v2.9   006-persistent-config ─────────┐ Core: config.json + security profiles
                                       │
-v3.0.1 007-docs-update ◄──────────────┤ Uses config.json
-v3.0.1 008-extended-agents ◄──────────┤ Uses config.json (4 new agents)
-v3.0.2 009-agent-selection ◄──────────┤ Uses config.json (--agents flag)
-v3.0.3 010-safety-profiles ◄──────────┤ Uses config.json (safety settings)
-v3.0.4 011-readme-safety-docs ◄───────┘ References config.json
+v2.10  007-docs-update ◄──────────────┤ Uses config.json
+v2.10  008-extended-agents ◄──────────┤ Uses config.json (4 new agents)
+v2.11  009-agent-selection ◄──────────┤ Uses config.json (--agents flag)
+v2.12  010-safety-profiles ◄──────────┤ Uses config.json (safety settings)
+v2.12  011-readme-safety-docs ◄───────┘ References config.json
 
-v3.1   016-security-strategy ─────────  Sécurité Renforcée & Stratégie Git
-v3.2   005-cicd-template ─────────────  Intégration CI/CD (Templates)
+v2.13  005-cicd-template ─────────────  Intégration CI/CD (Templates)
 
 ═══════════════════════════════════════════════════════════════════════════════
-                      v4.0 MULTI-MODELS & ANALYSIS SKILLS (FINAL)
+                      v3.0 MULTI-PROVIDERS (BREAKING CHANGE)
 ═══════════════════════════════════════════════════════════════════════════════
-v4.0   015-gemini-cli-skills ─────────┐ Multi-providers: Gemini, Claude, OpenRouter
-                                      │
-v4.1   Analysis Skills ◄──────────────┘ security-context, complexity-hotspots,
-                                        dependency-graph (read-only analysis)
+v3.0   015-gemini-cli-skills ─────────  Multi-providers: Gemini, Claude, OpenRouter
 
 ───────────────────────────────────────────────────────────────────────────────
-  ⚠️  AETHERIS STOPS AT v4.x - No features planned beyond this version
+  ⚠️  AETHERIS STOPS AT v3.x - No features planned beyond this version
 ───────────────────────────────────────────────────────────────────────────────
 ```
 
@@ -190,15 +186,15 @@ Review downstream specs when:
 
 ### Example: Config.json Integration
 
-When 006-persistent-config introduced `config.json`, all post-v3.0 specs needed:
-- `Depends On: v3.0 (Persistent Config)` in plan.md
+When 006-persistent-config introduced `config.json`, all post-v2.9 specs needed:
+- `Depends On: v2.9 (Persistent Config)` in plan.md
 - Configuration Integration section showing JSON schema
 - Tasks for adding to ConfigSchema
 - Tasks for Settings UI tab (if applicable)
 
-## Configuration Hierarchy (v3.0+ - PLANNED)
+## Configuration Hierarchy (v2.9+ - PLANNED)
 
-> ⚠️ **NOT YET IMPLEMENTED** - This section describes planned features for v3.0+
+> ⚠️ **NOT YET IMPLEMENTED** - This section describes planned features for v2.9+
 
 **Priority Order** (highest to lowest):
 
@@ -262,9 +258,9 @@ When 006-persistent-config introduced `config.json`, all post-v3.0 specs needed:
 | `config/presets.json` | Built-in presets | ❌ Never |
 | `config/default_allowlist.json` | Safe mode command allowlist | ❌ Never |
 
-### Settings UI Tabs (v3.0+ - PLANNED)
+### Settings UI Tabs (v2.9+ - PLANNED)
 
-> ⚠️ **NOT YET IMPLEMENTED** - Planned for v3.0
+> ⚠️ **NOT YET IMPLEMENTED** - Planned for v2.9
 
 | Tab | Config Section | Features |
 |-----|----------------|----------|
@@ -640,7 +636,7 @@ After completing a task, ALWAYS:
 ✅ GOOD: "Edge case: Handle timeout → T023 in tasks.md"
 
 ❌ BAD: "New config.json system → Only update current spec"
-✅ GOOD: "New config.json system → Update ALL post-v3.0 specs"
+✅ GOOD: "New config.json system → Update ALL post-v2.9 specs"
 
 ❌ BAD: "Lint warning → Commit anyway"
 ✅ GOOD: "Lint warning → Fix before commit"
@@ -727,9 +723,9 @@ After completing a feature, ALWAYS:
 | Ignoring rate limits | Service bans | Use `CircuitBreaker` class |
 | Not caching | Excessive API costs | Use cache module with Git SHA |
 
-### Config Pitfalls (v3.0+ - PLANNED)
+### Config Pitfalls (v2.9+ - PLANNED)
 
-> These apply once v3.0 config system is implemented
+> These apply once v2.9 config system is implemented
 
 | Pitfall | Consequence | Prevention |
 |---------|-------------|------------|
@@ -763,7 +759,7 @@ Reports are generated in `docs/analyses/`:
 | **CLI Framework** | Typer |
 | **Terminal UI** | Rich (progress bars, tables, panels) |
 | **Data Validation** | Pydantic, dataclasses |
-| **AI Providers** | Gemini, OpenAI, Claude, OpenRouter (v4.0+) |
+| **AI Providers** | Gemini, OpenAI, Claude, OpenRouter (v3.0+) |
 | **File Parsing** | pathlib, re |
 | **External APIs** | GitHub CLI (gh), OSV (vulnerabilities) |
 | **Storage** | Local filesystem (JSON, Markdown) |
@@ -775,13 +771,12 @@ Reports are generated in `docs/analyses/`:
 | v2.5 - v2.6.5 | Core features, timeout, reanalyze, stats | ✅ Implemented |
 | v2.7 | Multi-language support (i18n) | ✅ Implemented |
 | v2.8 | Headless mode (CI/CD automation) | ✅ Implemented |
-| v3.0 | Config system + Security profiles | Planned |
-| v3.1 | Enhanced security & Git strategy | Planned |
-| v3.2 | CI/CD templates (GitHub Actions, GitLab) | Planned |
-| v4.0 | Multi-providers (Gemini, Claude, OpenRouter) | Planned |
-| v4.1 | Analysis Skills (read-only) | Planned |
+| v2.9 | Config system (config.json) | Planned |
+| v2.10 | Documentation + 4 new agents | Planned |
+| v2.11 | Agent selection (--agents flag) | Planned |
+| v2.12 | Safety profiles + docs | Planned |
+| v2.13 | CI/CD templates (GitHub Actions) | Planned |
+| v3.0 | Multi-providers (Gemini, Claude, OpenRouter) | Planned |
 
-**Analysis Skills (v4.1)**: `security-context`, `complexity-hotspots`, `dependency-graph`
-
-> ⚠️ **Aetheris stops at v4.x** - Mature AI code analyzer, no features beyond this version.
+> ⚠️ **Aetheris stops at v3.x** - Mature AI code analyzer, no features beyond this version.
 

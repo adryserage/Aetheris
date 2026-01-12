@@ -2,7 +2,7 @@
 
 **Input**: Design documents from `/specs/011-readme-safety-docs/`
 **Prerequisites**: plan.md ✓, spec.md ✓
-**Target Version**: v3.0.4
+**Target Version**: v2.12
 **Estimated Effort**: ~100-150 lines of markdown
 
 ## Format: `[ID] [P?] [Story?] Description`
@@ -90,7 +90,7 @@
 - [ ] T023 Review full Safety + Guarantees sections for clarity and consistency
 - [ ] T024 [P] Verify markdown renders correctly on GitHub
 - [ ] T025 [P] Update version to 3.0.4 in pyproject.toml
-- [ ] T026 Update CHANGELOG.md with v3.0.4 documentation improvements
+- [ ] T026 Update CHANGELOG.md with v2.12 documentation improvements
 
 **Checkpoint**: README updated, version bumped, ready for release
 

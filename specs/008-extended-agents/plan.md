@@ -2,12 +2,12 @@
 
 **Branch**: `008-extended-agents` | **Date**: 2025-01-07 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/specs/008-extended-agents/spec.md`
-**Target Version**: v3.0.1
-**Depends On**: v3.0 (Configuration Persistante & Fichier Local)
+**Target Version**: v2.10
+**Depends On**: v2.10 (Configuration Persistante & Fichier Local)
 
 ## Summary
 
-Extend Aetheris from 6 to 10 specialized AI agents. Add 4 new agents covering: Performance Analysis, API Contract, Type Safety, and Data Privacy (Compliance). All configuration integrates with the v3.0 config.json system.
+Extend Aetheris from 6 to 10 specialized AI agents. Add 4 new agents covering: Performance Analysis, API Contract, Type Safety, and Data Privacy (Compliance). All configuration integrates with the v2.10 config.json system.
 
 **Removed from scope** (better ROI without them):
 - Technical Debt Agent → overlaps with Code Metrics + Architect
@@ -17,7 +17,7 @@ Extend Aetheris from 6 to 10 specialized AI agents. Add 4 new agents covering: P
 
 **Language/Version**: Python 3.9+
 **Primary Dependencies**: google-genai, openai, anthropic, pydantic, rich, click
-**Storage**: JSON config files (config.json - v3.0 system)
+**Storage**: JSON config files (config.json - v2.10 system)
 **Testing**: pytest (existing test infrastructure)
 **Target Platform**: CLI (Linux, macOS, Windows)
 **Project Type**: Single project (Python package)
@@ -30,7 +30,7 @@ Extend Aetheris from 6 to 10 specialized AI agents. Add 4 new agents covering: P
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
 - ✅ Agents follow existing BaseAgent pattern
-- ✅ Configuration uses v3.0 config.json hierarchy (CLI > Local > Global > Defaults)
+- ✅ Configuration uses v2.10 config.json hierarchy (CLI > Local > Global > Defaults)
 - ✅ Compliance agents configurable separately for legal isolation
 - ✅ Each agent produces structured Pydantic output
 
@@ -80,7 +80,7 @@ tests/
 
 **Structure Decision**: Single project extending existing agent architecture
 
-## Configuration Design (v3.0 Integration)
+## Configuration Design (v2.10 Integration)
 
 ### config.json Schema Extension
 

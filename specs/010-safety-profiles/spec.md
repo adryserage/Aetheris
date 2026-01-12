@@ -3,7 +3,7 @@
 **Feature Branch**: `010-safety-profiles`
 **Created**: 2026-01-07
 **Status**: Draft
-**Target Version**: v3.0.3
+**Target Version**: v2.12
 **Input**: User description: "Safety Profiles - Configurable execution boundaries with 3 profiles (safe, ci, yolo) for controlling analysis behavior and risk levels"
 
 ## User Scenarios & Testing *(mandatory)*

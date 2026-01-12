@@ -1,8 +1,8 @@
 # Implementation Plan: Agent Selection & Targeted Fix
 
 **Branch**: `009-agent-selection` | **Date**: 2025-01-07 | **Spec**: [spec.md](./spec.md)
-**Target Version**: v3.0.2
-**Depends On**: v3.0.1 (Extended Analysis Agents)
+**Target Version**: v2.11
+**Depends On**: v2.11.1 (Extended Analysis Agents)
 
 ## Summary
 
@@ -14,9 +14,9 @@ Enable selective agent execution and targeted fixes by category. Add presets for
 **Primary Dependencies**: Rich/Textual (interactive UI)
 **Testing**: Unit tests for selection logic, integration tests for CLI
 **Constraints**: Must be backward compatible (default = all agents)
-**Depends On**: v3.0 (Persistent Config) for config.json integration
+**Depends On**: v2.11 (Persistent Config) for config.json integration
 
-## Configuration Integration (v3.0)
+## Configuration Integration (v2.11)
 
 Presets and agent selection settings integrate with the config.json system:
 

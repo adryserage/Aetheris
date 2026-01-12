@@ -1,7 +1,7 @@
 # Tasks: Documentation Update
 
 **Input**: Design documents from `/specs/007-docs-update/`
-**Target Version**: v2.6.0
+**Target Version**: v2.10
 **Estimated LOC**: ~500-700 (documentation)
 
 ---

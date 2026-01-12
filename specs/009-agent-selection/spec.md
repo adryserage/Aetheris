@@ -3,8 +3,8 @@
 **Feature Branch**: `feature/009-agent-selection`
 **Created**: 2025-01-07
 **Status**: Draft
-**Target Version**: v3.0.2
-**Depends On**: v3.0.1 (Extended Analysis Agents)
+**Target Version**: v2.11
+**Depends On**: v2.11.1 (Extended Analysis Agents)
 
 ## Overview
 
@@ -155,14 +155,14 @@ En tant qu'utilisateur, je veux voir la progression des corrections par catégor
 
 ## Assumptions
 
-- Les 10 agents (6 core + 4 extended) sont disponibles (v3.0.1)
-- Le système config.json v3.0 est en place
+- Les 10 agents (6 core + 4 extended) sont disponibles (v2.11.1)
+- Le système config.json v2.11 est en place
 - Les rapports d'analyse contiennent la catégorie/agent source de chaque issue
 - Rich/Textual est disponible pour le mode interactif
 
 ## Out of Scope
 
-- Création de nouveaux agents (couvert par v3.0.1)
+- Création de nouveaux agents (couvert par v2.11.1)
 - UI graphique (CLI only)
 - Scheduling/cron pour analyses automatiques
 - Notifications (email, Slack) sur completion

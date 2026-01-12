@@ -1,7 +1,7 @@
 # Implementation Plan: Persistent Configuration & Local Config File
 
 **Branch**: `006-persistent-config` | **Date**: 2025-01-07 | **Spec**: [spec.md](./spec.md)
-**Target Version**: v3.0
+**Target Version**: v2.9
 
 ## Summary
 

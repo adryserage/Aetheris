@@ -3,7 +3,7 @@
 **Feature Branch**: `006-persistent-config`
 **Created**: 2025-01-07
 **Status**: Draft
-**Target Version**: v3.0
+**Target Version**: v2.9
 
 ## Overview
 
@@ -11,7 +11,7 @@ Migrer la configuration de l'outil depuis les variables d'environnement (`.env`)
 
 ## Config.json Schema (Reference)
 
-Ce schema intègre toutes les options des specs pré-v3.0 (002-timeout, 003-stats, 005-cicd) et les profils de sécurité:
+Ce schema intègre toutes les options des specs pré-v2.9 (002-timeout, 003-stats, 005-cicd) et les profils de sécurité:
 
 ```json
 {
@@ -309,4 +309,4 @@ Cette spec définit le **système de stockage** des configurations. La logique m
 | `ai.timeout`, `ai.heartbeat_interval` | 002-flexible-timeout |
 | `stats.*` | 003-advanced-stats |
 | `analysis.exclude_patterns`, `analysis.changed_files_only` | 005-cicd-template |
-| `security.*` | Cette spec (v3.0) |
+| `security.*` | Cette spec (v2.9) |
