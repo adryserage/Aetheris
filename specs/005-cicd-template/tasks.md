@@ -75,16 +75,29 @@
 
 ---
 
-## Phase 7: Polish & Edge Cases
+## Phase 7: Documentation Update
 
-- [ ] T028 Add file/folder exclusion input in workflow
-- [ ] T029 Handle GitHub Actions timeout (6h limit) in workflow
-- [ ] T030 Add rate-limit retry logic in workflow
-- [ ] T031 Add concurrency group to prevent parallel runs on same branch in workflow
-- [ ] T032 Add chmod +x step for setup scripts in workflow (Linux/macOS permissions)
-- [ ] T033 Handle existing docs/analyses/ folder in setup scripts (backup or merge)
-- [ ] T034 Check for AETHERIS_API_KEY in setup scripts and show instructions if missing
-- [ ] T035 Update pyproject.toml version to 2.9
+- [ ] T028 [DOC] Update docs/github-actions.md with complete setup guide
+- [ ] T029 [DOC] Create docs/commands/cicd.md with CI/CD integration reference
+- [ ] T030 [DOC] Update docs/commands/README.md command table with CI/CD section
+- [ ] T031 [DOC] Update README.md with CI/CD integration feature section
+- [ ] T032 [DOC] Update README.md roadmap to mark v2.13 as implemented
+- [ ] T033 [DOC] Add CHANGELOG.md entry for v2.13 release
+
+**Checkpoint**: Documentation complete
+
+---
+
+## Phase 8: Polish & Edge Cases
+
+- [ ] T034 Add file/folder exclusion input in workflow
+- [ ] T035 Handle GitHub Actions timeout (6h limit) in workflow
+- [ ] T036 Add rate-limit retry logic in workflow
+- [ ] T037 Add concurrency group to prevent parallel runs on same branch in workflow
+- [ ] T038 Add chmod +x step for setup scripts in workflow (Linux/macOS permissions)
+- [ ] T039 Handle existing docs/analyses/ folder in setup scripts (backup or merge)
+- [ ] T040 Check for AETHERIS_API_KEY in setup scripts and show instructions if missing
+- [ ] T041 Update pyproject.toml version to 2.13.0
 
 ---
 
@@ -92,12 +105,13 @@
 
 | Metric | Value |
 |--------|-------|
-| Total Tasks | 35 |
+| Total Tasks | 41 |
 | Phase 1 (Setup) | 3 tasks |
 | US1 (Auto Analysis) | 7 tasks |
 | US2 (Manual Trigger) | 4 tasks |
 | US3 (Easy Setup) | 4 tasks |
 | US4 (Artifacts) | 5 tasks |
 | US5 (Changed Files) | 4 tasks |
-| Phase 7 (Polish) | 8 tasks |
-| Files Created | 5 |
+| Phase 7 (Documentation) | 6 tasks |
+| Phase 8 (Polish) | 8 tasks |
+| Files Created | 7 |

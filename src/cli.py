@@ -2026,6 +2026,275 @@ def run_config(args):
         sys.exit(2)
 
 
+def setup_init_parser(subparsers):
+    """Configure le parser pour la sous-commande init (v2.9)"""
+    init_parser = subparsers.add_parser(
+        "init",
+        help="Initialize Aetheris configuration (v2.9)",
+        description="Create config.json with default values",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Initialize local project config
+  aetheris init
+
+  # Initialize with force overwrite
+  aetheris init --force
+
+  # Initialize global user config
+  aetheris init --global
+        """,
+    )
+
+    init_parser.add_argument(
+        "--force",
+        "-f",
+        action="store_true",
+        help="Overwrite existing config.json without prompting",
+    )
+
+    init_parser.add_argument(
+        "--global",
+        dest="use_global",
+        action="store_true",
+        help="Create global config (~/.aetheris/config.json) instead of local",
+    )
+
+    init_parser.add_argument(
+        "--project",
+        type=str,
+        default=".",
+        help="Project directory (default: current)",
+    )
+
+    return init_parser
+
+
+def run_init(args):
+    """Execute the init command (v2.9)"""
+    from pathlib import Path
+
+    from rich.console import Console
+    from rich.prompt import Confirm
+
+    from src.core.config_file import ConfigFile
+    from src.core.config_schema import get_default_config
+
+    console = Console()
+    project_path = Path(args.project).resolve()
+    config_file = ConfigFile(str(project_path))
+
+    scope = "global" if args.use_global else "local"
+    config_path = (
+        config_file.global_config_path if args.use_global else config_file.local_config_path
+    )
+
+    console.print()
+    console.print(f"[bold]Initializing Aetheris Configuration[/bold]")
+    console.print(f"Scope: [cyan]{scope}[/cyan]")
+    console.print(f"Path: [dim]{config_path}[/dim]")
+    console.print()
+
+    # Check if config already exists
+    if config_path.exists() and not args.force:
+        if not Confirm.ask(
+            f"[yellow]Config already exists at {config_path}. Overwrite?[/yellow]",
+            default=False,
+        ):
+            console.print("[yellow]Initialization cancelled.[/yellow]")
+            sys.exit(0)
+
+    # Generate default config
+    default_config = get_default_config()
+    config_dict = default_config.to_dict()
+
+    try:
+        if args.use_global:
+            config_file.save_global_config(config_dict)
+        else:
+            config_file.save_local_config(config_dict)
+
+        console.print(f"[green]✓ Created {config_path}[/green]")
+        console.print()
+        console.print("Next steps:")
+        console.print("  • Edit config.json to customize settings")
+        console.print("  • Run 'aetheris settings' for interactive configuration")
+        console.print("  • API keys should be in .env file (not config.json)")
+    except OSError as e:
+        console.print(f"[red]Failed to create config: {e}[/red]")
+        sys.exit(1)
+
+
+def setup_settings_parser(subparsers):
+    """Configure le parser pour la sous-commande settings (v2.9)"""
+    settings_parser = subparsers.add_parser(
+        "settings",
+        help="Interactive settings editor (v2.9)",
+        description="Open interactive UI to view and edit configuration",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Open settings UI for local config
+  aetheris settings
+
+  # Open settings UI for global config
+  aetheris settings --global
+
+Note:
+  Requires an interactive terminal. For non-interactive use,
+  see 'aetheris config' command.
+        """,
+    )
+
+    settings_parser.add_argument(
+        "--global",
+        dest="use_global",
+        action="store_true",
+        help="Edit global config (~/.aetheris/config.json) instead of local",
+    )
+
+    settings_parser.add_argument(
+        "--project",
+        type=str,
+        default=".",
+        help="Project directory (default: current)",
+    )
+
+    return settings_parser
+
+
+def run_settings(args):
+    """Execute the settings command (v2.9)"""
+    from src.core.settings_ui import run_settings_ui
+
+    success = run_settings_ui(root_dir=args.project, use_global=args.use_global)
+    sys.exit(0 if success else 1)
+
+
+def setup_migrate_env_parser(subparsers):
+    """Configure le parser pour la sous-commande migrate-env (v2.9)"""
+    migrate_parser = subparsers.add_parser(
+        "migrate-env",
+        help="Migrate .env settings to config.json (v2.9)",
+        description="Convert applicable .env settings to config.json format",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Migrate local .env to config.json
+  aetheris migrate-env
+
+  # Preview without making changes
+  aetheris migrate-env --dry-run
+
+Note:
+  API keys and secrets will NOT be migrated - they must stay in .env
+        """,
+    )
+
+    migrate_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be migrated without making changes",
+    )
+
+    migrate_parser.add_argument(
+        "--project",
+        type=str,
+        default=".",
+        help="Project directory (default: current)",
+    )
+
+    return migrate_parser
+
+
+def run_migrate_env(args):
+    """Execute the migrate-env command (v2.9)"""
+    from pathlib import Path
+
+    from rich.console import Console
+    from rich.table import Table
+
+    from src.core.config import load_env_file
+    from src.core.config_file import ConfigFile
+    from src.core.config_schema import SECRET_KEYS, get_default_config
+
+    console = Console()
+    project_path = Path(args.project).resolve()
+    env_path = project_path / ".env"
+
+    if not env_path.exists():
+        console.print(f"[yellow]No .env file found at {env_path}[/yellow]")
+        sys.exit(0)
+
+    # Load .env
+    env_vars = load_env_file(str(env_path))
+
+    # Map of .env keys to config.json paths
+    env_to_config = {
+        "AI_PROVIDER": ("ai", "provider"),
+        "AI_MODEL": ("ai", "model"),
+        "AI_TIMEOUT": ("ai", "timeout"),
+        "AETHERIS_OUTPUT_DIR": ("output", "directory"),
+        "AETHERIS_OUTPUT_FORMAT": ("output", "format"),
+    }
+
+    # Find migratable settings (excluding secrets)
+    migratable = []
+    for env_key, config_path in env_to_config.items():
+        if env_key in env_vars:
+            # Check if it's a secret
+            is_secret = any(secret.lower() in env_key.lower() for secret in SECRET_KEYS)
+            if not is_secret:
+                migratable.append((env_key, env_vars[env_key], config_path))
+
+    if not migratable:
+        console.print("[green]No settings to migrate. All .env values are either secrets or already default.[/green]")
+        sys.exit(0)
+
+    # Show migration plan
+    table = Table(title="Settings to Migrate", show_header=True)
+    table.add_column(".env Key", style="cyan")
+    table.add_column("Value")
+    table.add_column("config.json Path", style="green")
+
+    for env_key, value, config_path in migratable:
+        # Truncate value for display
+        display_value = value if len(value) < 30 else value[:27] + "..."
+        table.add_row(env_key, display_value, ".".join(config_path))
+
+    console.print(table)
+    console.print()
+
+    if args.dry_run:
+        console.print("[yellow]Dry run - no changes made.[/yellow]")
+        sys.exit(0)
+
+    # Load or create config
+    config_file = ConfigFile(str(project_path))
+    local_config = config_file.load_local_config() or {}
+
+    # Apply migrations
+    for env_key, value, config_path in migratable:
+        section, key = config_path
+        if section not in local_config:
+            local_config[section] = {}
+
+        # Convert types if needed
+        if key == "timeout":
+            try:
+                value = int(value)
+            except ValueError:
+                pass
+
+        local_config[section][key] = value
+
+    # Save
+    config_file.save_local_config(local_config)
+    console.print(f"[green]✓ Migrated {len(migratable)} settings to config.json[/green]")
+    console.print()
+    console.print("[dim]Note: You can now remove these keys from .env (except secrets)[/dim]")
+
+
 def setup_run_parser(subparsers):
     """Configure le parser pour la sous-commande run (headless mode)"""
     run_parser = subparsers.add_parser(
@@ -2257,6 +2526,15 @@ Exemples:
     # Ajouter la sous-commande run (v2.8 - headless mode)
     setup_run_parser(subparsers)
 
+    # Ajouter la sous-commande init (v2.9)
+    setup_init_parser(subparsers)
+
+    # Ajouter la sous-commande settings (v2.9)
+    setup_settings_parser(subparsers)
+
+    # Ajouter la sous-commande migrate-env (v2.9)
+    setup_migrate_env_parser(subparsers)
+
     return parser
 
 
@@ -2322,6 +2600,12 @@ def main():
         run_config(args)
     elif args.command == "run":
         run_headless(args)
+    elif args.command == "init":
+        run_init(args)
+    elif args.command == "settings":
+        run_settings(args)
+    elif args.command == "migrate-env":
+        run_migrate_env(args)
     else:
         parser.print_help()
         sys.exit(1)

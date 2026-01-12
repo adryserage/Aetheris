@@ -17,6 +17,38 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ### 📦 Dépendances
 
+## [2.9.0] - 2026-01-12
+
+### ✨ Nouvelles fonctionnalités
+
+- **Configuration Persistante** : Système de configuration hiérarchique complet
+  - Nouveau fichier `config.json` pour configuration projet et globale
+  - Hiérarchie de priorité : CLI > local > global > env > defaults
+  - Nouvelle commande `aetheris init` pour initialiser config.json
+  - Nouvelle commande `aetheris settings` pour UI interactive de configuration
+  - Nouvelle commande `aetheris migrate-env` pour migrer .env vers config.json
+  - Support des presets d'analyse personnalisés
+  - Détection automatique des secrets dans config.json (avertissement)
+  - Avertissement sur les clés de config inconnues (typos)
+
+### 🔧 Modifications
+
+- Nouveau module `src/core/config_schema.py` avec schéma de configuration
+- Nouveau module `src/core/config_file.py` avec ConfigFile et ConfigHierarchy
+- Nouveau module `src/core/settings_ui.py` avec interface Rich interactive
+- Nouveau fichier `config/default.json` avec valeurs par défaut
+- Extension de `src/core/__init__.py` pour exporter les nouveaux modules
+
+### 📝 Documentation
+
+- Schéma de configuration documenté dans config/default.json
+- Aide CLI mise à jour avec nouvelles commandes
+
+### 🔒 Sécurité
+
+- Séparation stricte secrets (.env) vs config (config.json)
+- Validation des clés secrètes avec avertissement si trouvées dans config.json
+
 ## [2.8.0] - 2026-01-11
 
 ### ✨ Nouvelles fonctionnalités

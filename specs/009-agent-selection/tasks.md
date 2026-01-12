@@ -83,14 +83,26 @@
 
 ---
 
-## Phase 7: Polish & Edge Cases
+## Phase 7: Documentation Update
 
-- [ ] T036 Handle invalid preset name with list of valid options in src/cli.py
-- [ ] T037 Handle `--category` with no matching issues (warning, not error) in src/core/orchestrator.py
-- [ ] T038 Handle `--agents none` without `--compliance` (error with helpful message) in src/core/agent_selector.py
-- [ ] T039 Add agent selection defaults to settings UI in src/core/settings_ui.py
-- [ ] T040 Document all presets in README in README.md
-- [ ] T041 Update pyproject.toml version to 3.0.2
+- [ ] T036 [DOC] Create docs/commands/agents.md with --agents flag usage and examples
+- [ ] T037 [DOC] Create docs/commands/presets.md with preset definitions and customization
+- [ ] T038 [DOC] Update docs/commands/README.md command table with new flags
+- [ ] T039 [DOC] Update README.md with agent selection feature section
+- [ ] T040 [DOC] Update README.md roadmap to mark v2.11 as implemented
+- [ ] T041 [DOC] Add CHANGELOG.md entry for v2.11 release
+
+**Checkpoint**: Documentation complete
+
+---
+
+## Phase 8: Polish & Edge Cases
+
+- [ ] T042 Handle invalid preset name with list of valid options in src/cli.py
+- [ ] T043 Handle `--category` with no matching issues (warning, not error) in src/core/orchestrator.py
+- [ ] T044 Handle `--agents none` without `--compliance` (error with helpful message) in src/core/agent_selector.py
+- [ ] T045 Add agent selection defaults to settings UI in src/core/settings_ui.py
+- [ ] T046 Update pyproject.toml version to 2.11.0
 
 ---
 
@@ -98,13 +110,14 @@
 
 | Metric | Value |
 |--------|-------|
-| Total Tasks | 41 |
+| Total Tasks | 46 |
 | Phase 1 (Setup) | 5 tasks |
 | US1 (Selective Agent) | 8 tasks |
 | US2 (Targeted Fix) | 6 tasks |
 | US3 (Presets) | 7 tasks |
 | US4 (Interactive) | 6 tasks |
 | US5 (Progress) | 3 tasks |
-| Phase 7 (Polish) | 6 tasks |
+| Phase 7 (Documentation) | 6 tasks |
+| Phase 8 (Polish) | 5 tasks |
 | Files Created | 5 |
-| Files Modified | 4 |
+| Files Modified | 6 |

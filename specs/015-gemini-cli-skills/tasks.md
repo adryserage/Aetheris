@@ -18,8 +18,9 @@
 | 6. Conductor | 7 | P2 | ⬜ Pending |
 | 7. MCP Integration | 9 | P2 | ⬜ Pending |
 | 8. Custom Skill Registry | 5 | P3 | ⬜ Pending |
-| 9. Testing & Polish | 8 | P1 | ⬜ Pending |
-| **Total** | **58** | | |
+| 9. Documentation Update | 6 | P1 | ⬜ Pending |
+| 10. Testing & Polish | 6 | P1 | ⬜ Pending |
+| **Total** | **62** | | |
 
 ---
 
@@ -391,21 +392,63 @@
 
 ---
 
-## Phase 9: Testing & Polish (P1)
+## Phase 9: Documentation Update (P1)
 
-### T050: Integration test - CLI interactive
+### T050: Create CLI interactive mode documentation
+- [ ] Create `docs/cli-interactive.md` with full usage guide
+- [ ] Document all commands and shortcuts
+- [ ] Add examples and use cases
+- **Files**: `docs/cli-interactive.md`
+
+### T051: Create Skills documentation
+- [ ] Create `docs/skills/README.md` with skills overview
+- [ ] Create `docs/skills/builtin-skills.md` listing all built-in skills
+- [ ] Create `docs/skills/custom-skills.md` with custom skill guide
+- **Files**: `docs/skills/README.md`, `docs/skills/builtin-skills.md`, `docs/skills/custom-skills.md`
+
+### T052: Create MCP integration documentation
+- [ ] Create `docs/mcp-integration.md` with setup guide
+- [ ] Document MCP server configuration
+- [ ] Add troubleshooting section
+- **Files**: `docs/mcp-integration.md`
+
+### T053: Update docs/commands/README.md
+- [ ] Add CLI interactive mode section
+- [ ] Add skills command reference
+- [ ] Update command table with v3.0 commands
+- **Files**: `docs/commands/README.md`
+
+### T054: Update README.md for v3.0
+- [ ] Add multi-provider section
+- [ ] Add CLI interactive mode section
+- [ ] Add Skills documentation links
+- [ ] Update feature table
+- [ ] Update roadmap to mark v3.0 as implemented
+- **Files**: `README.md`
+
+### T055: Add CHANGELOG.md entry for v3.0
+- [ ] Document all new features
+- [ ] Document breaking changes if any
+- [ ] Add migration notes
+- **Files**: `CHANGELOG.md`
+
+---
+
+## Phase 10: Testing & Polish (P1)
+
+### T056: Integration test - CLI interactive
 - [ ] Create `tests/integration/test_cli_interactive.py`
 - [ ] Test full REPL session
 - [ ] Test command passthrough
 - **Files**: `tests/integration/test_cli_interactive.py`
 
-### T051: Integration test - Skill execution
+### T057: Integration test - Skill execution
 - [ ] Create `tests/integration/test_skill_execution.py`
 - [ ] Test skills with real files
 - [ ] Test safe mode prompts
 - **Files**: `tests/integration/test_skill_execution.py`
 
-### T052: Backward compatibility tests
+### T058: Backward compatibility tests
 - [ ] Test all existing commands unchanged
 - [ ] Test `aetheris analysis` without --cli
 - [ ] Test `aetheris fix --auto`
@@ -413,34 +456,23 @@
 - **US**: US2-9
 - **Files**: `tests/integration/test_backward_compat.py`
 
-### T053: Update CLI help text
+### T059: Update CLI help text
 - [ ] Add --cli description
 - [ ] Document new flags
 - [ ] Update --help output
 - **Files**: `src/cli.py`
 
-### T054: Add config.json schema for v3.0
+### T060: Add config.json schema for v3.0
 - [ ] Add `cli.*` section
 - [ ] Add `skills.*` section
 - [ ] Add `mcp.*` section
 - **Files**: `src/core/config.py`
 
-### T055: Update CHANGELOG.md
-- [ ] Document new features
-- [ ] Document breaking changes (none expected)
-- [ ] Add migration notes if needed
-- **Files**: `CHANGELOG.md`
-
-### T056: Update README.md
-- [ ] Add CLI interactive mode section
-- [ ] Add Skills documentation link
-- [ ] Update feature table
-- **Files**: `README.md`
-
-### T057: Final validation
+### T061: Final validation
 - [ ] Run full test suite
 - [ ] Run lint and typecheck
 - [ ] Verify all SC metrics
+- [ ] Update pyproject.toml version to 3.0.0
 - [ ] Tag release v3.0.0
 
 ---
@@ -468,9 +500,12 @@ Phase 4       Phase 5       Phase 6                         │
                     │                                       │
                     ▼                                       │
               Phase 8 (Custom) ─────────────────────────────┤
+                    │                                       │
+                    ▼                                       │
+              Phase 9 (Docs) ───────────────────────────────┤
                                                             │
                                                             ▼
-                                                    Phase 9 (Polish)
+                                                    Phase 10 (Polish)
 ```
 
 ## Estimation
@@ -485,5 +520,6 @@ Phase 4       Phase 5       Phase 6                         │
 | 6. Conductor | High | ~400 |
 | 7. MCP Integration | High | ~350 |
 | 8. Custom Registry | Medium | ~200 |
-| 9. Testing | Medium | ~500 |
-| **Total** | | **~2650** |
+| 9. Documentation | Low | ~150 |
+| 10. Testing | Medium | ~500 |
+| **Total** | | **~2800** |

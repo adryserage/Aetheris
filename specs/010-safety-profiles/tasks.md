@@ -139,15 +139,30 @@
 
 ---
 
-## Phase 7: Polish & Cross-Cutting Concerns
+## Phase 7: Documentation Update
 
-**Purpose**: Edge cases, documentation, and refinements
+**Purpose**: Create and update documentation for safety profiles feature
 
-- [ ] T044 Handle invalid profile name with clear error listing valid options in src/cli.py
-- [ ] T045 [P] Handle missing/malformed allowlist file gracefully (use defaults, warn) in src/core/allowlist.py
-- [ ] T046 [P] Add profile info to existing --help output in src/cli.py
-- [ ] T047 Validate all edge cases from spec.md work correctly
-- [ ] T048 Update pyproject.toml version to 3.0.3
+- [ ] T044 [DOC] Create docs/commands/profiles.md with all profile descriptions and usage
+- [ ] T045 [DOC] Create docs/safety-profiles.md detailed guide with examples
+- [ ] T046 [DOC] Update docs/commands/README.md command table with --profile flag
+- [ ] T047 [DOC] Update README.md with safety profiles feature section
+- [ ] T048 [DOC] Update README.md roadmap to mark v2.12 as implemented
+- [ ] T049 [DOC] Add CHANGELOG.md entry for v2.12 release
+
+**Checkpoint**: Documentation complete
+
+---
+
+## Phase 8: Polish & Cross-Cutting Concerns
+
+**Purpose**: Edge cases and refinements
+
+- [ ] T050 Handle invalid profile name with clear error listing valid options in src/cli.py
+- [ ] T051 [P] Handle missing/malformed allowlist file gracefully (use defaults, warn) in src/core/allowlist.py
+- [ ] T052 [P] Add profile info to existing --help output in src/cli.py
+- [ ] T053 Validate all edge cases from spec.md work correctly
+- [ ] T054 Update pyproject.toml version to 2.12.0
 
 ---
 
@@ -174,7 +189,10 @@ Phase 3: US1 (Safe)     Phase 4: US2 (CI)      Phase 5: US3 (Yolo)
                                 [P3]
                                   │
                                   ▼
-                        Phase 7: Polish
+                        Phase 7: Documentation
+                                  │
+                                  ▼
+                        Phase 8: Polish
 ```
 
 ### User Story Dependencies
@@ -257,17 +275,18 @@ Developer C: T030-T037 (US3 Yolo Mode)
 
 | Metric | Value |
 |--------|-------|
-| Total Tasks | 48 |
+| Total Tasks | 54 |
 | Phase 1 (Setup) | 6 tasks |
 | Phase 2 (Foundation) | 4 tasks |
 | US1 (Safe Mode) | 10 tasks |
 | US2 (CI Mode) | 10 tasks |
 | US3 (Yolo Mode) | 8 tasks |
 | US4 (Config) | 5 tasks |
-| Phase 7 (Polish) | 5 tasks |
+| Phase 7 (Documentation) | 6 tasks |
+| Phase 8 (Polish) | 5 tasks |
 | Parallel Opportunities | 12 tasks marked [P] |
-| Files Modified | 8 |
-| Files Created | 4 |
+| Files Modified | 10 |
+| Files Created | 6 |
 
 ---
 

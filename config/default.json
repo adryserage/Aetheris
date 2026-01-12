@@ -1,0 +1,62 @@
+{
+  "$schema": "./config-schema.json",
+  "ai": {
+    "provider": "gemini",
+    "model": "default",
+    "timeout": 120,
+    "max_retries": 3
+  },
+  "analysis": {
+    "default_preset": "comprehensive",
+    "enabled_agents": ["all"],
+    "skip_agents": [],
+    "exclude_patterns": [
+      "**/node_modules/**",
+      "**/.git/**",
+      "**/venv/**",
+      "**/__pycache__/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/.venv/**",
+      "**/coverage/**",
+      "**/htmlcov/**",
+      "**/.pytest_cache/**",
+      "**/.mypy_cache/**",
+      "**/.tox/**",
+      "**/eggs/**",
+      "**/*.egg-info/**"
+    ],
+    "analyze_changed_files_only": false,
+    "max_dependency_depth": 2,
+    "enable_cache": true,
+    "cache_ttl_seconds": 604800
+  },
+  "safety": {
+    "default_profile": "safe",
+    "custom_allowlist": [],
+    "audit_log_path": "aetheris-audit.jsonl"
+  },
+  "presets": {
+    "quick-scan": {
+      "description": "Fast analysis with core agents only",
+      "agents": ["security", "quality"]
+    },
+    "comprehensive": {
+      "description": "Full analysis with all agents",
+      "agents": ["all"]
+    },
+    "security-focus": {
+      "description": "Security-focused analysis",
+      "agents": ["security", "vulnerability", "dependency"]
+    },
+    "performance": {
+      "description": "Performance and metrics focused",
+      "agents": ["metrics", "architecture"]
+    }
+  },
+  "output": {
+    "format": "markdown",
+    "directory": "docs/analyses",
+    "architecture_report_path": "docs/architecture_overview.md"
+  }
+}
