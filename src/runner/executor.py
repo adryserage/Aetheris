@@ -6,16 +6,14 @@ Provides non-interactive, programmatic execution of Aetheris tasks.
 
 import asyncio
 import io
-import os
 import random
 import signal
-import sys
 import time
 import traceback
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from src.runner.output_formatter import (
     BlockedOperation,
@@ -431,8 +429,7 @@ class TaskRunner:
         self._context.log(f"Executing task type: {task_type}")
 
         # Import here to avoid circular imports
-        from src.core.analyzer import CodeAnalyzer
-        from src.core.config import AnalysisConfig, TimeoutConfig, load_env_file
+        from src.core.config import load_env_file
 
         # Load environment
         load_env_file()

@@ -5,7 +5,7 @@ Agent d'Assurance Qualité - Synthétise toutes les informations d'analyse (QAA)
 import json
 import os
 from collections import defaultdict
-from typing import DefaultDict, Dict, List
+from typing import DefaultDict, List
 
 from src.agents.base_agent import BaseAgent
 from src.core.config import AnalysisConfig

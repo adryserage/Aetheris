@@ -89,7 +89,7 @@
 
 - [ ] T023 Review full Safety + Guarantees sections for clarity and consistency
 - [ ] T024 [P] Verify markdown renders correctly on GitHub
-- [ ] T025 [P] Update version to 3.0.4 in pyproject.toml
+- [ ] T025 [P] Update version to 2.12.1 in pyproject.toml
 - [ ] T026 Update CHANGELOG.md with v2.12 documentation improvements
 
 **Checkpoint**: README updated, version bumped, ready for release
@@ -150,7 +150,7 @@ T025 [P] Update version
 
 1. Setup → Safety Model → Safe Examples → Guarantees → Polish
 2. All sections reviewed
-3. Version bumped to 3.0.4
+3. Version bumped to 2.12.1
 4. Release
 
 ---

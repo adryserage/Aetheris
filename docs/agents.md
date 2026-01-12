@@ -1,8 +1,10 @@
 # Analysis Agents
 
-Aetheris uses **6 specialized AI agents** that work together to analyze your code.
+Aetheris uses **10 specialized AI agents** that work together to analyze your code.
 
 ## Agent Overview
+
+### Core Agents (6)
 
 | Agent | Abbreviation | Purpose |
 |-------|--------------|---------|
@@ -12,6 +14,15 @@ Aetheris uses **6 specialized AI agents** that work together to analyze your cod
 | Code Metrics Agent | CMA | Code metrics and complexity |
 | Dependency Vulnerability Agent | DVA | CVE scanning |
 | Quality Assurance Agent | QAA | Final synthesis |
+
+### Extended Agents (4) - v2.10+
+
+| Agent | Abbreviation | Purpose |
+|-------|--------------|---------|
+| Type Safety Agent | TSA | Type safety issues, `any` usage |
+| Performance Analysis Agent | PAA | O(n²), N+1 queries, memory leaks |
+| API Contract Agent | ACA | REST violations, breaking changes |
+| Data Privacy Agent | DPA | PII logging, GDPR/HIPAA compliance |
 
 ## Code Analysis Expert (CAE)
 
@@ -76,6 +87,71 @@ Synthesizes all analyses:
 - **Dimensions**: Security, Maintainability, Architecture
 - **Action Plan**: Prioritized improvements
 - **Roadmap**: Improvement timeline
+
+---
+
+## Extended Agents (v2.10+)
+
+### Type Safety Agent (TSA)
+
+Detects type safety issues in TypeScript, Python, and Java:
+
+- **Any Usage**: Detects use of `any`, `Any`, or untyped variables
+- **Unsafe Casts**: `as any`, `# type: ignore`, type assertions
+- **Type Ignores**: `@ts-ignore`, `@ts-nocheck`, `# type: ignore`
+- **Null Safety**: Missing null checks, optional chaining issues
+
+**Supported Languages**: TypeScript, Python, Java, JavaScript
+
+### Performance Analysis Agent (PAA)
+
+Detects performance anti-patterns:
+
+- **O(n²) Complexity**: Nested loops on same collection
+- **N+1 Queries**: Database queries inside loops
+- **Memory Leaks**: Unclosed resources, event listeners
+- **Blocking Async**: Sync operations in async context
+- **Inefficient Operations**: String concatenation in loops
+
+**Output**: `performance_report.md`
+
+### API Contract Agent (ACA)
+
+Detects REST API design issues:
+
+- **HTTP Method Violations**: GET with body, wrong methods
+- **REST Naming**: Verbs in URLs, inconsistent naming
+- **Breaking Changes**: Removed fields, type changes
+- **Undocumented Endpoints**: Missing OpenAPI annotations
+
+**Supported Frameworks**: Express, NestJS, FastAPI, Spring, Flask
+
+### Data Privacy Agent (DPA)
+
+Detects data privacy and compliance issues:
+
+- **PII Logging**: Sensitive data in logs
+- **Missing Encryption**: Unencrypted sensitive data
+- **Insecure Storage**: localStorage, cookies without httpOnly
+- **Compliance**: GDPR, HIPAA, PCI-DSS, CCPA violations
+
+**Compliance Frameworks**:
+
+| Framework | Focus Areas |
+|-----------|-------------|
+| GDPR | Email, name, phone, address, IP |
+| HIPAA | SSN, medical records, health data |
+| PCI-DSS | Credit cards, CVV, cardholder data |
+| CCPA | Email, name, financial data |
+
+**Configuration**:
+
+```bash
+# Enable specific compliance frameworks
+aetheris analysis --compliance gdpr,hipaa
+```
+
+---
 
 ## Data Security
 

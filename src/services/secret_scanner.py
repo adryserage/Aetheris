@@ -11,8 +11,6 @@ from typing import Generator
 from ..config.secret_patterns import (
     SECRET_PATTERNS,
     SecretPatternDef,
-    compile_patterns,
-    get_patterns_by_confidence,
 )
 from ..models.cleanup_models import ConfidenceLevel, ScanConfig, SecretMatch
 

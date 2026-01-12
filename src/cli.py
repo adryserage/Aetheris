@@ -123,6 +123,84 @@ Exemples:
         ),
     )
 
+    # v2.10: Extended agent selection options
+    analysis_parser.add_argument(
+        "--agents",
+        type=str,
+        default=None,
+        help=(
+            "Comma-separated list of agents to run. Available: security, metrics, "
+            "architect, quality, vulnerability, userstory, type-safety, performance, "
+            "api-contract, privacy. Use 'all' for all agents (default)."
+        ),
+    )
+
+    analysis_parser.add_argument(
+        "--skip-agents",
+        type=str,
+        default=None,
+        help=("Comma-separated list of agents to skip. Example: --skip-agents performance,privacy"),
+    )
+
+    analysis_parser.add_argument(
+        "--compliance",
+        type=str,
+        default=None,
+        help=(
+            "Compliance frameworks for privacy analysis. "
+            "Options: gdpr, hipaa, pci_dss, ccpa. Comma-separated."
+        ),
+    )
+
+    # v2.11: Preset and interactive options
+    analysis_parser.add_argument(
+        "--preset",
+        type=str,
+        default=None,
+        help=(
+            "Use a preset agent configuration. Available: full, core, quick-scan, "
+            "security-audit, performance-review, compliance-gdpr, compliance-hipaa, "
+            "compliance-pci, type-safety, api-review. Use 'aetheris --list-presets' to see all."
+        ),
+    )
+
+    analysis_parser.add_argument(
+        "--interactive",
+        "-i",
+        action="store_true",
+        help="Interactive agent selection mode with Rich UI (v2.11)",
+    )
+
+    analysis_parser.add_argument(
+        "--category",
+        type=str,
+        default=None,
+        help=(
+            "Fix category to target. Options: security, performance, compliance, "
+            "code_quality, architecture, type_safety, api_contract, vulnerability."
+        ),
+    )
+
+    # v2.12: Safety profile options
+    analysis_parser.add_argument(
+        "--profile",
+        type=str,
+        default=None,
+        choices=["safe", "ci", "yolo"],
+        help=(
+            "Safety profile to use. Options: safe (default, maximum guardrails), "
+            "ci (non-interactive, fail-fast), yolo (extended limits, requires confirmation). "
+            "Default: auto-detect (CI env → ci, otherwise → safe)"
+        ),
+    )
+
+    analysis_parser.add_argument(
+        "--yes",
+        "-y",
+        action="store_true",
+        help="Skip confirmation prompts (required for --profile yolo in non-interactive mode)",
+    )
+
     return analysis_parser
 
 
@@ -332,6 +410,105 @@ async def run_analysis(args):
             log_print(f"❌ {e}")
             sys.exit(1)
 
+    # Parse agent selection options (v2.10/v2.11)
+    enabled_agents_arg = getattr(args, "agents", None)
+    skip_agents_arg = getattr(args, "skip_agents", None)
+    compliance_arg = getattr(args, "compliance", None)
+    preset_arg = getattr(args, "preset", None)
+    interactive_mode = getattr(args, "interactive", False)
+
+    # v2.11: Handle interactive mode
+    if interactive_mode:
+        from src.core.interactive_select import run_interactive_selection
+
+        selected_agents, selected_compliance = run_interactive_selection(
+            preset=preset_arg,
+            compliance=compliance_arg,
+        )
+        if not selected_agents:
+            log_print(t("cli.analysis.cancelled"))
+            sys.exit(0)
+        enabled_agents = selected_agents
+        compliance_agents = selected_compliance
+        skip_agents = []
+    else:
+        # v2.11: Use AgentSelector for smart agent selection
+        from src.core.agent_selector import AgentSelector
+
+        selector = AgentSelector(
+            agents=enabled_agents_arg,
+            skip_agents=skip_agents_arg,
+            preset=preset_arg,
+            compliance=compliance_arg,
+        )
+        result = selector.get_selected_agents()
+
+        # Report errors but continue with valid agents
+        for error in result.errors:
+            log_print(f"⚠️  {error}")
+
+        enabled_agents = result.agents if result.agents else ["all"]
+        skip_agents = []  # Already applied in AgentSelector
+        compliance_agents = result.compliance_frameworks
+
+        if result.preset_used:
+            log_print(t("cli.analysis.using_preset", preset=result.preset_used))
+
+        if enabled_agents and enabled_agents != ["all"]:
+            log_print(t("cli.analysis.selected_agents", agents=", ".join(enabled_agents)))
+
+    # v2.12: Safety profile handling
+    from src.core.profiles import (
+        ProfileType,
+        get_default_profile,
+        get_profile_config,
+        is_ci_environment,
+        is_interactive_terminal,
+    )
+
+    profile_arg = getattr(args, "profile", None)
+    yes_flag = getattr(args, "yes", False)
+
+    # Determine profile: explicit flag > auto-detect
+    if profile_arg:
+        profile_type = ProfileType.from_string(profile_arg)
+    else:
+        profile_type = get_default_profile()
+
+    profile_config = get_profile_config(profile_type)
+
+    # Display active profile
+    profile_emoji = {"safe": "🛡️", "ci": "🔧", "yolo": "⚡"}
+    emoji = profile_emoji.get(profile_type.value, "")
+    log_print(f"{emoji} Profile: {profile_type.value.upper()}")
+
+    # Handle yolo profile confirmation
+    if profile_type == ProfileType.YOLO and profile_config.require_acknowledgment:
+        if not yes_flag and is_interactive_terminal():
+            console = Console()
+            console.print()
+            console.print("[bold red]⚠️  YOLO MODE WARNING[/bold red]")
+            console.print("This profile removes safety guardrails:")
+            console.print("  • No diff size limits")
+            console.print("  • Extended repair loops (10 iterations)")
+            console.print("  • Tests are optional")
+            console.print()
+            if not Confirm.ask("[yellow]Proceed with YOLO mode?[/yellow]", default=False):
+                log_print("❌ Analysis cancelled.")
+                sys.exit(0)
+        elif not yes_flag and not is_interactive_terminal():
+            log_print("❌ YOLO profile requires --yes flag in non-interactive mode.")
+            sys.exit(1)
+
+    # Warn if yolo in CI
+    if profile_type == ProfileType.YOLO and is_ci_environment():
+        log_print("⚠️  Warning: YOLO profile used in CI environment. Proceed with caution.")
+
+    # Apply profile constraints to config
+    profile_acknowledged = profile_type == ProfileType.YOLO and (
+        yes_flag or not profile_config.require_acknowledgment
+    )
+
     config = AnalysisConfig(
         ai_provider=ai_provider,
         ai_api_key=ai_api_key,
@@ -342,7 +519,6 @@ async def run_analysis(args):
         output_dir=os.getenv("OUTPUT_DIR", "docs/analyses"),
         architecture_report_path=os.getenv("ARCHITECTURE_REPORT", "docs/architecture_overview.md"),
         root_dir=os.getenv("ROOT_DIR", "."),
-        enable_web_search=os.getenv("ENABLE_WEB_SEARCH", "true").lower() == "true",
         max_web_results=int(os.getenv("MAX_WEB_RESULTS", "3")),
         enable_security_analysis=os.getenv("ENABLE_SECURITY_ANALYSIS", "true").lower() == "true",
         enable_metrics_analysis=os.getenv("ENABLE_METRICS_ANALYSIS", "true").lower() == "true",
@@ -365,6 +541,30 @@ async def run_analysis(args):
         enable_google_search=os.getenv("ENABLE_GOOGLE_SEARCH", "false").lower() == "true",
         # Timeout configuration (v2.6.1)
         timeout_config=timeout_config,
+        # Extended Agents (v2.10)
+        enabled_agents=enabled_agents,
+        skip_agents=skip_agents,
+        compliance_agents=compliance_agents,
+        enable_type_analysis="type-safety" not in skip_agents
+        and ("all" in enabled_agents or "type-safety" in enabled_agents),
+        enable_performance_analysis="performance" not in skip_agents
+        and ("all" in enabled_agents or "performance" in enabled_agents),
+        enable_api_contract_analysis="api-contract" not in skip_agents
+        and ("all" in enabled_agents or "api-contract" in enabled_agents),
+        enable_privacy_analysis="privacy" not in skip_agents
+        and ("all" in enabled_agents or "privacy" in enabled_agents),
+        # Safety Profile (v2.12)
+        profile=profile_type.value,
+        profile_acknowledged=profile_acknowledged,
+        # Apply profile constraints to web search (safe mode blocks auxiliary network)
+        enable_web_search=(
+            (
+                os.getenv("ENABLE_WEB_SEARCH", "true").lower() == "true"
+                and profile_config.network_allowed
+            )
+            if profile_type == ProfileType.SAFE
+            else os.getenv("ENABLE_WEB_SEARCH", "true").lower() == "true"
+        ),
     )
 
     log_print(t("cli.analysis.root_dir", path=config.root_dir))
@@ -2026,6 +2226,277 @@ def run_config(args):
         sys.exit(2)
 
 
+def setup_init_parser(subparsers):
+    """Configure le parser pour la sous-commande init (v2.9)"""
+    init_parser = subparsers.add_parser(
+        "init",
+        help="Initialize Aetheris configuration (v2.9)",
+        description="Create config.json with default values",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Initialize local project config
+  aetheris init
+
+  # Initialize with force overwrite
+  aetheris init --force
+
+  # Initialize global user config
+  aetheris init --global
+        """,
+    )
+
+    init_parser.add_argument(
+        "--force",
+        "-f",
+        action="store_true",
+        help="Overwrite existing config.json without prompting",
+    )
+
+    init_parser.add_argument(
+        "--global",
+        dest="use_global",
+        action="store_true",
+        help="Create global config (~/.aetheris/config.json) instead of local",
+    )
+
+    init_parser.add_argument(
+        "--project",
+        type=str,
+        default=".",
+        help="Project directory (default: current)",
+    )
+
+    return init_parser
+
+
+def run_init(args):
+    """Execute the init command (v2.9)"""
+    from pathlib import Path
+
+    from rich.console import Console
+    from rich.prompt import Confirm
+
+    from src.core.config_file import ConfigFile
+    from src.core.config_schema import get_default_config
+
+    console = Console()
+    project_path = Path(args.project).resolve()
+    config_file = ConfigFile(str(project_path))
+
+    scope = "global" if args.use_global else "local"
+    config_path = (
+        config_file.global_config_path if args.use_global else config_file.local_config_path
+    )
+
+    console.print()
+    console.print("[bold]Initializing Aetheris Configuration[/bold]")
+    console.print(f"Scope: [cyan]{scope}[/cyan]")
+    console.print(f"Path: [dim]{config_path}[/dim]")
+    console.print()
+
+    # Check if config already exists
+    if config_path.exists() and not args.force:
+        if not Confirm.ask(
+            f"[yellow]Config already exists at {config_path}. Overwrite?[/yellow]",
+            default=False,
+        ):
+            console.print("[yellow]Initialization cancelled.[/yellow]")
+            sys.exit(0)
+
+    # Generate default config
+    default_config = get_default_config()
+    config_dict = default_config.to_dict()
+
+    try:
+        if args.use_global:
+            config_file.save_global_config(config_dict)
+        else:
+            config_file.save_local_config(config_dict)
+
+        console.print(f"[green]✓ Created {config_path}[/green]")
+        console.print()
+        console.print("Next steps:")
+        console.print("  • Edit config.json to customize settings")
+        console.print("  • Run 'aetheris settings' for interactive configuration")
+        console.print("  • API keys should be in .env file (not config.json)")
+    except OSError as e:
+        console.print(f"[red]Failed to create config: {e}[/red]")
+        sys.exit(1)
+
+
+def setup_settings_parser(subparsers):
+    """Configure le parser pour la sous-commande settings (v2.9)"""
+    settings_parser = subparsers.add_parser(
+        "settings",
+        help="Interactive settings editor (v2.9)",
+        description="Open interactive UI to view and edit configuration",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Open settings UI for local config
+  aetheris settings
+
+  # Open settings UI for global config
+  aetheris settings --global
+
+Note:
+  Requires an interactive terminal. For non-interactive use,
+  see 'aetheris config' command.
+        """,
+    )
+
+    settings_parser.add_argument(
+        "--global",
+        dest="use_global",
+        action="store_true",
+        help="Edit global config (~/.aetheris/config.json) instead of local",
+    )
+
+    settings_parser.add_argument(
+        "--project",
+        type=str,
+        default=".",
+        help="Project directory (default: current)",
+    )
+
+    return settings_parser
+
+
+def run_settings(args):
+    """Execute the settings command (v2.9)"""
+    from src.core.settings_ui import run_settings_ui
+
+    success = run_settings_ui(root_dir=args.project, use_global=args.use_global)
+    sys.exit(0 if success else 1)
+
+
+def setup_migrate_env_parser(subparsers):
+    """Configure le parser pour la sous-commande migrate-env (v2.9)"""
+    migrate_parser = subparsers.add_parser(
+        "migrate-env",
+        help="Migrate .env settings to config.json (v2.9)",
+        description="Convert applicable .env settings to config.json format",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Migrate local .env to config.json
+  aetheris migrate-env
+
+  # Preview without making changes
+  aetheris migrate-env --dry-run
+
+Note:
+  API keys and secrets will NOT be migrated - they must stay in .env
+        """,
+    )
+
+    migrate_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be migrated without making changes",
+    )
+
+    migrate_parser.add_argument(
+        "--project",
+        type=str,
+        default=".",
+        help="Project directory (default: current)",
+    )
+
+    return migrate_parser
+
+
+def run_migrate_env(args):
+    """Execute the migrate-env command (v2.9)"""
+    from pathlib import Path
+
+    from rich.console import Console
+    from rich.table import Table
+
+    from src.core.config import load_env_file
+    from src.core.config_file import ConfigFile
+    from src.core.config_schema import SECRET_KEYS
+
+    console = Console()
+    project_path = Path(args.project).resolve()
+    env_path = project_path / ".env"
+
+    if not env_path.exists():
+        console.print(f"[yellow]No .env file found at {env_path}[/yellow]")
+        sys.exit(0)
+
+    # Load .env
+    env_vars = load_env_file(str(env_path))
+
+    # Map of .env keys to config.json paths
+    env_to_config = {
+        "AI_PROVIDER": ("ai", "provider"),
+        "AI_MODEL": ("ai", "model"),
+        "AI_TIMEOUT": ("ai", "timeout"),
+        "AETHERIS_OUTPUT_DIR": ("output", "directory"),
+        "AETHERIS_OUTPUT_FORMAT": ("output", "format"),
+    }
+
+    # Find migratable settings (excluding secrets)
+    migratable = []
+    for env_key, config_path in env_to_config.items():
+        if env_key in env_vars:
+            # Check if it's a secret
+            is_secret = any(secret.lower() in env_key.lower() for secret in SECRET_KEYS)
+            if not is_secret:
+                migratable.append((env_key, env_vars[env_key], config_path))
+
+    if not migratable:
+        console.print(
+            "[green]No settings to migrate. All .env values are either secrets or already default.[/green]"
+        )
+        sys.exit(0)
+
+    # Show migration plan
+    table = Table(title="Settings to Migrate", show_header=True)
+    table.add_column(".env Key", style="cyan")
+    table.add_column("Value")
+    table.add_column("config.json Path", style="green")
+
+    for env_key, value, config_path in migratable:
+        # Truncate value for display
+        display_value = value if len(value) < 30 else value[:27] + "..."
+        table.add_row(env_key, display_value, ".".join(config_path))
+
+    console.print(table)
+    console.print()
+
+    if args.dry_run:
+        console.print("[yellow]Dry run - no changes made.[/yellow]")
+        sys.exit(0)
+
+    # Load or create config
+    config_file = ConfigFile(str(project_path))
+    local_config = config_file.load_local_config() or {}
+
+    # Apply migrations
+    for env_key, value, config_path in migratable:
+        section, key = config_path
+        if section not in local_config:
+            local_config[section] = {}
+
+        # Convert types if needed
+        if key == "timeout":
+            try:
+                value = int(value)
+            except ValueError:
+                pass
+
+        local_config[section][key] = value
+
+    # Save
+    config_file.save_local_config(local_config)
+    console.print(f"[green]✓ Migrated {len(migratable)} settings to config.json[/green]")
+    console.print()
+    console.print("[dim]Note: You can now remove these keys from .env (except secrets)[/dim]")
+
+
 def setup_run_parser(subparsers):
     """Configure le parser pour la sous-commande run (headless mode)"""
     run_parser = subparsers.add_parser(
@@ -2220,6 +2691,13 @@ Exemples:
         help="List available languages and exit",
     )
 
+    # v2.11: Preset listing
+    parser.add_argument(
+        "--list-presets",
+        action="store_true",
+        help="List available agent presets and exit",
+    )
+
     subparsers = parser.add_subparsers(
         dest="command", help="Commandes disponibles", metavar="COMMANDE"
     )
@@ -2257,6 +2735,15 @@ Exemples:
     # Ajouter la sous-commande run (v2.8 - headless mode)
     setup_run_parser(subparsers)
 
+    # Ajouter la sous-commande init (v2.9)
+    setup_init_parser(subparsers)
+
+    # Ajouter la sous-commande settings (v2.9)
+    setup_settings_parser(subparsers)
+
+    # Ajouter la sous-commande migrate-env (v2.9)
+    setup_migrate_env_parser(subparsers)
+
     return parser
 
 
@@ -2283,6 +2770,35 @@ def _handle_list_languages():
     sys.exit(0)
 
 
+def _handle_list_presets():
+    """Display available presets and exit (v2.11)."""
+    from src.core.presets import list_presets
+
+    console = Console()
+    presets = list_presets()
+
+    console.print()
+    console.print("[bold]Available Agent Presets (v2.11)[/bold]")
+    console.print()
+
+    table = Table(show_header=True, header_style="bold cyan")
+    table.add_column("Preset", style="green")
+    table.add_column("Description")
+    table.add_column("Agents")
+
+    for preset in presets:
+        agents_str = ", ".join(preset.agents[:4])
+        if len(preset.agents) > 4:
+            agents_str += f" (+{len(preset.agents) - 4})"
+        table.add_row(preset.name, preset.description, agents_str)
+
+    console.print(table)
+    console.print()
+    console.print("[dim]Use --preset <name> with analysis command[/dim]")
+    console.print("[dim]Example: aetheris analysis --preset security-audit[/dim]")
+    sys.exit(0)
+
+
 def main():
     """Point d'entrée principal de la CLI"""
     parser = create_parser()
@@ -2295,6 +2811,10 @@ def main():
     # Handle --list-languages
     if getattr(args, "list_languages", False):
         _handle_list_languages()
+
+    # Handle --list-presets (v2.11)
+    if getattr(args, "list_presets", False):
+        _handle_list_presets()
 
     if not args.command:
         parser.print_help()
@@ -2322,6 +2842,12 @@ def main():
         run_config(args)
     elif args.command == "run":
         run_headless(args)
+    elif args.command == "init":
+        run_init(args)
+    elif args.command == "settings":
+        run_settings(args)
+    elif args.command == "migrate-env":
+        run_migrate_env(args)
     else:
         parser.print_help()
         sys.exit(1)

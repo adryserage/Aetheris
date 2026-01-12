@@ -17,6 +17,212 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ### 📦 Dépendances
 
+## [2.13.0] - 2026-01-12
+
+### ✨ Nouvelles fonctionnalités
+
+- **GitHub Actions Integration** : Template workflow complet pour CI/CD
+  - Déclenchement automatique sur push vers main/develop
+  - Déclenchement sur pull requests (opened, synchronized, reopened)
+  - Déclenchement manuel avec options (mode, timeout, full_scan)
+  - Détection automatique des fichiers modifiés pour analyse efficace
+  - Commentaire automatique sur les PR avec résumé d'analyse
+  - Upload des artefacts avec rétention de 30 jours
+
+- **Scripts de Setup Local** : Scripts multiplateforme pour installation locale
+  - `scripts/setup-local.sh` : Script Bash pour Linux/macOS
+  - `scripts/setup-local.ps1` : Script PowerShell pour Windows
+  - Vérification de Python 3.9+, installation Aetheris, check API key
+  - Détection des résultats d'analyse existants
+
+- **Documentation CI/CD** : Guide complet pour l'intégration GitHub Actions
+  - Quick start en 3 étapes
+  - Configuration des triggers et concurrency
+  - Customisation des providers AI
+  - Profiles de sécurité pour CI
+  - Troubleshooting des erreurs courantes
+  - Best practices pour différentes tailles de projets
+
+### 🔧 Modifications
+
+- Nouveau fichier `.github/workflows/aetheris-analysis.yml` avec workflow complet
+- Nouveau fichier `scripts/setup-local.sh` pour setup Linux/macOS
+- Nouveau fichier `scripts/setup-local.ps1` pour setup Windows
+- Mise à jour de `docs/github-actions.md` avec documentation exhaustive
+- Sécurisation des inputs workflow via variables d'environnement (anti-injection)
+
+### 📝 Documentation
+
+- Mise à jour du README.md avec section CI/CD Integration
+- Mise à jour du roadmap (v2.13 marqué comme complété)
+
+## [2.12.0] - 2026-01-12
+
+### ✨ Nouvelles fonctionnalités
+
+- **Safety Profiles System** : Trois profils de sécurité pour contrôler les limites d'exécution
+  - `--profile safe` (défaut) : Réseau AI uniquement, limite de 500 lignes, 3 boucles de réparation max
+  - `--profile ci` : Mode CI/CD avec fail-fast, audit logging, pas de prompts interactifs
+  - `--profile yolo` : Accès réseau complet, limites étendues, nécessite confirmation explicite
+  - `--yes` / `-y` : Ignorer la confirmation yolo
+
+- **Command Allowlist** : Système de liste blanche pour le mode safe
+  - Patterns glob pour correspondance flexible des commandes
+  - Fichier `config/default_allowlist.json` avec commandes pré-approuvées
+  - Support pour additions utilisateur via config.json
+  - Blocage des commandes dangereuses (rm -rf, sudo, curl, etc.)
+
+- **Network Guard** : Contrôle d'accès réseau pour le mode safe
+  - Blocage des appels réseau auxiliaires (web search, etc.)
+  - Autorisation des connexions AI providers (Gemini, OpenAI, Claude)
+  - Autorisation des services essentiels (OSV, PyPI, npm)
+  - Contexte manager pour activation/désactivation propre
+
+- **Audit Logging** : Journalisation structurée pour le mode CI
+  - Format JSON Lines (`aetheris-audit.jsonl`)
+  - Événements: analysis_started, profile_applied, file_analyzed, etc.
+  - Session ID unique pour chaque exécution
+  - Détails des contraintes appliquées
+
+- **Profile Constraints** : Limites d'exécution par profil
+  - Limite de diff (lignes changées)
+  - Limite de boucles de réparation
+  - Fail-fast en mode CI (exit code non-zero)
+  - Tests obligatoires en mode safe
+
+### 🔧 Modifications
+
+- Nouveau module `src/core/profiles.py` avec ProfileType, ProfileConfig, DiffBoundary
+- Nouveau module `src/core/allowlist.py` avec AllowlistConfig, AllowlistGuard
+- Nouveau module `src/core/audit_log.py` avec AuditLogger, AuditEvent
+- Nouveau module `src/services/network_guard.py` avec NetworkGuard
+- Nouveau fichier `config/default_allowlist.json` avec patterns autorisés
+- Extension de `src/core/orchestrator.py` avec intégration des profils
+- Extension de `src/cli.py` avec options --profile et --yes
+- Extension de `src/core/__init__.py` avec exports des profils
+
+### 📝 Documentation
+
+- Section Safety Profiles ajoutée au README.md
+- Mise à jour du roadmap (v2.9-v2.12 marqués comme complétés)
+
+## [2.11.0] - 2026-01-12
+
+### ✨ Nouvelles fonctionnalités
+
+- **Agent Selection System** : Système complet de sélection d'agents pour analyses personnalisées
+  - `--preset <name>` : Utilisation de presets prédéfinis (full, core, security-audit, etc.)
+  - `--interactive` / `-i` : Mode interactif avec Rich UI pour sélection visuelle
+  - `--category <name>` : Filtrage par catégorie de correctifs
+  - `--list-presets` : Affichage de tous les presets disponibles
+
+- **Presets System** : 10 presets d'analyse prédéfinis
+  - `full` : Analyse complète avec les 10 agents
+  - `core` : 6 agents principaux uniquement
+  - `security-audit` : Focus sécurité (security, data_privacy, vulnerability)
+  - `performance-review` : Focus performance (performance, metrics, architecture)
+  - `quick-scan` : Analyse rapide (code_analysis, security)
+  - `compliance-gdpr/hipaa/pci` : Presets de conformité
+  - `type-safety` : Analyse de typage (type_safety, code_analysis)
+  - `api-review` : Revue d'API (api_contract, security)
+
+- **Interactive Agent Selection** : Interface Rich pour sélection interactive
+  - Tableau des presets disponibles avec descriptions
+  - Sélection manuelle agent par agent
+  - Sélection des frameworks de conformité
+  - Confirmation avant lancement de l'analyse
+
+- **Fix Categories** : Catégories de correctifs pour ciblage
+  - Filtrage des issues par catégorie
+  - Suivi de progression par catégorie
+  - Mapping agents → catégories
+
+### 🔧 Modifications
+
+- Nouveau module `src/core/presets.py` avec AgentPreset et système de presets
+- Nouveau module `src/core/fix_categories.py` avec CategoryFilter et CategoryProgress
+- Nouveau module `src/core/agent_selector.py` avec AgentSelector et validation
+- Nouveau module `src/core/interactive_select.py` avec InteractiveAgentSelector
+- Nouveau fichier `config/presets.json` avec définitions des presets
+- Extension de `src/core/__init__.py` avec exports des nouveaux modules
+- Extension de `src/cli.py` avec options --preset, --interactive, --category, --list-presets
+
+### 📝 Documentation
+
+- Documentation des presets dans CLI help
+- Guide d'utilisation interactive intégré à l'interface Rich
+
+## [2.10.0] - 2026-01-12
+
+### ✨ Nouvelles fonctionnalités
+
+- **Extended Agents** : 4 nouveaux agents d'analyse spécialisés
+  - **TypeSafetyAgent** : Détection de `any`, casts unsafe, `type: ignore`, null safety
+  - **PerformanceAnalysisAgent** : Détection O(n²), N+1 queries, memory leaks, blocking async
+  - **APIContractAgent** : Violations REST, breaking changes, endpoints non documentés
+  - **DataPrivacyAgent** : PII logging, chiffrement manquant, conformité GDPR/HIPAA/PCI-DSS/CCPA
+
+- **Agent Selection CLI** : Nouvelles options de sélection d'agents
+  - `--agents` : Liste des agents à exécuter (ex: `--agents security,performance`)
+  - `--skip-agents` : Liste des agents à ignorer (ex: `--skip-agents privacy`)
+  - `--compliance` : Frameworks de conformité pour analyse privacy (ex: `--compliance gdpr,hipaa`)
+
+- **Configuration Extended Agents** : Nouveaux champs dans config.json
+  - `analysis.compliance_agents` : Frameworks de conformité par défaut
+  - `analysis.enabled_agents` : Agents activés par défaut
+  - `analysis.skip_agents` : Agents désactivés par défaut
+
+### 🔧 Modifications
+
+- Nouveau module `src/agents/type_safety_agent.py`
+- Nouveau module `src/agents/performance_analysis_agent.py`
+- Nouveau module `src/agents/api_contract_agent.py`
+- Nouveau module `src/agents/data_privacy_agent.py`
+- Extension de `src/agents/__init__.py` avec exports des nouveaux agents
+- Extension de `src/models/data_models.py` avec 4 nouveaux dataclasses:
+  - `PerformanceIssue`, `APIContractViolation`, `TypeSafetyIssue`, `PrivacyViolation`
+- Extension de `src/core/orchestrator.py` avec 4 nouvelles WorkflowStages
+- Extension de `src/core/config.py` avec options pour extended agents
+- Extension de `src/core/config_schema.py` avec `compliance_agents`
+- Extension de `src/cli.py` avec options `--agents`, `--skip-agents`, `--compliance`
+
+### 📝 Documentation
+
+- Nouveaux agents documentés dans `src/agents/__init__.py`
+- Options CLI documentées dans aide intégrée
+
+## [2.9.0] - 2026-01-12
+
+### ✨ Nouvelles fonctionnalités
+
+- **Configuration Persistante** : Système de configuration hiérarchique complet
+  - Nouveau fichier `config.json` pour configuration projet et globale
+  - Hiérarchie de priorité : CLI > local > global > env > defaults
+  - Nouvelle commande `aetheris init` pour initialiser config.json
+  - Nouvelle commande `aetheris settings` pour UI interactive de configuration
+  - Nouvelle commande `aetheris migrate-env` pour migrer .env vers config.json
+  - Support des presets d'analyse personnalisés
+  - Détection automatique des secrets dans config.json (avertissement)
+  - Avertissement sur les clés de config inconnues (typos)
+
+### 🔧 Modifications
+
+- Nouveau module `src/core/config_schema.py` avec schéma de configuration
+- Nouveau module `src/core/config_file.py` avec ConfigFile et ConfigHierarchy
+- Nouveau module `src/core/settings_ui.py` avec interface Rich interactive
+- Nouveau fichier `config/default.json` avec valeurs par défaut
+- Extension de `src/core/__init__.py` pour exporter les nouveaux modules
+
+### 📝 Documentation
+
+- Schéma de configuration documenté dans config/default.json
+- Aide CLI mise à jour avec nouvelles commandes
+
+### 🔒 Sécurité
+
+- Séparation stricte secrets (.env) vs config (config.json)
+- Validation des clés secrètes avec avertissement si trouvées dans config.json
+
 ## [2.8.0] - 2026-01-11
 
 ### ✨ Nouvelles fonctionnalités
@@ -1030,7 +1236,14 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Génération de rapports détaillés en Markdown
 - Configuration flexible via variables d'environnement
 
-[Unreleased]: https://github.com/adryserage/aetheris/compare/v2.6.2...HEAD
+[Unreleased]: https://github.com/adryserage/aetheris/compare/v2.12.0...HEAD
+[2.12.0]: https://github.com/adryserage/aetheris/compare/v2.11.0...v2.12.0
+[2.11.0]: https://github.com/adryserage/aetheris/compare/v2.10.0...v2.11.0
+[2.10.0]: https://github.com/adryserage/aetheris/compare/v2.9.0...v2.10.0
+[2.9.0]: https://github.com/adryserage/aetheris/compare/v2.8.0...v2.9.0
+[2.8.0]: https://github.com/adryserage/aetheris/compare/v2.7.0...v2.8.0
+[2.7.0]: https://github.com/adryserage/aetheris/compare/v2.6.5...v2.7.0
+[2.6.5]: https://github.com/adryserage/aetheris/compare/v2.6.2...v2.6.5
 [2.6.2]: https://github.com/adryserage/aetheris/compare/v2.6.1...v2.6.2
 [2.6.1]: https://github.com/adryserage/aetheris/compare/v2.5.8...v2.6.1
 [2.5.8]: https://github.com/adryserage/aetheris/compare/v2.5.0...v2.5.8

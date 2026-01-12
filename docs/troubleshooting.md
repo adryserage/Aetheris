@@ -146,6 +146,41 @@ ENABLE_THINKING=true
 THINKING_BUDGET=2048
 ```
 
+## Agent Selection Issues (v2.10)
+
+### Unknown Agent Error
+```
+❌ Unknown agent: performance_agent
+```
+
+**Solution**: Use correct agent names:
+```bash
+# Core agents
+aetheris analysis --agents code_analysis,architecture,security,metrics,vulnerability,qa
+
+# Extended agents (v2.10)
+aetheris analysis --agents type_safety,performance,api_contract,data_privacy
+```
+
+### Compliance Framework Not Found
+```
+❌ Unknown compliance framework: gdpr2
+```
+
+**Solution**: Use valid framework names:
+```bash
+aetheris analysis --compliance gdpr,hipaa,pci_dss,ccpa
+```
+
+### Extended Agent Not Running
+Extended agents require the corresponding enable flags:
+```env
+ENABLE_TYPE_ANALYSIS=true
+ENABLE_PERFORMANCE_ANALYSIS=true
+ENABLE_API_CONTRACT_ANALYSIS=true
+ENABLE_PRIVACY_ANALYSIS=true
+```
+
 ## Cache Issues
 
 ### Force Re-analysis

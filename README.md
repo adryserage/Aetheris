@@ -1,7 +1,7 @@
 # Aetheris — AI Code Review That Actually Works
 
 <p align="center">
-  <strong>6 AI agents. Automated vulnerability detection. Minutes instead of hours.</strong>
+  <strong>10 AI agents. Automated vulnerability detection. Minutes instead of hours.</strong>
 </p>
 
 <p align="center">
@@ -98,7 +98,7 @@ pip install adryserage-aetheris && aetheris analysis
 |:-----------------|:---------|
 | Thousands of noisy warnings | **Actionable insights only** |
 | Pattern matching (shallow) | **Context-aware AI (deep)** |
-| Security OR quality OR architecture | **All 6 agents working together** |
+| Security OR quality OR architecture | **All 10 agents working together** |
 | Suggestions you ignore | **Auto-fix that actually works** |
 
 ## Pricing That Makes Sense
@@ -138,13 +138,15 @@ pip install adryserage-aetheris && aetheris analysis
 
 ## Architecture
 
-Aetheris coordinates 6 specialized AI agents through a central orchestrator. Each agent analyzes a specific domain, and the QA Synthesis agent consolidates findings into prioritized, actionable reports.
+Aetheris coordinates 10 specialized AI agents through a central orchestrator. Each agent analyzes a specific domain, and the QA Synthesis agent consolidates findings into prioritized, actionable reports.
 
 <p align="center">
   <img src="https://adryserage.github.io/aetheris/assets/diagrams/architecture.svg" alt="Aetheris Architecture" width="900">
 </p>
 
-### 6 Specialized AI Agents
+### 10 Specialized AI Agents
+
+#### Core Agents (6)
 
 | Agent | Responsibility |
 |:------|:---------------|
@@ -154,6 +156,15 @@ Aetheris coordinates 6 specialized AI agents through a central orchestrator. Eac
 | **Metrics** | Cyclomatic complexity, duplication, maintainability index, LOC stats |
 | **Dependency** | CVE scanning via OSV database, outdated packages, license compliance |
 | **QA Synthesis** | Prioritizes findings, eliminates false positives, generates final report |
+
+#### Extended Agents (4) — v2.10+
+
+| Agent | Responsibility |
+|:------|:---------------|
+| **Type Safety** | `any` usage, unsafe casts, type ignores, null safety issues |
+| **Performance** | O(n²) complexity, N+1 queries, memory leaks, blocking async |
+| **API Contract** | REST violations, HTTP method issues, breaking changes, undocumented endpoints |
+| **Data Privacy** | PII logging, missing encryption, GDPR/HIPAA/PCI-DSS/CCPA compliance |
 
 ### Integration Points
 
@@ -212,7 +223,7 @@ aetheris fix --analyze-first --auto
 $ aetheris analysis
 
   Scanning 127 files...
-  Running 6 AI agents...
+  Running 10 AI agents...
 
   CRITICAL: SQL injection in user_service.py:45
   HIGH: Hardcoded API key in config.py:12
@@ -285,10 +296,12 @@ aetheris analysis
 | Version | Status | Highlights |
 |:--------|:------:|:-----------|
 | **v2.8** | ✅ Done | Headless mode for CI/CD automation |
-| **v3.0** | Planned | Persistent config (JSON), security profiles |
-| **v3.1** | Planned | Enhanced security & Git strategy |
-| **v3.2** | Planned | CI/CD templates (GitHub Actions, GitLab CI) |
-| **v4.0** | Planned | Multi-model support (Gemini, Claude, OpenRouter) |
+| **v2.9** | ✅ Done | Persistent config (config.json) |
+| **v2.10** | ✅ Done | 4 new agents (performance, API, type safety, data privacy) |
+| **v2.11** | ✅ Done | Agent selection (`--agents`, `--preset`, `--category`) |
+| **v2.12** | ✅ Done | Safety profiles (`--profile safe\|ci\|yolo`) |
+| **v2.13** | ✅ Done | CI/CD templates (GitHub Actions workflow) |
+| **v3.0** | Planned | Multi-provider (Gemini, Claude, OpenRouter) |
 
 ---
 
@@ -307,6 +320,42 @@ aetheris analysis
 ---
 
 ## Important Safety Information
+
+<details>
+<summary><strong>Safety Profiles (v2.12)</strong></summary>
+
+Aetheris provides three safety profiles to control execution boundaries:
+
+| Profile | Network | Diff Limit | Repair Loops | Best For |
+|:--------|:-------:|:----------:|:------------:|:---------|
+| `safe` (default) | AI only | 500 lines | 3 | Local development |
+| `ci` | Full | 1000 lines | 5 | CI/CD automation |
+| `yolo` | Full | Unlimited | 10 | Power users |
+
+```bash
+# Safe mode (default) - recommended
+aetheris analysis --profile safe
+
+# CI mode - for automated pipelines
+aetheris analysis --profile ci
+
+# YOLO mode - requires confirmation
+aetheris analysis --profile yolo --yes
+```
+
+**Safe mode restrictions:**
+- Blocks auxiliary network calls (web search disabled)
+- Validates commands against allowlist
+- Limits diff size to 500 lines
+- Limits repair loops to 3 iterations
+
+**CI mode features:**
+- Fail-fast on errors (non-zero exit)
+- No interactive prompts
+- Audit logging to `aetheris-audit.jsonl`
+- Machine-readable output
+
+</details>
 
 <details>
 <summary><strong>Data Privacy Notice</strong></summary>

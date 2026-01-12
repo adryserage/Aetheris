@@ -125,6 +125,61 @@ class ImpactAnalysis:
 
 
 @dataclass
+class PerformanceIssue:
+    """Performance issue detected (v2.10)"""
+
+    severity: str  # 'critical', 'high', 'medium', 'low', 'info'
+    issue_type: str  # 'O(n²)', 'N+1', 'memory_leak', 'blocking_async', 'inefficient_algo'
+    description: str
+    line_number: Optional[int] = None
+    code_snippet: Optional[str] = None
+    recommendation: str = ""
+    estimated_impact: Optional[str] = None  # e.g., "10x slower for large datasets"
+    complexity: Optional[str] = None  # e.g., "O(n²)", "O(n log n)"
+
+
+@dataclass
+class APIContractViolation:
+    """API contract violation detected (v2.10)"""
+
+    severity: str  # 'critical', 'high', 'medium', 'low', 'info'
+    violation_type: str  # 'http_method', 'rest_naming', 'breaking_change', 'undocumented'
+    description: str
+    endpoint: Optional[str] = None
+    line_number: Optional[int] = None
+    code_snippet: Optional[str] = None
+    recommendation: str = ""
+    rest_principle: Optional[str] = None  # e.g., "GET should not have body"
+
+
+@dataclass
+class TypeSafetyIssue:
+    """Type safety issue detected (v2.10)"""
+
+    severity: str  # 'critical', 'high', 'medium', 'low', 'info'
+    issue_type: str  # 'any_usage', 'unsafe_cast', 'type_ignore', 'null_safety'
+    description: str
+    line_number: Optional[int] = None
+    code_snippet: Optional[str] = None
+    recommendation: str = ""
+    language: str = ""  # 'typescript', 'python', 'java', etc.
+
+
+@dataclass
+class PrivacyViolation:
+    """Data privacy violation detected (v2.10)"""
+
+    severity: str  # 'critical', 'high', 'medium', 'low', 'info'
+    violation_type: str  # 'pii_logging', 'missing_encryption', 'data_retention', 'consent'
+    description: str
+    line_number: Optional[int] = None
+    code_snippet: Optional[str] = None
+    recommendation: str = ""
+    pii_type: Optional[str] = None  # e.g., "email", "ssn", "phone", "credit_card"
+    compliance_frameworks: List[str] = field(default_factory=list)  # e.g., ["GDPR", "HIPAA"]
+
+
+@dataclass
 class FileAnalysis:
     """Résultat d'analyse d'un fichier"""
 
@@ -145,3 +200,8 @@ class FileAnalysis:
     exports: List[FileExport] = field(default_factory=list)
     reverse_dependencies: List[ReverseDependency] = field(default_factory=list)
     bugs: List[BugIdentifier] = field(default_factory=list)
+    # v2.10: Extended agent analysis results
+    performance_issues: List["PerformanceIssue"] = field(default_factory=list)
+    api_violations: List["APIContractViolation"] = field(default_factory=list)
+    type_safety_issues: List["TypeSafetyIssue"] = field(default_factory=list)
+    privacy_violations: List["PrivacyViolation"] = field(default_factory=list)

@@ -91,6 +91,40 @@ Create a `.env` file in your project root or set environment variables.
 | `ENABLE_CLAUDE_CODE_FIX` | `boolean` | Enable Claude Code integration | `true` |
 | `FIX_SEVERITY_THRESHOLD` | `enum` | Minimum severity to fix. **Valid values**: `low`, `medium`, `high`, `critical` | `medium` |
 
+### Extended Agents (v2.10)
+
+| Variable | Type | Description | Default |
+|----------|------|-------------|---------|
+| `ENABLE_TYPE_ANALYSIS` | `boolean` | Enable Type Safety Agent (any usage, unsafe casts) | `true` |
+| `ENABLE_PERFORMANCE_ANALYSIS` | `boolean` | Enable Performance Agent (O(n²), N+1 queries) | `true` |
+| `ENABLE_API_CONTRACT_ANALYSIS` | `boolean` | Enable API Contract Agent (REST violations) | `true` |
+| `ENABLE_PRIVACY_ANALYSIS` | `boolean` | Enable Data Privacy Agent (PII, compliance) | `true` |
+
+### Agent Selection (v2.10)
+
+Control which agents run during analysis:
+
+```bash
+# Run specific agents only
+aetheris analysis --agents security,performance,type_safety
+
+# Skip specific agents
+aetheris analysis --skip-agents metrics,architecture
+
+# Enable compliance frameworks for privacy analysis
+aetheris analysis --compliance gdpr,hipaa,pci_dss
+```
+
+**Available agents:**
+- Core: `code_analysis`, `architecture`, `security`, `metrics`, `vulnerability`, `qa`
+- Extended: `type_safety`, `performance`, `api_contract`, `data_privacy`
+
+**Compliance frameworks:**
+- `gdpr` — EU General Data Protection Regulation
+- `hipaa` — US Health Insurance Portability Act
+- `pci_dss` — Payment Card Industry Data Security Standard
+- `ccpa` — California Consumer Privacy Act
+
 ## Example `.env` File
 
 ```env
