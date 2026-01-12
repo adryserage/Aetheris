@@ -123,6 +123,37 @@ Exemples:
         ),
     )
 
+    # v2.10: Extended agent selection options
+    analysis_parser.add_argument(
+        "--agents",
+        type=str,
+        default=None,
+        help=(
+            "Comma-separated list of agents to run. Available: security, metrics, "
+            "architect, quality, vulnerability, userstory, type-safety, performance, "
+            "api-contract, privacy. Use 'all' for all agents (default)."
+        ),
+    )
+
+    analysis_parser.add_argument(
+        "--skip-agents",
+        type=str,
+        default=None,
+        help=(
+            "Comma-separated list of agents to skip. Example: --skip-agents performance,privacy"
+        ),
+    )
+
+    analysis_parser.add_argument(
+        "--compliance",
+        type=str,
+        default=None,
+        help=(
+            "Compliance frameworks for privacy analysis. "
+            "Options: gdpr, hipaa, pci_dss, ccpa. Comma-separated."
+        ),
+    )
+
     return analysis_parser
 
 
@@ -332,6 +363,23 @@ async def run_analysis(args):
             log_print(f"❌ {e}")
             sys.exit(1)
 
+    # Parse agent selection options (v2.10)
+    enabled_agents_arg = getattr(args, "agents", None)
+    skip_agents_arg = getattr(args, "skip_agents", None)
+    compliance_arg = getattr(args, "compliance", None)
+
+    enabled_agents = ["all"]
+    if enabled_agents_arg:
+        enabled_agents = [a.strip() for a in enabled_agents_arg.split(",") if a.strip()]
+
+    skip_agents = []
+    if skip_agents_arg:
+        skip_agents = [a.strip() for a in skip_agents_arg.split(",") if a.strip()]
+
+    compliance_agents = []
+    if compliance_arg:
+        compliance_agents = [c.strip().lower() for c in compliance_arg.split(",") if c.strip()]
+
     config = AnalysisConfig(
         ai_provider=ai_provider,
         ai_api_key=ai_api_key,
@@ -365,6 +413,14 @@ async def run_analysis(args):
         enable_google_search=os.getenv("ENABLE_GOOGLE_SEARCH", "false").lower() == "true",
         # Timeout configuration (v2.6.1)
         timeout_config=timeout_config,
+        # Extended Agents (v2.10)
+        enabled_agents=enabled_agents,
+        skip_agents=skip_agents,
+        compliance_agents=compliance_agents,
+        enable_type_analysis="type-safety" not in skip_agents and ("all" in enabled_agents or "type-safety" in enabled_agents),
+        enable_performance_analysis="performance" not in skip_agents and ("all" in enabled_agents or "performance" in enabled_agents),
+        enable_api_contract_analysis="api-contract" not in skip_agents and ("all" in enabled_agents or "api-contract" in enabled_agents),
+        enable_privacy_analysis="privacy" not in skip_agents and ("all" in enabled_agents or "privacy" in enabled_agents),
     )
 
     log_print(t("cli.analysis.root_dir", path=config.root_dir))

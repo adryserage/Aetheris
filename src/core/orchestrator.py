@@ -33,6 +33,11 @@ class WorkflowStage(Enum):
     VULNERABILITY_ANALYSIS = "vulnerability_analysis"
     QUALITY_REPORT = "quality_report"
     USER_STORY_ANALYSIS = "user_story_analysis"  # Analyse des flux user stories
+    # v2.10: Extended agents workflow stages
+    PERFORMANCE_ANALYSIS = "performance_analysis"  # O(n²), N+1, memory leaks
+    API_CONTRACT_ANALYSIS = "api_contract_analysis"  # REST violations, breaking changes
+    TYPE_SAFETY_ANALYSIS = "type_safety_analysis"  # any usage, unsafe casts
+    DATA_PRIVACY_ANALYSIS = "data_privacy_analysis"  # PII logging, compliance
     COMPLETE = "complete"
     ERROR = "error"
 

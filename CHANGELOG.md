@@ -17,6 +17,45 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ### 📦 Dépendances
 
+## [2.10.0] - 2026-01-12
+
+### ✨ Nouvelles fonctionnalités
+
+- **Extended Agents** : 4 nouveaux agents d'analyse spécialisés
+  - **TypeSafetyAgent** : Détection de `any`, casts unsafe, `type: ignore`, null safety
+  - **PerformanceAnalysisAgent** : Détection O(n²), N+1 queries, memory leaks, blocking async
+  - **APIContractAgent** : Violations REST, breaking changes, endpoints non documentés
+  - **DataPrivacyAgent** : PII logging, chiffrement manquant, conformité GDPR/HIPAA/PCI-DSS/CCPA
+
+- **Agent Selection CLI** : Nouvelles options de sélection d'agents
+  - `--agents` : Liste des agents à exécuter (ex: `--agents security,performance`)
+  - `--skip-agents` : Liste des agents à ignorer (ex: `--skip-agents privacy`)
+  - `--compliance` : Frameworks de conformité pour analyse privacy (ex: `--compliance gdpr,hipaa`)
+
+- **Configuration Extended Agents** : Nouveaux champs dans config.json
+  - `analysis.compliance_agents` : Frameworks de conformité par défaut
+  - `analysis.enabled_agents` : Agents activés par défaut
+  - `analysis.skip_agents` : Agents désactivés par défaut
+
+### 🔧 Modifications
+
+- Nouveau module `src/agents/type_safety_agent.py`
+- Nouveau module `src/agents/performance_analysis_agent.py`
+- Nouveau module `src/agents/api_contract_agent.py`
+- Nouveau module `src/agents/data_privacy_agent.py`
+- Extension de `src/agents/__init__.py` avec exports des nouveaux agents
+- Extension de `src/models/data_models.py` avec 4 nouveaux dataclasses:
+  - `PerformanceIssue`, `APIContractViolation`, `TypeSafetyIssue`, `PrivacyViolation`
+- Extension de `src/core/orchestrator.py` avec 4 nouvelles WorkflowStages
+- Extension de `src/core/config.py` avec options pour extended agents
+- Extension de `src/core/config_schema.py` avec `compliance_agents`
+- Extension de `src/cli.py` avec options `--agents`, `--skip-agents`, `--compliance`
+
+### 📝 Documentation
+
+- Nouveaux agents documentés dans `src/agents/__init__.py`
+- Options CLI documentées dans aide intégrée
+
 ## [2.9.0] - 2026-01-12
 
 ### ✨ Nouvelles fonctionnalités

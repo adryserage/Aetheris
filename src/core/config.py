@@ -250,6 +250,28 @@ class AnalysisConfig:
     # Google Search : recherche web intégrée pour grounding
     enable_google_search: bool = False
 
+    # === Extended Agents Options (v2.10) ===
+    # Additional specialized analysis agents
+
+    # Type Safety Agent: Detect any usage, unsafe casts, type ignores
+    enable_type_analysis: bool = True
+
+    # Performance Agent: Detect O(n²), N+1 queries, memory leaks
+    enable_performance_analysis: bool = True
+
+    # API Contract Agent: Detect REST violations, breaking changes
+    enable_api_contract_analysis: bool = True
+
+    # Data Privacy Agent: Detect PII logging, compliance violations
+    enable_privacy_analysis: bool = True
+
+    # Agent selection (v2.10): Which agents to run
+    enabled_agents: List[str] = field(default_factory=lambda: ["all"])
+    skip_agents: List[str] = field(default_factory=list)
+
+    # Compliance frameworks for privacy analysis (gdpr, hipaa, pci_dss, ccpa)
+    compliance_agents: List[str] = field(default_factory=list)
+
     # === User Story Analysis Options ===
     # Analyse des flux frontend ↔ backend et détection d'incohérences
 

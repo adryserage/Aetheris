@@ -28,6 +28,8 @@ class AnalysisConfigSchema:
     default_preset: str = "comprehensive"
     enabled_agents: List[str] = field(default_factory=lambda: ["all"])
     skip_agents: List[str] = field(default_factory=list)
+    # v2.10: Compliance agents for data privacy analysis
+    compliance_agents: List[str] = field(default_factory=list)  # e.g., ["gdpr", "hipaa", "pci_dss"]
     exclude_patterns: List[str] = field(
         default_factory=lambda: [
             "**/node_modules/**",
@@ -100,6 +102,7 @@ class ConfigSchema:
                 "default_preset": self.analysis.default_preset,
                 "enabled_agents": self.analysis.enabled_agents,
                 "skip_agents": self.analysis.skip_agents,
+                "compliance_agents": self.analysis.compliance_agents,
                 "exclude_patterns": self.analysis.exclude_patterns,
                 "analyze_changed_files_only": self.analysis.analyze_changed_files_only,
                 "max_dependency_depth": self.analysis.max_dependency_depth,
@@ -142,6 +145,7 @@ class ConfigSchema:
             default_preset=analysis_data.get("default_preset", "comprehensive"),
             enabled_agents=analysis_data.get("enabled_agents", ["all"]),
             skip_agents=analysis_data.get("skip_agents", []),
+            compliance_agents=analysis_data.get("compliance_agents", []),
             exclude_patterns=analysis_data.get(
                 "exclude_patterns",
                 [
