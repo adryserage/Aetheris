@@ -2136,7 +2136,7 @@ Task File Format (JSON):
 
 def run_headless(args):
     """Execute task file in headless mode."""
-    from src.runner import TaskRunner, TaskFileValidationError
+    from src.runner import TaskFileValidationError, TaskRunner
     from src.runner.output_formatter import OutputFormatter
 
     try:
