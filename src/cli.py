@@ -154,6 +154,35 @@ Exemples:
         ),
     )
 
+    # v2.11: Preset and interactive options
+    analysis_parser.add_argument(
+        "--preset",
+        type=str,
+        default=None,
+        help=(
+            "Use a preset agent configuration. Available: full, core, quick-scan, "
+            "security-audit, performance-review, compliance-gdpr, compliance-hipaa, "
+            "compliance-pci, type-safety, api-review. Use 'aetheris --list-presets' to see all."
+        ),
+    )
+
+    analysis_parser.add_argument(
+        "--interactive",
+        "-i",
+        action="store_true",
+        help="Interactive agent selection mode with Rich UI (v2.11)",
+    )
+
+    analysis_parser.add_argument(
+        "--category",
+        type=str,
+        default=None,
+        help=(
+            "Fix category to target. Options: security, performance, compliance, "
+            "code_quality, architecture, type_safety, api_contract, vulnerability."
+        ),
+    )
+
     return analysis_parser
 
 
@@ -363,22 +392,52 @@ async def run_analysis(args):
             log_print(f"❌ {e}")
             sys.exit(1)
 
-    # Parse agent selection options (v2.10)
+    # Parse agent selection options (v2.10/v2.11)
     enabled_agents_arg = getattr(args, "agents", None)
     skip_agents_arg = getattr(args, "skip_agents", None)
     compliance_arg = getattr(args, "compliance", None)
+    preset_arg = getattr(args, "preset", None)
+    interactive_mode = getattr(args, "interactive", False)
 
-    enabled_agents = ["all"]
-    if enabled_agents_arg:
-        enabled_agents = [a.strip() for a in enabled_agents_arg.split(",") if a.strip()]
+    # v2.11: Handle interactive mode
+    if interactive_mode:
+        from src.core.interactive_select import run_interactive_selection
 
-    skip_agents = []
-    if skip_agents_arg:
-        skip_agents = [a.strip() for a in skip_agents_arg.split(",") if a.strip()]
+        selected_agents, selected_compliance = run_interactive_selection(
+            preset=preset_arg,
+            compliance=compliance_arg,
+        )
+        if not selected_agents:
+            log_print(t("cli.analysis.cancelled"))
+            sys.exit(0)
+        enabled_agents = selected_agents
+        compliance_agents = selected_compliance
+        skip_agents = []
+    else:
+        # v2.11: Use AgentSelector for smart agent selection
+        from src.core.agent_selector import AgentSelector
 
-    compliance_agents = []
-    if compliance_arg:
-        compliance_agents = [c.strip().lower() for c in compliance_arg.split(",") if c.strip()]
+        selector = AgentSelector(
+            agents=enabled_agents_arg,
+            skip_agents=skip_agents_arg,
+            preset=preset_arg,
+            compliance=compliance_arg,
+        )
+        result = selector.get_selected_agents()
+
+        # Report errors but continue with valid agents
+        for error in result.errors:
+            log_print(f"⚠️  {error}")
+
+        enabled_agents = result.agents if result.agents else ["all"]
+        skip_agents = []  # Already applied in AgentSelector
+        compliance_agents = result.compliance_frameworks
+
+        if result.preset_used:
+            log_print(t("cli.analysis.using_preset", preset=result.preset_used))
+
+        if enabled_agents and enabled_agents != ["all"]:
+            log_print(t("cli.analysis.selected_agents", agents=", ".join(enabled_agents)))
 
     config = AnalysisConfig(
         ai_provider=ai_provider,
@@ -2545,6 +2604,13 @@ Exemples:
         help="List available languages and exit",
     )
 
+    # v2.11: Preset listing
+    parser.add_argument(
+        "--list-presets",
+        action="store_true",
+        help="List available agent presets and exit",
+    )
+
     subparsers = parser.add_subparsers(
         dest="command", help="Commandes disponibles", metavar="COMMANDE"
     )
@@ -2617,6 +2683,35 @@ def _handle_list_languages():
     sys.exit(0)
 
 
+def _handle_list_presets():
+    """Display available presets and exit (v2.11)."""
+    from src.core.presets import list_presets
+
+    console = Console()
+    presets = list_presets()
+
+    console.print()
+    console.print("[bold]Available Agent Presets (v2.11)[/bold]")
+    console.print()
+
+    table = Table(show_header=True, header_style="bold cyan")
+    table.add_column("Preset", style="green")
+    table.add_column("Description")
+    table.add_column("Agents")
+
+    for preset in presets:
+        agents_str = ", ".join(preset.agents[:4])
+        if len(preset.agents) > 4:
+            agents_str += f" (+{len(preset.agents) - 4})"
+        table.add_row(preset.name, preset.description, agents_str)
+
+    console.print(table)
+    console.print()
+    console.print("[dim]Use --preset <name> with analysis command[/dim]")
+    console.print("[dim]Example: aetheris analysis --preset security-audit[/dim]")
+    sys.exit(0)
+
+
 def main():
     """Point d'entrée principal de la CLI"""
     parser = create_parser()
@@ -2629,6 +2724,10 @@ def main():
     # Handle --list-languages
     if getattr(args, "list_languages", False):
         _handle_list_languages()
+
+    # Handle --list-presets (v2.11)
+    if getattr(args, "list_presets", False):
+        _handle_list_presets()
 
     if not args.command:
         parser.print_help()

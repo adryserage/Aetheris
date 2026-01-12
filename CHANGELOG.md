@@ -17,6 +17,52 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ### 📦 Dépendances
 
+## [2.11.0] - 2026-01-12
+
+### ✨ Nouvelles fonctionnalités
+
+- **Agent Selection System** : Système complet de sélection d'agents pour analyses personnalisées
+  - `--preset <name>` : Utilisation de presets prédéfinis (full, core, security-audit, etc.)
+  - `--interactive` / `-i` : Mode interactif avec Rich UI pour sélection visuelle
+  - `--category <name>` : Filtrage par catégorie de correctifs
+  - `--list-presets` : Affichage de tous les presets disponibles
+
+- **Presets System** : 10 presets d'analyse prédéfinis
+  - `full` : Analyse complète avec les 10 agents
+  - `core` : 6 agents principaux uniquement
+  - `security-audit` : Focus sécurité (security, data_privacy, vulnerability)
+  - `performance-review` : Focus performance (performance, metrics, architecture)
+  - `quick-scan` : Analyse rapide (code_analysis, security)
+  - `compliance-gdpr/hipaa/pci` : Presets de conformité
+  - `type-safety` : Analyse de typage (type_safety, code_analysis)
+  - `api-review` : Revue d'API (api_contract, security)
+
+- **Interactive Agent Selection** : Interface Rich pour sélection interactive
+  - Tableau des presets disponibles avec descriptions
+  - Sélection manuelle agent par agent
+  - Sélection des frameworks de conformité
+  - Confirmation avant lancement de l'analyse
+
+- **Fix Categories** : Catégories de correctifs pour ciblage
+  - Filtrage des issues par catégorie
+  - Suivi de progression par catégorie
+  - Mapping agents → catégories
+
+### 🔧 Modifications
+
+- Nouveau module `src/core/presets.py` avec AgentPreset et système de presets
+- Nouveau module `src/core/fix_categories.py` avec CategoryFilter et CategoryProgress
+- Nouveau module `src/core/agent_selector.py` avec AgentSelector et validation
+- Nouveau module `src/core/interactive_select.py` avec InteractiveAgentSelector
+- Nouveau fichier `config/presets.json` avec définitions des presets
+- Extension de `src/core/__init__.py` avec exports des nouveaux modules
+- Extension de `src/cli.py` avec options --preset, --interactive, --category, --list-presets
+
+### 📝 Documentation
+
+- Documentation des presets dans CLI help
+- Guide d'utilisation interactive intégré à l'interface Rich
+
 ## [2.10.0] - 2026-01-12
 
 ### ✨ Nouvelles fonctionnalités
@@ -1101,7 +1147,13 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Génération de rapports détaillés en Markdown
 - Configuration flexible via variables d'environnement
 
-[Unreleased]: https://github.com/adryserage/aetheris/compare/v2.6.2...HEAD
+[Unreleased]: https://github.com/adryserage/aetheris/compare/v2.11.0...HEAD
+[2.11.0]: https://github.com/adryserage/aetheris/compare/v2.10.0...v2.11.0
+[2.10.0]: https://github.com/adryserage/aetheris/compare/v2.9.0...v2.10.0
+[2.9.0]: https://github.com/adryserage/aetheris/compare/v2.8.0...v2.9.0
+[2.8.0]: https://github.com/adryserage/aetheris/compare/v2.7.0...v2.8.0
+[2.7.0]: https://github.com/adryserage/aetheris/compare/v2.6.5...v2.7.0
+[2.6.5]: https://github.com/adryserage/aetheris/compare/v2.6.2...v2.6.5
 [2.6.2]: https://github.com/adryserage/aetheris/compare/v2.6.1...v2.6.2
 [2.6.1]: https://github.com/adryserage/aetheris/compare/v2.5.8...v2.6.1
 [2.5.8]: https://github.com/adryserage/aetheris/compare/v2.5.0...v2.5.8

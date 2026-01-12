@@ -1,0 +1,47 @@
+{
+  "presets": {
+    "full": {
+      "description": "Complete analysis with all 10 agents",
+      "agents": ["all"]
+    },
+    "core": {
+      "description": "Core 6 agents only (no extended agents)",
+      "agents": ["code_analysis", "architecture", "security", "metrics", "vulnerability", "qa"]
+    },
+    "security-audit": {
+      "description": "Security-focused analysis",
+      "agents": ["security", "data_privacy", "vulnerability"]
+    },
+    "performance-review": {
+      "description": "Performance optimization analysis",
+      "agents": ["performance", "metrics", "architecture"]
+    },
+    "quick-scan": {
+      "description": "Fast minimal analysis",
+      "agents": ["code_analysis", "security"]
+    },
+    "compliance-gdpr": {
+      "description": "GDPR compliance check",
+      "agents": ["data_privacy"],
+      "compliance_profile": "gdpr"
+    },
+    "compliance-hipaa": {
+      "description": "HIPAA compliance check",
+      "agents": ["data_privacy"],
+      "compliance_profile": "hipaa"
+    },
+    "compliance-pci": {
+      "description": "PCI-DSS compliance check",
+      "agents": ["data_privacy"],
+      "compliance_profile": "pci_dss"
+    },
+    "type-safety": {
+      "description": "Type safety analysis for TypeScript/Python",
+      "agents": ["type_safety", "code_analysis"]
+    },
+    "api-review": {
+      "description": "API contract and REST compliance",
+      "agents": ["api_contract", "security"]
+    }
+  }
+}
