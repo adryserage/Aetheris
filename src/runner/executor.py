@@ -472,9 +472,8 @@ class TaskRunner:
 
         self._context.log("Initializing CodeAnalyzer...")
 
-        # Build config from task options
+        # Build config from task target
         target = self._task_file.task.target
-        options = self._task_file.task.options
 
         # Parse timeout - TimeoutConfig expects (value, enabled)
         timeout_config = None
