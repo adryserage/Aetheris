@@ -295,5 +295,5 @@ chmod +x setup-local.sh
 ## Related Documentation
 
 - [CLI Commands](commands/README.md)
-- [Safety Profiles](safety-profiles.md)
-- [Agent Selection](commands/analysis.md#agent-selection)
+- [Security Profiles](headless.md#security-profiles)
+- [Configuration](configuration.md)
