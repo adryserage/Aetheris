@@ -7,8 +7,10 @@ This guide shows how to integrate Aetheris into your GitHub Actions CI/CD pipeli
 1. **Add your API key as a repository secret:**
    - Go to Settings > Secrets and variables > Actions
    - Click "New repository secret"
-   - Name: `AETHERIS_API_KEY`
-   - Value: Your Gemini/OpenAI/Claude API key
+   - Add ONE of the following:
+     - `GEMINI_API_KEY` (recommended - free tier available)
+     - `OPENAI_API_KEY`
+     - `ANTHROPIC_API_KEY`
 
 2. **Copy the workflow file:**
    ```bash
@@ -107,11 +109,11 @@ The workflow has a 6-hour GitHub Actions limit. Set custom timeouts for analysis
 
 ### Use Different AI Provider
 
-Set the appropriate API key secret:
+Set the appropriate API key secret (only ONE is required):
 
 | Provider | Secret Name | Get API Key |
 |----------|-------------|-------------|
-| Gemini (default) | `AETHERIS_API_KEY` | [ai.google.dev](https://ai.google.dev) |
+| Gemini (recommended) | `GEMINI_API_KEY` | [ai.google.dev](https://ai.google.dev) |
 | OpenAI | `OPENAI_API_KEY` | [platform.openai.com](https://platform.openai.com/api-keys) |
 | Claude | `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) |
 
@@ -183,10 +185,10 @@ on:
 ### Missing API Key
 
 ```
-Error: Missing AETHERIS_API_KEY secret
+Error: Missing API key secret
 ```
 
-**Solution:** Add your API key as a repository secret (Settings > Secrets > Actions).
+**Solution:** Add your API key as a repository secret (Settings > Secrets > Actions). Use one of: `GEMINI_API_KEY`, `OPENAI_API_KEY`, or `ANTHROPIC_API_KEY`.
 
 ### Timeout Exceeded
 
@@ -271,10 +273,9 @@ aetheris-analysis-abc1234/
 
 | Variable | Source | Description |
 |----------|--------|-------------|
-| `AETHERIS_API_KEY` | Repository secret | AI provider API key |
-| `GEMINI_API_KEY` | Repository secret | Gemini API key (alternative) |
-| `OPENAI_API_KEY` | Repository secret | OpenAI API key (alternative) |
-| `ANTHROPIC_API_KEY` | Repository secret | Claude API key (alternative) |
+| `GEMINI_API_KEY` | Repository secret | Gemini API key (recommended) |
+| `OPENAI_API_KEY` | Repository secret | OpenAI API key |
+| `ANTHROPIC_API_KEY` | Repository secret | Claude API key |
 | `CHANGED_FILES` | Auto-detected | Files changed in PR |
 
 ## Local Setup from Artifacts
