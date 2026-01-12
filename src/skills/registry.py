@@ -5,10 +5,11 @@ Manages registration and lookup of skills.
 Supports built-in and custom skills.
 """
 
-import yaml
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
+
+import yaml
 
 from src.skills.base_skill import (
     SandboxValidator,
@@ -17,7 +18,7 @@ from src.skills.base_skill import (
     SkillResult,
     SkillResultStatus,
 )
-from src.skills.file_skills import ReadFileSkill, WriteFileSkill, SearchFilesSkill
+from src.skills.file_skills import ReadFileSkill, SearchFilesSkill, WriteFileSkill
 from src.skills.shell_skill import ExecuteCommandSkill
 
 

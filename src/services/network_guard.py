@@ -11,7 +11,6 @@ from typing import List, Optional, Set
 
 from src.core.logger import log_print
 
-
 # AI provider hosts that should always be allowed
 ALLOWED_AI_HOSTS = {
     # Gemini / Google AI

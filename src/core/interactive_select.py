@@ -5,7 +5,12 @@ Interactive agent selection with Rich UI (v2.11)
 import sys
 from typing import List, Optional, Set
 
-from src.core.agent_selector import ALL_AGENTS, CORE_AGENTS, EXTENDED_AGENTS, AgentSelector
+from src.core.agent_selector import (
+    ALL_AGENTS,
+    CORE_AGENTS,
+    EXTENDED_AGENTS,
+    AgentSelector,
+)
 from src.core.presets import get_preset, list_presets
 
 

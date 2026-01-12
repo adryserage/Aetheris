@@ -2,11 +2,10 @@
 Agent selection logic for selective analysis (v2.11)
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set
 
 from src.core.presets import get_preset, load_presets
-
 
 # All available agents
 CORE_AGENTS = [
@@ -49,11 +48,7 @@ class AgentSelectionResult:
     agents: List[str]
     compliance_frameworks: List[str]
     preset_used: Optional[str] = None
-    errors: List[str] = None
-
-    def __post_init__(self):
-        if self.errors is None:
-            self.errors = []
+    errors: List[str] = field(default_factory=list)
 
 
 class AgentSelector:

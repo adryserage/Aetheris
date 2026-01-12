@@ -2,6 +2,14 @@
 Modules core : Configuration, logging, et orchestrateur principal
 """
 
+# v2.11: Agent selection exports
+from src.core.agent_selector import (
+    ALL_AGENTS,
+    CORE_AGENTS,
+    EXTENDED_AGENTS,
+    AgentSelectionResult,
+    AgentSelector,
+)
 from src.core.config_file import (
     ConfigFile,
     ConfigFileError,
@@ -18,40 +26,31 @@ from src.core.config_schema import (
     SafetyConfigSchema,
     get_default_config,
 )
-
-# v2.11: Agent selection exports
-from src.core.agent_selector import (
-    AgentSelector,
-    AgentSelectionResult,
-    ALL_AGENTS,
-    CORE_AGENTS,
-    EXTENDED_AGENTS,
+from src.core.fix_categories import (
+    CATEGORY_MAPPINGS,
+    CategoryFilter,
+    CategoryProgress,
+    FixCategory,
+    list_categories,
 )
 from src.core.presets import (
-    AgentPreset,
     DEFAULT_PRESETS,
+    AgentPreset,
     get_preset,
     list_presets,
     load_presets,
 )
-from src.core.fix_categories import (
-    CategoryFilter,
-    CategoryProgress,
-    FixCategory,
-    CATEGORY_MAPPINGS,
-    list_categories,
-)
 
 # v2.12: Safety profiles exports
 from src.core.profiles import (
-    ProfileType,
-    ProfileConfig,
+    PROFILE_CONFIGS,
     DiffBoundary,
-    get_profile_config,
+    ProfileConfig,
+    ProfileType,
     get_default_profile,
+    get_profile_config,
     is_ci_environment,
     is_interactive_terminal,
-    PROFILE_CONFIGS,
 )
 
 __all__ = [

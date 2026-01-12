@@ -18,7 +18,6 @@ from src.skills.base_skill import (
     SkillResultStatus,
 )
 
-
 # Dangerous commands that should be blocked
 BLOCKED_COMMANDS = [
     "rm -rf /",
