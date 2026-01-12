@@ -2698,6 +2698,14 @@ Exemples:
         help="List available agent presets and exit",
     )
 
+    # v3.0: Interactive CLI mode
+    parser.add_argument(
+        "-c",
+        "--cli",
+        action="store_true",
+        help="Start interactive CLI mode with REPL interface",
+    )
+
     subparsers = parser.add_subparsers(
         dest="command", help="Commandes disponibles", metavar="COMMANDE"
     )
@@ -2815,6 +2823,14 @@ def main():
     # Handle --list-presets (v2.11)
     if getattr(args, "list_presets", False):
         _handle_list_presets()
+
+    # Handle --cli (v3.0 - Interactive mode)
+    if getattr(args, "cli", False):
+        from src.cli_interactive import InteractiveSession
+
+        session = InteractiveSession()
+        session.run()
+        sys.exit(0)
 
     if not args.command:
         parser.print_help()

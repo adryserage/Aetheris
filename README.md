@@ -76,6 +76,10 @@ pip install adryserage-aetheris && aetheris analysis
 
 ## Features
 
+- **Interactive CLI (v3.0)** — REPL interface with `aetheris --cli` for conversational code analysis
+- **Skills System (v3.0)** — AI agents can read/write files, execute commands, and search code
+- **MCP Integration (v3.0)** — Connect to Model Context Protocol servers for extended capabilities
+- **Custom Skills (v3.0)** — Define your own skills via YAML configuration
 - **Headless Mode (v2.8)** — Non-interactive execution for CI/CD with `aetheris run <task-file>`
 - **Deterministic Execution** — Reproducible results with `--seed` and `--no-timestamps` options
 - **Security Profiles** — Control operations with `--profile safe|ci|dev|unrestricted`
@@ -301,7 +305,7 @@ aetheris analysis
 | **v2.11** | ✅ Done | Agent selection (`--agents`, `--preset`, `--category`) |
 | **v2.12** | ✅ Done | Safety profiles (`--profile safe\|ci\|yolo`) |
 | **v2.13** | ✅ Done | CI/CD templates (GitHub Actions workflow) |
-| **v3.0** | Planned | Multi-provider (Gemini, Claude, OpenRouter) |
+| **v3.0** | ✅ Done | Interactive CLI, Skills system, MCP integration |
 
 ---
 

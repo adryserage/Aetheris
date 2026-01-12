@@ -9,6 +9,7 @@ pyyaml>=6.0  # Parsing des fichiers YAML (pubspec.yaml pour Dart/Flutter)
 jsonschema>=4.0  # JSON Schema validation for headless task files (v2.8)
 ddgs>=1.0.0  # Recherche web pour enrichir les analyses (anciennement duckduckgo-search)
 rich>=13.0.0  # Barres de progression modernes avec couleurs et détails
+prompt_toolkit>=3.0.0  # Interactive CLI with autocomplete (v3.0)
 
 # Note: python-dotenv n'est pas utilisé car le code implémente sa propre fonction load_env_file
 # Si vous préférez utiliser python-dotenv, installez-le avec: pip install python-dotenv

@@ -17,6 +17,92 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ### 📦 Dépendances
 
+## [3.0.0] - 2026-01-12
+
+### ✨ Nouvelles fonctionnalités
+
+- **Interactive CLI Mode** : Interface REPL avec `aetheris --cli` ou `aetheris -c`
+  - Prompt interactif avec indication du provider courant `aetheris[gemini]>`
+  - Commandes intégrées : `/analysis`, `/fix`, `/pr`, `/issues`, `/stats`, `/help`, `/exit`
+  - Commandes spécifiques par provider (Claude: `/commit`, `/review` ; Gemini: `/chat`, `/code`)
+  - Historique des commandes persistant entre sessions
+  - Support Ctrl+C pour interruption gracieuse
+
+- **Command Autocomplete** : Autocomplétion intelligente des commandes
+  - Tab completion pour commandes et arguments
+  - Suggestions basées sur la distance de Levenshtein pour commandes inconnues
+  - Filtrage par provider courant
+  - Complétion des chemins de fichiers
+
+- **Skills System** : Système de compétences pour agents AI
+  - 4 skills built-in : `read_file`, `write_file`, `search_files`, `execute_command`
+  - Validation sandbox pour sécurité des fichiers (restriction au répertoire projet)
+  - Confirmation utilisateur pour opérations dangereuses
+  - Support async pour exécution non-bloquante
+
+- **Provider Adapters** : Adaptateurs multi-providers
+  - `ClaudeAdapter` : Format Claude Tool Use (`tool_use` / `tool_result`)
+  - `GeminiAdapter` : Format Gemini Function Calling (`function_call` / `function_response`)
+  - Interface commune `SkillAdapter` pour extensibilité
+
+- **Conductor System** : Orchestration de tâches multi-étapes
+  - `Planner` : Création de plans d'exécution via AI
+  - `Executor` : Exécution de plans avec suivi de progression Rich
+  - `CycleDetector` : Détection de boucles infinies via hash d'état
+  - Support de dépendances entre étapes
+  - Maximum 20 étapes par plan
+
+- **MCP Integration** : Support du Model Context Protocol
+  - `MCPClient` : Connexion JSON-RPC aux serveurs MCP
+  - `MCPDiscovery` : Découverte automatique d'outils et ressources
+  - `MCPToolBridge` : Conversion MCP tools → Aetheris Skills
+  - Reconnexion automatique avec exponential backoff
+  - Gestion des conflits avec skills built-in
+
+- **Custom Skills** : Skills personnalisés via YAML
+  - Définition de skills via fichiers YAML dans `aetheris-skills/`
+  - Template de commande avec substitution de paramètres `{param}`
+  - Support des types : string, integer, number, boolean, array
+  - Validation des paramètres requis et valeurs enum
+
+### 🔧 Modifications
+
+- Nouvelle structure de modules :
+  - `src/cli_interactive/` : Mode interactif CLI
+  - `src/skills/` : Système de compétences
+  - `src/skills/adapters/` : Adaptateurs multi-providers
+  - `src/conductor/` : Orchestration multi-étapes
+  - `src/mcp/` : Intégration MCP
+
+- Nouveau fichier `src/cli_interactive/interactive.py` avec classe `InteractiveSession`
+- Nouveau fichier `src/cli_interactive/command_registry.py` avec `CommandRegistry`
+- Nouveau fichier `src/cli_interactive/autocomplete.py` avec `CommandCompleter`
+- Nouveau fichier `src/skills/base_skill.py` avec `Skill`, `SkillParameter`, `SkillResult`
+- Nouveau fichier `src/skills/file_skills.py` avec `ReadFileSkill`, `WriteFileSkill`, `SearchFilesSkill`
+- Nouveau fichier `src/skills/shell_skill.py` avec `ExecuteCommandSkill`
+- Nouveau fichier `src/skills/registry.py` avec `SkillRegistry`
+- Nouveau fichier `src/skills/adapters/claude_adapter.py` avec `ClaudeAdapter`
+- Nouveau fichier `src/skills/adapters/gemini_adapter.py` avec `GeminiAdapter`
+- Nouveau fichier `src/conductor/planner.py` avec `Planner`, `ExecutionPlan`, `PlanStep`
+- Nouveau fichier `src/conductor/executor.py` avec `Executor`, `ExecutionResult`
+- Nouveau fichier `src/conductor/cycle_detector.py` avec `CycleDetector`
+- Nouveau fichier `src/mcp/client.py` avec `MCPClient`
+- Nouveau fichier `src/mcp/discovery.py` avec `MCPDiscovery`, `MCPTool`, `MCPResource`
+- Nouveau fichier `src/mcp/skill_bridge.py` avec `MCPToolBridge`, `MCPSkill`
+
+### 📝 Documentation
+
+- Nouveau fichier `docs/cli-interactive.md` : Guide du mode interactif
+- Nouveau fichier `docs/skills/README.md` : Vue d'ensemble du système de skills
+- Nouveau fichier `docs/skills/builtin-skills.md` : Documentation des skills intégrés
+- Nouveau fichier `docs/skills/custom-skills.md` : Guide de création de skills personnalisés
+- Nouveau fichier `docs/mcp-integration.md` : Guide d'intégration MCP
+- Mise à jour `README.md` avec fonctionnalités v3.0
+
+### 📦 Dépendances
+
+- Ajout `prompt_toolkit>=3.0.0` pour interface interactive CLI
+
 ## [2.13.0] - 2026-01-12
 
 ### ✨ Nouvelles fonctionnalités
