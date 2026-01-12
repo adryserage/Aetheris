@@ -6,7 +6,10 @@
 # repository using Aetheris. Copy this file to your .github/workflows/ directory.
 #
 # SETUP:
-# 1. Add your AI API key as a repository secret named AETHERIS_API_KEY
+# 1. Add your AI API key as a repository secret:
+#    - GEMINI_API_KEY (recommended - free tier available)
+#    - OPENAI_API_KEY
+#    - ANTHROPIC_API_KEY
 #    Settings > Secrets > Actions > New repository secret
 # 2. Optional: Customize triggers and options below
 #
@@ -93,16 +96,20 @@ jobs:
       # ==================================
       - name: Validate API key
         env:
-          API_KEY: ${{ secrets.AETHERIS_API_KEY }}
+          GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          if [ -z "$API_KEY" ]; then
-            echo "::error::Missing AETHERIS_API_KEY secret"
+          if [ -z "$GEMINI_KEY" ] && [ -z "$OPENAI_KEY" ] && [ -z "$ANTHROPIC_KEY" ]; then
+            echo "::error::Missing API key secret"
             echo ""
-            echo "To fix this:"
+            echo "To fix this, add ONE of the following secrets:"
             echo "1. Go to Settings > Secrets and variables > Actions"
             echo "2. Click 'New repository secret'"
-            echo "3. Name: AETHERIS_API_KEY"
-            echo "4. Value: Your Gemini/OpenAI/Claude API key"
+            echo "3. Add one of:"
+            echo "   - GEMINI_API_KEY (recommended - free tier)"
+            echo "   - OPENAI_API_KEY"
+            echo "   - ANTHROPIC_API_KEY"
             echo ""
             echo "Get a free API key:"
             echo "  - Gemini: https://ai.google.dev"
@@ -110,6 +117,7 @@ jobs:
             echo "  - Claude: https://console.anthropic.com"
             exit 1
           fi
+          echo "API key found"
 
       # ==================================
       # Changed Files Detection
@@ -149,9 +157,9 @@ jobs:
       - name: Run Aetheris analysis
         if: steps.changed.outputs.has_changes != 'false'
         env:
-          GEMINI_API_KEY: ${{ secrets.AETHERIS_API_KEY }}
-          OPENAI_API_KEY: ${{ secrets.AETHERIS_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.AETHERIS_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           INPUT_MODE: ${{ inputs.mode }}
           INPUT_TIMEOUT: ${{ inputs.timeout }}
           INPUT_FULL_SCAN: ${{ inputs.full_scan }}
