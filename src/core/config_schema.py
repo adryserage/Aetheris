@@ -6,7 +6,7 @@ Supports hierarchical configuration with CLI > local > global > defaults priorit
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from src.i18n import t
 

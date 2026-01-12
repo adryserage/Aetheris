@@ -98,11 +98,7 @@ class PerformanceAnalysisAgent(BaseAgent):
             stripped = line.strip()
 
             # Skip comments
-            if (
-                stripped.startswith("//")
-                or stripped.startswith("#")
-                or stripped.startswith("*")
-            ):
+            if stripped.startswith("//") or stripped.startswith("#") or stripped.startswith("*"):
                 continue
 
             # Check patterns that work on single lines
@@ -128,9 +124,7 @@ class PerformanceAnalysisAgent(BaseAgent):
 
         return issues
 
-    def _detect_multiline_patterns(
-        self, content: str, lines: List[str]
-    ) -> List[PerformanceIssue]:
+    def _detect_multiline_patterns(self, content: str, lines: List[str]) -> List[PerformanceIssue]:
         """Detect patterns that span multiple lines"""
         issues = []
 
@@ -225,8 +219,7 @@ class PerformanceAnalysisAgent(BaseAgent):
                 "Build list first, then join."
             ),
             "inefficient_collection": (
-                "Use Set or dict for O(1) lookups. "
-                "Pre-sort data or use binary search if sorted."
+                "Use Set or dict for O(1) lookups. " "Pre-sort data or use binary search if sorted."
             ),
         }
         return recommendations.get(issue_type, "Review and optimize for performance")

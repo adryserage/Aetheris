@@ -10,14 +10,12 @@ Handles loading, saving, and merging configuration from multiple sources:
 """
 
 import json
-import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from src.core.config_schema import (
     ConfigSchema,
-    SECRET_KEYS,
     get_default_config,
     validate_no_secrets,
 )
@@ -277,9 +275,7 @@ class ConfigHierarchy:
         """Get the last loaded merged configuration"""
         return self._merged_config
 
-    def _deep_merge(
-        self, base: Dict[str, Any], override: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _deep_merge(self, base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
         """
         Deep merge two dictionaries
 

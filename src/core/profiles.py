@@ -29,9 +29,7 @@ class ProfileType(str, Enum):
             if profile.value == value_lower:
                 return profile
         valid_profiles = ", ".join(p.value for p in cls)
-        raise ValueError(
-            f"Invalid profile '{value}'. Valid profiles: {valid_profiles}"
-        )
+        raise ValueError(f"Invalid profile '{value}'. Valid profiles: {valid_profiles}")
 
 
 @dataclass

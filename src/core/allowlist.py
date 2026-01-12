@@ -7,7 +7,6 @@ Supports glob patterns for flexible matching.
 
 import fnmatch
 import json
-import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional

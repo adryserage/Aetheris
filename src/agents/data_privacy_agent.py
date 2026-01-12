@@ -6,7 +6,7 @@ and data privacy anti-patterns. Supports GDPR, HIPAA, PCI-DSS, and CCPA framewor
 """
 
 import re
-from typing import List, Optional, Set
+from typing import List, Optional
 
 from src.agents.base_agent import BaseAgent
 from src.core.config import AnalysisConfig

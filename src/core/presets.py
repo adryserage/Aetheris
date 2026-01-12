@@ -4,7 +4,7 @@ Preset definitions for agent analysis combinations (v2.11)
 
 import json
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, List, Optional
 
 
@@ -142,7 +142,9 @@ def load_presets(
     return presets
 
 
-def get_preset(name: str, presets: Optional[Dict[str, AgentPreset]] = None) -> Optional[AgentPreset]:
+def get_preset(
+    name: str, presets: Optional[Dict[str, AgentPreset]] = None
+) -> Optional[AgentPreset]:
     """Get a preset by name"""
     if presets is None:
         presets = load_presets()

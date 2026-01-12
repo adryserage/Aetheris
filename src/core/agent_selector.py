@@ -5,7 +5,7 @@ Agent selection logic for selective analysis (v2.11)
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set
 
-from src.core.presets import AgentPreset, get_preset, load_presets
+from src.core.presets import get_preset, load_presets
 
 
 # All available agents
@@ -132,8 +132,7 @@ class AgentSelector:
         for agent in agents:
             if agent not in valid_agents:
                 errors.append(
-                    f"Unknown agent: '{agent}'. "
-                    f"Valid agents: {', '.join(sorted(ALL_AGENTS))}"
+                    f"Unknown agent: '{agent}'. " f"Valid agents: {', '.join(sorted(ALL_AGENTS))}"
                 )
         return errors
 
@@ -245,23 +244,27 @@ def get_agent_help_text() -> str:
     for agent in CORE_AGENTS:
         lines.append(f"  {agent}: {descriptions.get(agent, '')}")
 
-    lines.extend([
-        "",
-        "Extended agents (4) - v2.10+:",
-    ])
+    lines.extend(
+        [
+            "",
+            "Extended agents (4) - v2.10+:",
+        ]
+    )
     for agent in EXTENDED_AGENTS:
         lines.append(f"  {agent}: {descriptions.get(agent, '')}")
 
-    lines.extend([
-        "",
-        "Special values:",
-        "  all: Run all 10 agents (default)",
-        "  core: Run only the 6 core agents",
-        "  extended: Run only the 4 extended agents",
-        "  none: Disable all agents (requires --compliance)",
-        "",
-        "Aliases:",
-        "  CAE, AAA, SSA, CMA, DVA, QAA, TSA, PAA, ACA, DPA",
-    ])
+    lines.extend(
+        [
+            "",
+            "Special values:",
+            "  all: Run all 10 agents (default)",
+            "  core: Run only the 6 core agents",
+            "  extended: Run only the 4 extended agents",
+            "  none: Disable all agents (requires --compliance)",
+            "",
+            "Aliases:",
+            "  CAE, AAA, SSA, CMA, DVA, QAA, TSA, PAA, ACA, DPA",
+        ]
+    )
 
     return "\n".join(lines)

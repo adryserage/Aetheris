@@ -60,11 +60,13 @@ class InteractiveAgentSelector:
         console = Console()
 
         # Display header
-        console.print(Panel.fit(
-            "[bold blue]Aetheris Agent Selection[/bold blue]\n"
-            "Select which AI agents to run for your analysis.",
-            border_style="blue",
-        ))
+        console.print(
+            Panel.fit(
+                "[bold blue]Aetheris Agent Selection[/bold blue]\n"
+                "Select which AI agents to run for your analysis.",
+                border_style="blue",
+            )
+        )
 
         # Show available presets
         console.print("\n[bold]Available Presets:[/bold]")
@@ -95,9 +97,7 @@ class InteractiveAgentSelector:
             )
             preset = get_preset(preset_name)
             if preset:
-                self._selected_agents = set(
-                    ALL_AGENTS if "all" in preset.agents else preset.agents
-                )
+                self._selected_agents = set(ALL_AGENTS if "all" in preset.agents else preset.agents)
                 if preset.compliance_profile:
                     self._selected_compliance.add(preset.compliance_profile)
                 console.print(f"[green]Using preset: {preset_name}[/green]")

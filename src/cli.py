@@ -139,9 +139,7 @@ Exemples:
         "--skip-agents",
         type=str,
         default=None,
-        help=(
-            "Comma-separated list of agents to skip. Example: --skip-agents performance,privacy"
-        ),
+        help=("Comma-separated list of agents to skip. Example: --skip-agents performance,privacy"),
     )
 
     analysis_parser.add_argument(
@@ -507,8 +505,8 @@ async def run_analysis(args):
         log_print("⚠️  Warning: YOLO profile used in CI environment. Proceed with caution.")
 
     # Apply profile constraints to config
-    profile_acknowledged = (
-        profile_type == ProfileType.YOLO and (yes_flag or not profile_config.require_acknowledgment)
+    profile_acknowledged = profile_type == ProfileType.YOLO and (
+        yes_flag or not profile_config.require_acknowledgment
     )
 
     config = AnalysisConfig(
@@ -547,17 +545,26 @@ async def run_analysis(args):
         enabled_agents=enabled_agents,
         skip_agents=skip_agents,
         compliance_agents=compliance_agents,
-        enable_type_analysis="type-safety" not in skip_agents and ("all" in enabled_agents or "type-safety" in enabled_agents),
-        enable_performance_analysis="performance" not in skip_agents and ("all" in enabled_agents or "performance" in enabled_agents),
-        enable_api_contract_analysis="api-contract" not in skip_agents and ("all" in enabled_agents or "api-contract" in enabled_agents),
-        enable_privacy_analysis="privacy" not in skip_agents and ("all" in enabled_agents or "privacy" in enabled_agents),
+        enable_type_analysis="type-safety" not in skip_agents
+        and ("all" in enabled_agents or "type-safety" in enabled_agents),
+        enable_performance_analysis="performance" not in skip_agents
+        and ("all" in enabled_agents or "performance" in enabled_agents),
+        enable_api_contract_analysis="api-contract" not in skip_agents
+        and ("all" in enabled_agents or "api-contract" in enabled_agents),
+        enable_privacy_analysis="privacy" not in skip_agents
+        and ("all" in enabled_agents or "privacy" in enabled_agents),
         # Safety Profile (v2.12)
         profile=profile_type.value,
         profile_acknowledged=profile_acknowledged,
         # Apply profile constraints to web search (safe mode blocks auxiliary network)
         enable_web_search=(
-            os.getenv("ENABLE_WEB_SEARCH", "true").lower() == "true" and profile_config.network_allowed
-        ) if profile_type == ProfileType.SAFE else os.getenv("ENABLE_WEB_SEARCH", "true").lower() == "true",
+            (
+                os.getenv("ENABLE_WEB_SEARCH", "true").lower() == "true"
+                and profile_config.network_allowed
+            )
+            if profile_type == ProfileType.SAFE
+            else os.getenv("ENABLE_WEB_SEARCH", "true").lower() == "true"
+        ),
     )
 
     log_print(t("cli.analysis.root_dir", path=config.root_dir))
@@ -2283,7 +2290,7 @@ def run_init(args):
     )
 
     console.print()
-    console.print(f"[bold]Initializing Aetheris Configuration[/bold]")
+    console.print("[bold]Initializing Aetheris Configuration[/bold]")
     console.print(f"Scope: [cyan]{scope}[/cyan]")
     console.print(f"Path: [dim]{config_path}[/dim]")
     console.print()
@@ -2409,7 +2416,7 @@ def run_migrate_env(args):
 
     from src.core.config import load_env_file
     from src.core.config_file import ConfigFile
-    from src.core.config_schema import SECRET_KEYS, get_default_config
+    from src.core.config_schema import SECRET_KEYS
 
     console = Console()
     project_path = Path(args.project).resolve()
@@ -2441,7 +2448,9 @@ def run_migrate_env(args):
                 migratable.append((env_key, env_vars[env_key], config_path))
 
     if not migratable:
-        console.print("[green]No settings to migrate. All .env values are either secrets or already default.[/green]")
+        console.print(
+            "[green]No settings to migrate. All .env values are either secrets or already default.[/green]"
+        )
         sys.exit(0)
 
     # Show migration plan

@@ -6,7 +6,7 @@ from pathlib import Path
 
 from ..config.exclusion_patterns import DEFAULT_EXCLUSIONS
 from ..models.cleanup_models import ScanConfig, SecretMatch, ValidationReport
-from .cleanup_service import get_excluded_files, matches_exclusion_pattern
+from .cleanup_service import get_excluded_files
 from .secret_scanner import SecretScanner
 
 logger = logging.getLogger(__name__)

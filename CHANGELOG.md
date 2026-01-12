@@ -17,6 +17,45 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ### 📦 Dépendances
 
+## [2.13.0] - 2026-01-12
+
+### ✨ Nouvelles fonctionnalités
+
+- **GitHub Actions Integration** : Template workflow complet pour CI/CD
+  - Déclenchement automatique sur push vers main/develop
+  - Déclenchement sur pull requests (opened, synchronized, reopened)
+  - Déclenchement manuel avec options (mode, timeout, full_scan)
+  - Détection automatique des fichiers modifiés pour analyse efficace
+  - Commentaire automatique sur les PR avec résumé d'analyse
+  - Upload des artefacts avec rétention de 30 jours
+
+- **Scripts de Setup Local** : Scripts multiplateforme pour installation locale
+  - `scripts/setup-local.sh` : Script Bash pour Linux/macOS
+  - `scripts/setup-local.ps1` : Script PowerShell pour Windows
+  - Vérification de Python 3.9+, installation Aetheris, check API key
+  - Détection des résultats d'analyse existants
+
+- **Documentation CI/CD** : Guide complet pour l'intégration GitHub Actions
+  - Quick start en 3 étapes
+  - Configuration des triggers et concurrency
+  - Customisation des providers AI
+  - Profiles de sécurité pour CI
+  - Troubleshooting des erreurs courantes
+  - Best practices pour différentes tailles de projets
+
+### 🔧 Modifications
+
+- Nouveau fichier `.github/workflows/aetheris-analysis.yml` avec workflow complet
+- Nouveau fichier `scripts/setup-local.sh` pour setup Linux/macOS
+- Nouveau fichier `scripts/setup-local.ps1` pour setup Windows
+- Mise à jour de `docs/github-actions.md` avec documentation exhaustive
+- Sécurisation des inputs workflow via variables d'environnement (anti-injection)
+
+### 📝 Documentation
+
+- Mise à jour du README.md avec section CI/CD Integration
+- Mise à jour du roadmap (v2.13 marqué comme complété)
+
 ## [2.12.0] - 2026-01-12
 
 ### ✨ Nouvelles fonctionnalités

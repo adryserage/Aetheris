@@ -300,7 +300,7 @@ aetheris analysis
 | **v2.10** | ✅ Done | 4 new agents (performance, API, type safety, data privacy) |
 | **v2.11** | ✅ Done | Agent selection (`--agents`, `--preset`, `--category`) |
 | **v2.12** | ✅ Done | Safety profiles (`--profile safe\|ci\|yolo`) |
-| **v2.13** | Planned | CI/CD templates (GitHub Actions, GitLab CI) |
+| **v2.13** | ✅ Done | CI/CD templates (GitHub Actions workflow) |
 | **v3.0** | Planned | Multi-provider (Gemini, Claude, OpenRouter) |
 
 ---

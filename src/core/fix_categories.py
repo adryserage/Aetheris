@@ -2,7 +2,7 @@
 Fix category definitions for targeted fixing (v2.11)
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 
@@ -48,7 +48,13 @@ CATEGORY_MAPPINGS: Dict[str, FixCategory] = {
     "performance": FixCategory(
         name="performance",
         agent_source="PerformanceAnalysisAgent",
-        issue_types=["PerformanceIssue", "n_squared", "n_plus_one", "memory_leak", "blocking_async"],
+        issue_types=[
+            "PerformanceIssue",
+            "n_squared",
+            "n_plus_one",
+            "memory_leak",
+            "blocking_async",
+        ],
         description="Performance issues and anti-patterns",
     ),
     "compliance": FixCategory(

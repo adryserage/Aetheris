@@ -5,13 +5,12 @@ Provides a Rich-based terminal interface for viewing and editing configuration.
 """
 
 import sys
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Optional
 
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 from rich.table import Table
-from rich.text import Text
 
 from src.core.config_file import ConfigFile, ConfigHierarchy
 from src.core.config_schema import ConfigSchema, get_default_config
@@ -88,9 +87,7 @@ class SettingsUI:
             self._edit_category(category, config)
 
         if self._modified:
-            if Confirm.ask(
-                t("settings.save_confirm", fallback="Save changes?"), default=True
-            ):
+            if Confirm.ask(t("settings.save_confirm", fallback="Save changes?"), default=True):
                 self._save_config(config)
                 self.console.print(
                     t("settings.saved", fallback="[green]Configuration saved![/green]")

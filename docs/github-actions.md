@@ -1,142 +1,299 @@
-# GitHub Actions Integration
+# GitHub Actions Integration (v2.13)
 
-Aetheris includes a workflow for automated code analysis in GitHub Actions.
+This guide shows how to integrate Aetheris into your GitHub Actions CI/CD pipeline for automated code analysis.
 
-## Setup
+## Quick Start
 
-### 1. Add Repository Secret
+1. **Add your API key as a repository secret:**
+   - Go to Settings > Secrets and variables > Actions
+   - Click "New repository secret"
+   - Name: `AETHERIS_API_KEY`
+   - Value: Your Gemini/OpenAI/Claude API key
 
-1. Go to Settings → Secrets and variables → Actions
-2. Click "New repository secret"
-3. Add your API key:
+2. **Copy the workflow file:**
+   ```bash
+   # Copy from Aetheris repository
+   mkdir -p .github/workflows
+   curl -o .github/workflows/aetheris-analysis.yml \
+     https://raw.githubusercontent.com/adryserage/aetheris/main/.github/workflows/aetheris-analysis.yml
+   ```
 
-| Name | Value |
-|------|-------|
-| `GEMINI_API_KEY` | Your Gemini API key |
-| or `OPENAI_API_KEY` | Your OpenAI API key |
-| or `ANTHROPIC_API_KEY` | Your Claude API key |
+3. **Commit and push:**
+   ```bash
+   git add .github/workflows/aetheris-analysis.yml
+   git commit -m "ci: add Aetheris code analysis"
+   git push
+   ```
 
-Optional secrets:
-- `AI_PROVIDER`: Provider name (gemini, openai, claude)
-- `AI_MODEL`: Specific model to use
+That's it! Aetheris will now analyze your code on every push and PR.
 
-### 2. Workflow File
+## Features
 
-The workflow is pre-configured in `.github/workflows/code-review.yml`.
+### Automatic Analysis
 
-## Triggers
+The workflow runs automatically on:
+- Push to `main` or `develop` branches
+- Pull requests (opened, synchronized, reopened)
 
-| Event | Behavior |
-|-------|----------|
-| Push to main/master | Full codebase analysis |
-| Pull Request | Changed files only |
-| Manual dispatch | Choose mode: full or changed |
+### Manual Trigger
 
-## Manual Execution
+Trigger analysis manually from the Actions tab with options:
+- **Mode**: Choose between `analysis` (scan only) or `fix` (auto-fix issues)
+- **Timeout**: Set custom timeout (e.g., `30m`, `2h`)
+- **Full scan**: Force full codebase scan instead of changed files only
 
-1. Go to Actions tab
-2. Select "Code Review" workflow
-3. Click "Run workflow"
-4. Choose:
-   - **Mode**: `full` or `changed`
-   - **PR Number**: (optional for changed mode)
+### Changed Files Detection
 
-## Artifacts
+By default, only changed files are analyzed on PRs for efficiency:
+- Pull requests: Files changed vs. base branch
+- Push: Files changed in the commit
 
-Reports are available as GitHub artifacts:
+### Artifacts
 
-1. Go to Actions
-2. Select workflow run
-3. Download "code-analysis-reports"
+Analysis reports are uploaded as artifacts and retained for 30 days:
+- Download from the Actions run page
+- Contains all Markdown reports
+- Includes local setup instructions
 
-Contents:
-- `docs/analyses/*.md` - Individual file reports
-- `docs/architecture_overview.md` - Architecture report
-- `docs/analyses/quality_assurance_report.md` - QA report
-- `docs/analyses/vulnerabilities_report.md` - Vulnerabilities
+### PR Comments
 
-## Customization
+On pull requests, a summary comment is posted with:
+- Analysis highlights
+- Link to full artifacts
 
-Edit `.github/workflows/code-review.yml`:
+## Workflow Options
 
-### Change Triggers
+### Triggers
+
 ```yaml
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop]  # Customize branches
   pull_request:
-    branches: [main]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        options: [analysis, fix]
+      timeout:
+        type: string
+        default: "60m"
+      full_scan:
+        type: boolean
+        default: false
 ```
 
-### Exclude Paths
+### Concurrency
+
+Prevents multiple runs on the same branch:
+
 ```yaml
-paths-ignore:
-  - '*.md'
-  - 'docs/**'
-  - '.github/**'
+concurrency:
+  group: aetheris-${{ github.ref }}
+  cancel-in-progress: true
 ```
 
-### Add Notifications
+### Timeout
+
+The workflow has a 6-hour GitHub Actions limit. Set custom timeouts for analysis:
+
 ```yaml
-- name: Notify Slack
-  uses: slackapi/slack-github-action@v1
-  with:
-    channel-id: 'C123456'
-    slack-message: 'Code review completed'
+- name: Run Aetheris analysis
+  run: aetheris analysis --timeout 2h
 ```
+
+## Customization
+
+### Use Different AI Provider
+
+Set the appropriate API key secret:
+
+| Provider | Secret Name | Get API Key |
+|----------|-------------|-------------|
+| Gemini (default) | `AETHERIS_API_KEY` | [ai.google.dev](https://ai.google.dev) |
+| OpenAI | `OPENAI_API_KEY` | [platform.openai.com](https://platform.openai.com/api-keys) |
+| Claude | `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) |
+
+### Add Exclude Patterns
+
+Exclude specific paths from analysis:
+
+```yaml
+- name: Run Aetheris analysis
+  run: |
+    aetheris analysis --profile ci \
+      --exclude "tests/**,docs/**,migrations/**"
+```
+
+### Safety Profiles (v2.12+)
+
+Use different safety profiles:
+
+```yaml
+# Safe mode (default) - restrictive, local development
+aetheris analysis --profile safe
+
+# CI mode - fail-fast, audit logging, no prompts
+aetheris analysis --profile ci
+
+# YOLO mode - extended limits (requires --yes)
+aetheris analysis --profile yolo --yes
+```
+
+### Agent Selection (v2.11+)
+
+Select specific agents or presets:
+
+```yaml
+# Security-focused scan
+aetheris analysis --preset security-audit
+
+# Performance review
+aetheris analysis --agents performance,metrics,architecture
+
+# With compliance frameworks
+aetheris analysis --agents data_privacy --compliance gdpr,hipaa
+```
+
+### Custom Branch Triggers
+
+Edit the `on:` section to trigger on different branches:
+
+```yaml
+on:
+  push:
+    branches: [main, release/*, feature/*]
+  pull_request:
+    branches: [main, develop]
+```
+
+### Schedule Analysis
+
+Run analysis on a schedule:
+
+```yaml
+on:
+  schedule:
+    - cron: '0 0 * * 1'  # Every Monday at midnight
+```
+
+## Troubleshooting
+
+### Missing API Key
+
+```
+Error: Missing AETHERIS_API_KEY secret
+```
+
+**Solution:** Add your API key as a repository secret (Settings > Secrets > Actions).
+
+### Timeout Exceeded
+
+```
+Error: Analysis interrupted: timeout reached
+```
+
+**Solution:** Increase timeout in workflow_dispatch or edit the workflow file:
+```yaml
+run: aetheris analysis --timeout 2h
+```
+
+### No Changed Files
+
+If the workflow skips analysis:
+- Check that code files were changed (not just configs)
+- Use `full_scan: true` in manual trigger for full scan
+
+### Permission Denied
+
+```
+Error: Resource not accessible by integration
+```
+
+**Solution:** Check workflow permissions:
+```yaml
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+```
+
+## Example Output
+
+### PR Comment
+
+After analysis, a comment is posted on PRs:
+
+```markdown
+## Aetheris Analysis Complete
+
+### Summary
+
+**Critical Issues**: 2
+**High Priority**: 5
+**Medium Priority**: 12
+
+Download full results: [Analysis Artifacts](link)
+```
+
+### Artifacts Structure
+
+```
+aetheris-analysis-abc1234/
+├── README.md
+└── docs/
+    └── analyses/
+        ├── quality_assurance_report.md
+        ├── vulnerabilities_report.md
+        └── file_analysis_*.md
+```
+
+## Best Practices
+
+1. **Use CI profile** for automated pipelines:
+   ```bash
+   aetheris analysis --profile ci
+   ```
+
+2. **Set appropriate timeout** based on codebase size:
+   - Small projects (<100 files): `30m`
+   - Medium projects (100-500 files): `1h`
+   - Large projects (500+ files): `2h`
+
+3. **Review artifacts** before merging PRs
+
+4. **Use changed files detection** for faster PR feedback
+
+5. **Configure concurrency** to avoid wasted runs
 
 ## Environment Variables
 
-Available in workflow:
+| Variable | Source | Description |
+|----------|--------|-------------|
+| `AETHERIS_API_KEY` | Repository secret | AI provider API key |
+| `GEMINI_API_KEY` | Repository secret | Gemini API key (alternative) |
+| `OPENAI_API_KEY` | Repository secret | OpenAI API key (alternative) |
+| `ANTHROPIC_API_KEY` | Repository secret | Claude API key (alternative) |
+| `CHANGED_FILES` | Auto-detected | Files changed in PR |
 
-| Variable | Source |
-|----------|--------|
-| `GEMINI_API_KEY` | Repository secret |
-| `CHANGED_FILES` | Auto-detected from PR |
-| `PR_NUMBER` | From GitHub event |
+## Local Setup from Artifacts
 
-## Example Workflow
+After downloading artifacts:
 
-```yaml
-name: Code Review
-
-on:
-  pull_request:
-    types: [opened, synchronize]
-
-jobs:
-  review:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install Aetheris
-        run: pip install adryserage-aetheris
-
-      - name: Run Analysis
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: |
-          aetheris analysis --changed-files-only \
-            --files '${{ steps.files.outputs.all }}'
-
-      # v2.10: Run with specific agents
-      - name: Run Security-Focused Analysis
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: |
-          aetheris analysis --changed-files-only \
-            --files '${{ steps.files.outputs.all }}' \
-            --agents security,type_safety,data_privacy \
-            --compliance gdpr,pci_dss
-
-      - name: Upload Reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: analysis-reports
-          path: docs/analyses/
+**Linux/macOS:**
+```bash
+chmod +x setup-local.sh
+./setup-local.sh
 ```
+
+**Windows (PowerShell):**
+```powershell
+.\setup-local.ps1
+```
+
+## Related Documentation
+
+- [CLI Commands](commands/README.md)
+- [Safety Profiles](safety-profiles.md)
+- [Agent Selection](commands/analysis.md#agent-selection)

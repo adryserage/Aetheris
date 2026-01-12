@@ -8,7 +8,6 @@ calls while allowing AI provider connections.
 import socket
 from contextlib import contextmanager
 from typing import List, Optional, Set
-from urllib.parse import urlparse
 
 from src.core.logger import log_print
 
@@ -114,9 +113,7 @@ class NetworkGuard:
                 if not guard._is_host_allowed(host):
                     guard.blocked_connections.append(host)
                     log_print(f"🛡️  Safe mode blocked network connection to: {host}")
-                    raise ConnectionRefusedError(
-                        f"Network access blocked by safe mode: {host}"
-                    )
+                    raise ConnectionRefusedError(f"Network access blocked by safe mode: {host}")
             except (IndexError, TypeError):
                 pass
             return original_connect(self_socket, address)
@@ -131,9 +128,7 @@ class NetworkGuard:
             if not guard._is_host_allowed(host):
                 guard.blocked_connections.append(host)
                 log_print(f"🛡️  Safe mode blocked DNS lookup for: {host}")
-                raise socket.gaierror(
-                    f"Network access blocked by safe mode: {host}"
-                )
+                raise socket.gaierror(f"Network access blocked by safe mode: {host}")
             return original_getaddrinfo(host, port, family, type, proto, flags)
 
         return blocking_getaddrinfo
