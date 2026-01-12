@@ -33,9 +33,9 @@
 
 **Purpose**: Create i18n module structure and translation file templates
 
-- [ ] T001 Create i18n module directory structure: `src/i18n/__init__.py`, `src/i18n/translator.py`, `src/i18n/locale_detector.py`
-- [ ] T002 Create locales directory: `src/locales/`
-- [ ] T003 [P] Add `src/locales/*.json` to package data in `pyproject.toml`
+- [X] T001 Create i18n module directory structure: `src/i18n/__init__.py`, `src/i18n/translator.py`, `src/i18n/locale_detector.py`
+- [X] T002 Create locales directory: `src/locales/`
+- [X] T003 [P] Add `src/locales/*.json` to package data in `pyproject.toml`
 
 ---
 
@@ -45,24 +45,24 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Implement `Translator` class with lazy loading in `src/i18n/translator.py`:
+- [X] T004 Implement `Translator` class with lazy loading in `src/i18n/translator.py`:
   - `_translations: dict[str, dict[str, str]]` cache
   - `_current_lang: str` state
   - `load(lang: str)` method
   - `get(key: str, **kwargs) -> str` with fallback chain
-- [ ] T005 [P] Implement `LocaleDetector` class in `src/i18n/locale_detector.py`:
+- [X] T005 [P] Implement `LocaleDetector` class in `src/i18n/locale_detector.py`:
   - `from_system() -> str | None` parse LANG/LC_ALL/LC_MESSAGES
   - `from_env() -> str | None` read AETHERIS_LANG
   - `detect(cli_lang: str | None) -> str` priority chain
-- [ ] T006 [P] Create public API in `src/i18n/__init__.py`:
+- [X] T006 [P] Create public API in `src/i18n/__init__.py`:
   - `t(key: str, **kwargs) -> str` function
   - `set_language(lang: str) -> None`
   - `get_language() -> str`
   - `get_available_languages() -> list[LanguageInfo]`
   - `detect_language(cli_lang: str | None) -> str`
-- [ ] T007 [P] Create English translation file `src/locales/en.json` with `_meta` and all message keys
-- [ ] T008 [P] Create French translation file `src/locales/fr.json` with `_meta` and all message keys
-- [ ] T009 Add unit tests for Translator and LocaleDetector in `tests/unit/test_i18n.py`
+- [X] T007 [P] Create English translation file `src/locales/en.json` with `_meta` and all message keys
+- [X] T008 [P] Create French translation file `src/locales/fr.json` with `_meta` and all message keys
+- [X] T009 Add unit tests for Translator and LocaleDetector in `tests/unit/test_i18n.py`
 
 **Checkpoint**: i18n core module ready - CLI integration can now begin
 
@@ -78,19 +78,19 @@
 
 ### Implementation
 
-- [ ] T010 [US1] [US2] Add `--lang` global option to Typer app in `src/cli.py`:
+- [X] T010 [US1] [US2] Add `--lang` global option to Typer app in `src/cli.py`:
   - Add callback to initialize translator with detected/specified language
   - Integrate `detect_language()` at CLI startup
-- [ ] T011 [US1] [US2] Extract all hardcoded strings from `src/cli.py` to translation keys:
+- [X] T011 [US1] [US2] Extract all hardcoded strings from `src/cli.py` to translation keys:
   - Replace with `t("key")` calls
   - Add keys to `en.json` and `fr.json`
-- [ ] T012 [P] [US1] [US2] Extract strings from `src/core/analyzer.py` (progress messages):
+- [X] T012 [P] [US1] [US2] Extract strings from `src/core/analyzer.py` (progress messages):
   - Replace with `t("key")` calls
   - Add keys to translation files
-- [ ] T013 [P] [US1] [US2] Extract strings from `src/core/change_detector.py`:
+- [X] T013 [P] [US1] [US2] Extract strings from `src/core/change_detector.py`:
   - Replace with `t("key")` calls
   - Add keys to translation files
-- [ ] T014 [US1] [US2] Handle invalid `--lang` value: show available languages, fallback to English
+- [X] T014 [US1] [US2] Handle invalid `--lang` value: show available languages, fallback to English
 
 **Checkpoint**: User Stories 1 & 2 complete - automatic detection and CLI override work
 
@@ -104,8 +104,8 @@
 
 ### Implementation
 
-- [ ] T015 [US3] Ensure `LocaleDetector.from_env()` reads `AETHERIS_LANG` correctly in `src/i18n/locale_detector.py`
-- [ ] T016 [US3] Add warning message when `AETHERIS_LANG` contains unsupported value in `src/i18n/translator.py`
+- [X] T015 [US3] Ensure `LocaleDetector.from_env()` reads `AETHERIS_LANG` correctly in `src/i18n/locale_detector.py`
+- [X] T016 [US3] Add warning message when `AETHERIS_LANG` contains unsupported value in `src/i18n/translator.py`
 
 **Checkpoint**: User Story 3 complete - environment variable works with correct priority
 
@@ -121,10 +121,10 @@
 
 ### Implementation
 
-- [ ] T017 [US4] [US5] Implement `get_available_languages()` to scan `src/locales/` directory in `src/i18n/translator.py`
-- [ ] T018 [US5] Add `--list-languages` flag to CLI in `src/cli.py`:
+- [X] T017 [US4] [US5] Implement `get_available_languages()` to scan `src/locales/` directory in `src/i18n/translator.py`
+- [X] T018 [US5] Add `--list-languages` flag to CLI in `src/cli.py`:
   - Display table with code, name, default marker
-- [ ] T019 [US4] Add translation file validation on load in `src/i18n/translator.py`:
+- [X] T019 [US4] Add translation file validation on load in `src/i18n/translator.py`:
   - Check `_meta` section exists
   - Validate JSON structure
   - Log clear error for malformed files
@@ -137,11 +137,11 @@
 
 **Purpose**: Documentation, cleanup, and validation
 
-- [ ] T020 [P] Update README.md with i18n usage section (--lang flag, AETHERIS_LANG)
-- [ ] T021 [P] Add i18n section to CHANGELOG.md for v2.7
-- [ ] T022 Run lint and typecheck: `python -m black src/ --check` and `python -m mypy src/`
-- [ ] T023 Validate quickstart.md scenarios work as documented
-- [ ] T024 [P] [FUTURE] Document agent string extraction plan for v2.8 iteration
+- [X] T020 [P] Update README.md with i18n usage section (--lang flag, AETHERIS_LANG)
+- [X] T021 [P] Add i18n section to CHANGELOG.md for v2.7
+- [X] T022 Run lint and typecheck: `python -m black src/ --check` and `python -m mypy src/`
+- [X] T023 Validate quickstart.md scenarios work as documented
+- [X] T024 [P] [FUTURE] Document agent string extraction plan for v2.8 iteration
 
 ---
 

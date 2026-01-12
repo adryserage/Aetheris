@@ -13,11 +13,11 @@
 
 **Purpose**: Create data models and infrastructure
 
-- [ ] T001 Create ProjectStats dataclass in src/core/stats.py
-- [ ] T002 [P] Create PerformanceMetrics dataclass in src/core/stats.py
-- [ ] T003 [P] Create ROIMetrics dataclass in src/core/stats.py
-- [ ] T004 Create HeuristicConfig dataclass with bug time defaults in src/core/heuristics.py
-- [ ] T005 Implement get_regional_rate() with locale detection in src/core/heuristics.py
+- [X] T001 Create ProjectStats dataclass in src/core/stats.py
+- [X] T002 [P] Create PerformanceMetrics dataclass in src/core/stats.py
+- [X] T003 [P] Create ROIMetrics dataclass in src/core/stats.py
+- [X] T004 Create HeuristicConfig dataclass with bug time defaults in src/core/heuristics.py
+- [X] T005 Implement get_regional_rate() with locale detection in src/core/heuristics.py
 
 **Checkpoint**: All data models defined
 
@@ -29,11 +29,11 @@
 
 **Independent Test**: Run `aetheris stats` and see file/LOC counts
 
-- [ ] T006 [US1] Create StatsCollector class in src/core/stats_collector.py
-- [ ] T007 [US1] Implement load_stats() to read from JSON cache in src/core/stats_collector.py
-- [ ] T008 [US1] Implement save_stats() to persist to JSON cache in src/core/stats_collector.py
-- [ ] T009 [US1] Add stats command to CLI with Rich table output in src/cli.py
-- [ ] T010 [US1] Display "No analyses found" message when stats empty in src/cli.py
+- [X] T006 [US1] Create StatsCollector class in src/core/stats_collector.py
+- [X] T007 [US1] Implement load_stats() to read from JSON cache in src/core/stats_collector.py
+- [X] T008 [US1] Implement save_stats() to persist to JSON cache in src/core/stats_collector.py
+- [X] T009 [US1] Add stats command to CLI with Rich table output in src/cli.py
+- [X] T010 [US1] Display "No analyses found" message when stats empty in src/cli.py
 
 **Checkpoint**: Basic stats command working
 
@@ -45,11 +45,11 @@
 
 **Independent Test**: Run `aetheris stats` and see bug counts and times
 
-- [ ] T011 [US2] Add record_analysis() method to StatsCollector in src/core/stats_collector.py
-- [ ] T012 [US2] Add record_bug_detected() method to StatsCollector in src/core/stats_collector.py
-- [ ] T013 [US2] Add record_bug_resolved() method to StatsCollector in src/core/stats_collector.py
-- [ ] T014 [US2] Integrate StatsCollector into orchestrator analysis flow in src/core/orchestrator.py
-- [ ] T015 [US2] Display performance metrics in stats table in src/cli.py
+- [X] T011 [US2] Add record_analysis() method to StatsCollector in src/core/stats_collector.py
+- [X] T012 [US2] Add record_bug_detected() method to StatsCollector in src/core/stats_collector.py
+- [X] T013 [US2] Add record_bug_resolved() method to StatsCollector in src/core/stats_collector.py
+- [X] T014 [US2] Integrate StatsCollector into orchestrator analysis flow in src/core/orchestrator.py
+- [X] T015 [US2] Display performance metrics in stats table in src/cli.py
 
 **Checkpoint**: Performance metrics displayed
 
@@ -61,11 +61,11 @@
 
 **Independent Test**: Run `aetheris stats` and see ROI calculations
 
-- [ ] T016 [US3] Implement calculate_human_time_saved() in src/core/heuristics.py
-- [ ] T017 [US3] Implement calculate_money_saved() in src/core/heuristics.py
-- [ ] T018 [US3] Add --hourly-rate parameter to stats command in src/cli.py
-- [ ] T019 [US3] Display ROI metrics section in stats table in src/cli.py
-- [ ] T020 [US3] Format currency based on region (€, $CAD, $USD) in src/cli.py
+- [X] T016 [US3] Implement calculate_human_time_saved() in src/core/heuristics.py
+- [X] T017 [US3] Implement calculate_money_saved() in src/core/heuristics.py
+- [X] T018 [US3] Add --hourly-rate parameter to stats command in src/cli.py
+- [X] T019 [US3] Display ROI metrics section in stats table in src/cli.py
+- [X] T020 [US3] Format currency based on region (€, $CAD, $USD) in src/cli.py
 
 **Checkpoint**: ROI calculations displayed
 
@@ -77,9 +77,9 @@
 
 **Independent Test**: Run `aetheris stats --regenerate` and see recalculated values
 
-- [ ] T021 [US4] Add --regenerate flag to stats command in src/cli.py
-- [ ] T022 [US4] Implement regenerate_roi() method in StatsCollector in src/core/stats_collector.py
-- [ ] T023 [US4] Display confirmation message after regeneration in src/cli.py
+- [X] T021 [US4] Add --regenerate flag to stats command in src/cli.py
+- [X] T022 [US4] Implement regenerate_roi() method in StatsCollector in src/core/stats_collector.py
+- [X] T023 [US4] Display confirmation message after regeneration in src/cli.py
 
 **Checkpoint**: Regeneration working
 
@@ -89,11 +89,11 @@
 
 **Purpose**: Handle edge cases and finalization
 
-- [ ] T024 Handle corrupted stats file gracefully (reset with warning) in src/core/stats_collector.py
-- [ ] T025 Handle partial/interrupted analyses in stats collection in src/core/stats_collector.py
-- [ ] T026 Validate hourly rate (reject negative values) in src/cli.py
-- [ ] T027 [P] Add stats info to --help output in src/cli.py
-- [ ] T028 Update pyproject.toml version to 2.7
+- [X] T024 Handle corrupted stats file gracefully (reset with warning) in src/core/stats_collector.py
+- [X] T025 Handle partial/interrupted analyses in stats collection in src/core/stats_collector.py
+- [X] T026 Validate hourly rate (reject negative values) in src/cli.py
+- [X] T027 [P] Add stats info to --help output in src/cli.py
+- [X] T028 Update pyproject.toml version to 2.7
 
 **Checkpoint**: All edge cases handled, ready for release
 
