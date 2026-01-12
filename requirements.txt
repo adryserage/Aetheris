@@ -15,4 +15,5 @@ rich>=13.0.0  # Barres de progression modernes avec couleurs et détails
 
 # Outils de développement
 black>=24.0.0  # Formateur de code Python
+types-PyYAML>=6.0  # Type stubs for PyYAML (mypy compatibility)
 
