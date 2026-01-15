@@ -159,7 +159,9 @@ class CleanupService:
             config: Cleanup configuration options
         """
         self.config = config or CleanupConfig()
-        self._patterns = get_cleanup_patterns(deep=self.config.deep, custom=self.config.custom_patterns)
+        self._patterns = get_cleanup_patterns(
+            deep=self.config.deep, custom=self.config.custom_patterns
+        )
 
     def get_files_to_clean(self, directory: str | Path, deep: bool | None = None) -> list[Path]:
         """Get list of files that would be cleaned (safe to delete).
