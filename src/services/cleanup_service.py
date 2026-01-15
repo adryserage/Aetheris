@@ -203,9 +203,7 @@ class CleanupService:
                             total_size += f.stat().st_size
                             count += 1
                             if count >= max_files_per_dir:
-                                # Estimate remaining size based on average
-                                avg_size = total_size / count if count > 0 else 0
-                                # Rough estimate: double the counted size
+                                # Rough estimate: double the counted size for large dirs
                                 total_size = int(total_size * 2)
                                 break
             except (OSError, PermissionError) as e:
