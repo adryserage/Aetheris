@@ -19,6 +19,9 @@
   "cli.analysis.model": "🤖 Model: {model}",
   "cli.analysis.timeout": "⏱️  Timeout: {timeout}",
   "cli.analysis.starting": "🔍 Starting analysis...",
+  "cli.analysis.selected_agents": "🤖 Selected agents: {agents}",
+  "cli.analysis.using_preset": "📋 Using preset: {preset}",
+  "cli.analysis.cancelled": "❌ Analysis cancelled.",
 
   "cli.reanalyze.last_analysis": "📅 Last analysis: {date}",
   "cli.reanalyze.metrics_file": "📁 Metrics file: {path}",
