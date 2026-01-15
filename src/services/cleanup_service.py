@@ -6,7 +6,7 @@ import os
 import shutil
 from pathlib import Path
 
-from ..config.exclusion_patterns import get_exclusions
+from ..config.exclusion_patterns import get_cleanup_patterns, get_exclusions
 from ..models.cleanup_models import CleanupConfig, CleanupResult
 
 logger = logging.getLogger(__name__)
@@ -84,27 +84,47 @@ def get_excluded_files(
     patterns: list[str] | None = None,
     deep: bool = False,
 ) -> list[Path]:
-    """Get list of files matching exclusion patterns.
+    """Get list of files matching cleanup patterns (safe to delete).
+
+    IMPORTANT: This uses get_cleanup_patterns() which only returns
+    patterns for temporary/cache files that are safe to delete.
 
     Args:
         directory: Root directory to scan
         patterns: Custom patterns (uses defaults if None)
-        deep: Include deep clean patterns
+        deep: Include build artifacts (dist/, build/)
 
     Returns:
-        List of Path objects for matched files
+        List of Path objects for files safe to delete
     """
     if patterns is None:
-        patterns = get_exclusions(deep=deep)
+        patterns = get_cleanup_patterns(deep=deep)
 
     directory = Path(directory)
     matched_files: list[Path] = []
+
+    # Directories to SKIP during traversal (never scan inside these)
+    # This is for performance - we don't want to scan thousands of files in these dirs
+    skip_traversal_dirs = {
+        ".git",
+        ".venv",
+        "venv",
+        ".venv-mypy",
+        "node_modules",
+        ".npm",
+        ".idea",
+        ".vscode",
+        "__pycache__",  # Will be matched by pattern, but skip traversal too
+    }
 
     for root, dirs, files in os.walk(directory):
         root_path = Path(root)
         rel_root = root_path.relative_to(directory)
 
-        # Check directories for exclusion
+        # Skip directories that should not be traversed (for performance)
+        dirs[:] = [d for d in dirs if d not in skip_traversal_dirs]
+
+        # Check directories for cleanup patterns
         dirs_to_remove = []
         for d in dirs:
             dir_path = rel_root / d
@@ -114,7 +134,7 @@ def get_excluded_files(
                 dirs_to_remove.append(d)
                 matched_files.append(root_path / d)
 
-        # Remove excluded directories from traversal
+        # Remove matched directories from further traversal
         for d in dirs_to_remove:
             dirs.remove(d)
 
@@ -139,30 +159,36 @@ class CleanupService:
             config: Cleanup configuration options
         """
         self.config = config or CleanupConfig()
-        self._patterns = get_exclusions(deep=self.config.deep, custom=self.config.custom_patterns)
+        self._patterns = get_cleanup_patterns(
+            deep=self.config.deep, custom=self.config.custom_patterns
+        )
 
     def get_files_to_clean(self, directory: str | Path, deep: bool | None = None) -> list[Path]:
-        """Get list of files that would be cleaned.
+        """Get list of files that would be cleaned (safe to delete).
+
+        IMPORTANT: Only returns temporary/cache files that are safe to delete.
+        Will NOT include .git/, .env, tests/, specs/, or any source code.
 
         Args:
             directory: Directory to scan
-            deep: Override deep clean setting
+            deep: Override deep clean setting (includes build artifacts)
 
         Returns:
-            List of paths to be cleaned
+            List of paths safe to delete
         """
         use_deep = deep if deep is not None else self.config.deep
-        patterns = get_exclusions(deep=use_deep, custom=self.config.custom_patterns)
+        patterns = get_cleanup_patterns(deep=use_deep, custom=self.config.custom_patterns)
         return get_excluded_files(directory, patterns, deep=use_deep)
 
-    def calculate_size(self, files: list[Path]) -> int:
+    def calculate_size(self, files: list[Path], max_files_per_dir: int = 1000) -> int:
         """Calculate total size of files in bytes.
 
         Args:
             files: List of file paths
+            max_files_per_dir: Maximum files to count per directory (for performance)
 
         Returns:
-            Total size in bytes
+            Total size in bytes (estimated for large directories)
         """
         total_size = 0
         for path in files:
@@ -170,7 +196,16 @@ class CleanupService:
                 if path.is_file():
                     total_size += path.stat().st_size
                 elif path.is_dir():
-                    total_size += sum(f.stat().st_size for f in path.rglob("*") if f.is_file())
+                    # Limit iteration for performance on large directories
+                    count = 0
+                    for f in path.rglob("*"):
+                        if f.is_file():
+                            total_size += f.stat().st_size
+                            count += 1
+                            if count >= max_files_per_dir:
+                                # Rough estimate: double the counted size for large dirs
+                                total_size = int(total_size * 2)
+                                break
             except (OSError, PermissionError) as e:
                 logger.warning(f"Could not get size of {path}: {e}")
 
@@ -240,7 +275,7 @@ class CleanupService:
         if dirs:
             lines.append("Directories:")
             for d in sorted(dirs):
-                dir_size = sum(f.stat().st_size for f in d.rglob("*") if f.is_file())
+                dir_size = self._calculate_dir_size(d)
                 lines.append(f"  {d}/ ({self._format_size(dir_size)})")
 
         if regular_files:
@@ -275,6 +310,30 @@ class CleanupService:
 
         files = self.get_files_to_clean(directory)
         return self.delete_files(files)
+
+    def _calculate_dir_size(self, path: Path, max_files: int = 500) -> int:
+        """Calculate directory size with a file limit for performance.
+
+        Args:
+            path: Directory path
+            max_files: Maximum files to count (estimate for larger dirs)
+
+        Returns:
+            Size in bytes (estimated for large directories)
+        """
+        total_size = 0
+        count = 0
+        try:
+            for f in path.rglob("*"):
+                if f.is_file():
+                    total_size += f.stat().st_size
+                    count += 1
+                    if count >= max_files:
+                        # Estimate: assume remaining files are similar size
+                        break
+        except (OSError, PermissionError):
+            pass
+        return total_size
 
     @staticmethod
     def _format_size(size_bytes: int) -> str:

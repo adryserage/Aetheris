@@ -181,45 +181,6 @@ Aetheris coordinates 10 specialized AI agents through a central orchestrator. Ea
 
 ---
 
-## Features
-
-- **Headless Mode (v2.8)** — Non-interactive execution for CI/CD with `aetheris run <task-file>`
-- **Deterministic Execution** — Reproducible results with `--seed` and `--no-timestamps` options
-- **Security Profiles** — Control operations with `--profile safe|ci|dev|unrestricted`
-- **Configurable Timeout** — Set analysis duration with `--timeout 30m`, `--timeout 2h`, or `--timeout 0` (unlimited)
-- **Heartbeat Monitor** — Progress indicator every 10 minutes for long-running analyses
-- **Incremental Reanalysis** — Use `--reanalyze` / `-r` to analyze only files changed since last run
-- **Smart Change Detection** — Auto-detects modifications via git diff or file timestamps
-- **Cost-Efficient Updates** — Skip unchanged files, preserve previous results, reduce API calls
-- **Graceful Interruption** — Partial results saved when timeout is reached
-- **Multi-Provider Support** — Switch between Gemini, OpenAI, and Claude with `--provider`
-- **Auto-Fix Integration** — Fix issues automatically with Claude Code via `aetheris fix --auto`
-- **GitHub Integration** — Create issues, review PRs, generate fix PRs directly
-- **Smart Caching** — 60-80% cost reduction on repeat analyses
-- **Artifact Cleanup** — Remove development artifacts before packaging with `aetheris cleanup`
-- **Secret Scanner** — Detect exposed credentials with confidence levels (high/medium/low)
-- **Package Validation** — Pre-publication security checks with `aetheris validate-package`
-- **Multi-Language Support** — CLI available in English and French with `--lang` flag or `AETHERIS_LANG` env var
-
-```bash
-# Full analysis
-aetheris analysis
-
-# Incremental reanalysis (changed files only)
-aetheris analysis --reanalyze
-
-# With timeout for large codebases
-aetheris analysis -r --timeout 30m
-
-# Headless mode for CI/CD (v2.8)
-aetheris run task.json --profile ci
-
-# Auto-fix issues
-aetheris fix --analyze-first --auto
-```
-
----
-
 ## See It In Action
 
 ```bash
