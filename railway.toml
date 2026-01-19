@@ -1,0 +1,28 @@
+# Aetheris Worker - Railway Configuration
+# Deploy as a webhook handler for GitHub code analysis
+
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+# Number of replicas (1 is enough for most cases)
+numReplicas = 1
+
+# Health check endpoint
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+
+# Restart policy
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Resource limits (adjust based on your plan)
+# Starter plan: 512MB RAM, 0.5 vCPU
+# Pro plan: up to 32GB RAM, 8 vCPU
+
+[deploy.resources]
+# Memory in MB - analysis can be memory intensive
+memory = 1024
+# CPU cores
+cpu = 1
