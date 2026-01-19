@@ -120,7 +120,7 @@ class TimeoutConfig:
 
 # Modèles par défaut par fournisseur
 DEFAULT_MODELS = {
-    "gemini": "gemini-3-pro-preview",  # Nouveau modèle avec toutes les fonctionnalités
+    "gemini": "gemini-3-pro-preview",  # Latest Gemini 3 Pro with advanced features
     "openai": "gpt-4o",
     "claude": "claude-3-5-sonnet-20241022",
 }
@@ -128,16 +128,18 @@ DEFAULT_MODELS = {
 # Modèles supportés par fournisseur
 SUPPORTED_MODELS = {
     "gemini": [
-        # Dernière génération (fonctionnalités complètes)
+        # Gemini 3 (latest preview)
         "gemini-3-pro-preview",
+        "gemini-3-flash-preview",
+        # Gemini 2.5 (current production)
         "gemini-2.5-pro",
-        "gemini-3-pro-preview",
-        # Génération précédente
+        "gemini-2.5-flash",
+        # Gemini 2.0
+        "gemini-2.0-flash",
         "gemini-2.0-flash-exp",
+        # Previous generation
         "gemini-1.5-pro",
-        "gemini-1.5-pro-latest",
         "gemini-1.5-flash",
-        "gemini-pro",
     ],
     "openai": [
         "gpt-4o",

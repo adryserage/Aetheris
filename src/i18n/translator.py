@@ -9,14 +9,32 @@ Provides lazy-loading translation with fallback chain:
 
 import json
 import logging
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-# Path to locales directory (relative to this file's package)
-LOCALES_DIR = Path(__file__).parent.parent / "locales"
+# Path to locales directory
+# Use importlib.resources for proper package resource access (Python 3.9+)
+# Fallback to __file__ based path for development/editable installs
+def _get_locales_dir() -> Path:
+    """Get the locales directory path, handling both installed and dev modes."""
+    try:
+        if sys.version_info >= (3, 9):
+            from importlib.resources import files
+            # Access the locales package directly
+            locales_pkg = files("src.locales")
+            # Get the path - for installed packages this returns the right location
+            return Path(str(locales_pkg))
+    except Exception:
+        pass
+
+    # Fallback: use file-based path (works for editable installs and dev)
+    return Path(__file__).parent.parent / "locales"
+
+LOCALES_DIR = _get_locales_dir()
 DEFAULT_LANGUAGE = "en"
 FALLBACK_LANGUAGE = "en"
 

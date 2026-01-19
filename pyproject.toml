@@ -72,11 +72,13 @@ Repository = "https://github.com/adryserage/aetheris"
 Issues = "https://github.com/adryserage/aetheris/issues"
 "📣 Vote: Open Source?" = "https://adryanserage.ca/poll/aetheris"
 
-[tool.setuptools]
-packages = ["src", "src.agents", "src.core", "src.models", "src.services", "src.i18n", "src.locales", "src.runner", "src.schemas"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
 
 [tool.setuptools.package-data]
-"*" = ["*.md", "*.txt", "*.yaml", "*.yml", "*.json"]
+"src.locales" = ["*.json"]
+"*" = ["*.md", "*.txt", "*.yaml", "*.yml"]
 
 [tool.cibuildwheel]
 # Skip 32-bit builds, musllinux, and PyPy
