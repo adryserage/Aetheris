@@ -1,24 +1,22 @@
 # =============================================================================
-# Aetheris Code Analysis - GitHub Actions Template (v2.13)
+# Aetheris Code Analysis - Railway Worker Trigger (v3.0)
 # =============================================================================
 #
-# This workflow template provides automated AI-powered code analysis for your
-# repository using Aetheris. Copy this file to your .github/workflows/ directory.
+# This workflow triggers the Aetheris Railway worker for AI-powered code analysis.
+# The actual analysis runs on Railway infrastructure for better performance.
 #
 # SETUP:
-# 1. Add your AI API key as a repository secret:
-#    - GEMINI_API_KEY (recommended - free tier available)
-#    - OPENAI_API_KEY
-#    - ANTHROPIC_API_KEY
+# 1. Deploy the Aetheris worker to Railway (see worker/README.md)
+# 2. Add secrets to your repository:
+#    - AETHERIS_WORKER_URL: Your Railway worker URL (e.g., https://your-app.railway.app)
+#    - AETHERIS_WEBHOOK_SECRET: Secret for webhook authentication
 #    Settings > Secrets > Actions > New repository secret
-# 2. Optional: Customize triggers and options below
 #
 # FEATURES:
 # - Automatic analysis on push to main/develop branches
-# - Pull request analysis with comments
-# - Manual trigger with mode selection (analysis/fix)
-# - Changed files detection for efficient scans
-# - Downloadable analysis reports
+# - Pull request analysis with comments posted by worker
+# - Manual trigger with mode selection
+# - Lightweight GitHub Actions (just triggers, no heavy processing)
 #
 # =============================================================================
 
@@ -55,252 +53,206 @@ concurrency:
   group: aetheris-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  # Python version for analysis
-  PYTHON_VERSION: "3.11"
-  # Default timeout (can be overridden via workflow_dispatch)
-  DEFAULT_TIMEOUT: "60m"
-
 jobs:
-  analyze:
+  trigger-analysis:
     runs-on: ubuntu-latest
-    timeout-minutes: 360  # 6-hour GitHub Actions limit
+    timeout-minutes: 5  # Quick job - just triggers the worker
 
     permissions:
       contents: read
-      pull-requests: write
-      issues: write
 
     steps:
       # ==================================
-      # Setup
+      # Validate Configuration
       # ==================================
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Full history for change detection
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: "pip"
-
-      - name: Install Aetheris
-        run: |
-          pip install --upgrade pip
-          pip install adryserage-aetheris
-
-      # ==================================
-      # API Key Validation
-      # ==================================
-      - name: Validate API key
+      - name: Validate secrets
         env:
-          GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
-          OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
-          ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          WORKER_URL: ${{ secrets.AETHERIS_WORKER_URL }}
         run: |
-          if [ -z "$GEMINI_KEY" ] && [ -z "$OPENAI_KEY" ] && [ -z "$ANTHROPIC_KEY" ]; then
-            echo "::error::Missing API key secret"
+          if [ -z "$WORKER_URL" ]; then
+            echo "::error::Missing AETHERIS_WORKER_URL secret"
             echo ""
-            echo "To fix this, add ONE of the following secrets:"
-            echo "1. Go to Settings > Secrets and variables > Actions"
-            echo "2. Click 'New repository secret'"
-            echo "3. Add one of:"
-            echo "   - GEMINI_API_KEY (recommended - free tier)"
-            echo "   - OPENAI_API_KEY"
-            echo "   - ANTHROPIC_API_KEY"
-            echo ""
-            echo "Get a free API key:"
-            echo "  - Gemini: https://ai.google.dev"
-            echo "  - OpenAI: https://platform.openai.com/api-keys"
-            echo "  - Claude: https://console.anthropic.com"
+            echo "To fix this:"
+            echo "1. Deploy Aetheris worker to Railway (see worker/README.md)"
+            echo "2. Go to Settings > Secrets and variables > Actions"
+            echo "3. Add 'AETHERIS_WORKER_URL' with your Railway URL"
+            echo "   Example: https://your-app.railway.app"
             exit 1
           fi
-          echo "API key found"
+          echo "✓ Worker URL configured"
 
       # ==================================
-      # Changed Files Detection
+      # Trigger Railway Worker
       # ==================================
-      - name: Get changed files
-        id: changed
+      - name: Trigger Aetheris Worker
         env:
-          EVENT_NAME: ${{ github.event_name }}
-          BASE_REF: ${{ github.base_ref }}
-          FULL_SCAN: ${{ inputs.full_scan }}
-        run: |
-          if [ "$EVENT_NAME" = "pull_request" ] || ([ "$EVENT_NAME" = "workflow_dispatch" ] && [ "$FULL_SCAN" != "true" ]); then
-            if [ "$EVENT_NAME" = "pull_request" ]; then
-              # Get files changed in PR
-              CHANGED=$(git diff --name-only "origin/$BASE_REF"...HEAD | grep -E '\.(py|js|ts|tsx|jsx|java|go|rs|rb|php|c|cpp|cs|kt|swift|dart)$' | tr '\n' ',' | sed 's/,$//')
-            else
-              # Get files changed since last commit
-              CHANGED=$(git diff --name-only HEAD~1 | grep -E '\.(py|js|ts|tsx|jsx|java|go|rs|rb|php|c|cpp|cs|kt|swift|dart)$' | tr '\n' ',' | sed 's/,$//')
-            fi
-
-            if [ -z "$CHANGED" ]; then
-              echo "files=" >> "$GITHUB_OUTPUT"
-              echo "has_changes=false" >> "$GITHUB_OUTPUT"
-            else
-              echo "files=$CHANGED" >> "$GITHUB_OUTPUT"
-              echo "has_changes=true" >> "$GITHUB_OUTPUT"
-            fi
-            echo "Changed files: $CHANGED"
-          else
-            echo "has_changes=true" >> "$GITHUB_OUTPUT"
-            echo "Full scan requested"
-          fi
-
-      # ==================================
-      # Run Analysis
-      # ==================================
-      - name: Run Aetheris analysis
-        if: steps.changed.outputs.has_changes != 'false'
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          WORKER_URL: ${{ secrets.AETHERIS_WORKER_URL }}
+          WEBHOOK_SECRET: ${{ secrets.AETHERIS_WEBHOOK_SECRET }}
+          GITHUB_EVENT: ${{ github.event_name }}
           INPUT_MODE: ${{ inputs.mode }}
           INPUT_TIMEOUT: ${{ inputs.timeout }}
           INPUT_FULL_SCAN: ${{ inputs.full_scan }}
-          CHANGED_FILES: ${{ steps.changed.outputs.files }}
+          # Safe environment variables for potentially user-controlled data
+          PR_ACTION: ${{ github.event.action }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_REF: ${{ github.ref }}
+          PUSH_SHA: ${{ github.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          REPO_FULL_NAME: ${{ github.repository }}
+          ACTOR: ${{ github.actor }}
         run: |
-          # Determine timeout (use default if not provided)
-          TIMEOUT="${INPUT_TIMEOUT:-$DEFAULT_TIMEOUT}"
+          # Build payload based on event type using safe environment variables
+          if [ "$GITHUB_EVENT" = "pull_request" ]; then
+            # Escape JSON special characters in user-controlled fields
+            SAFE_PR_HEAD_REF=$(echo "$PR_HEAD_REF" | jq -Rs '.')
+            SAFE_ACTOR=$(echo "$ACTOR" | jq -Rs '.')
 
-          # Determine mode (default to analysis)
-          MODE="${INPUT_MODE:-analysis}"
-
-          # Build command
-          if [ "$MODE" = "fix" ]; then
-            CMD="aetheris fix --analyze-first --auto"
+            PAYLOAD=$(jq -n \
+              --arg action "$PR_ACTION" \
+              --argjson pr_number "${PR_NUMBER:-0}" \
+              --arg head_ref "$PR_HEAD_REF" \
+              --arg head_sha "$PR_HEAD_SHA" \
+              --arg repo_name "$REPO_FULL_NAME" \
+              --arg actor "$ACTOR" \
+              '{
+                action: $action,
+                pull_request: {
+                  number: $pr_number,
+                  head: {
+                    ref: $head_ref,
+                    sha: $head_sha
+                  }
+                },
+                repository: {
+                  full_name: $repo_name,
+                  clone_url: ("https://github.com/" + $repo_name + ".git")
+                },
+                sender: {
+                  login: $actor
+                }
+              }')
+            EVENT_TYPE="pull_request"
+          elif [ "$GITHUB_EVENT" = "push" ]; then
+            PAYLOAD=$(jq -n \
+              --arg ref "$PUSH_REF" \
+              --arg after "$PUSH_SHA" \
+              --arg before "$PUSH_BEFORE" \
+              --arg repo_name "$REPO_FULL_NAME" \
+              --arg actor "$ACTOR" \
+              '{
+                ref: $ref,
+                after: $after,
+                before: $before,
+                repository: {
+                  full_name: $repo_name,
+                  clone_url: ("https://github.com/" + $repo_name + ".git")
+                },
+                sender: {
+                  login: $actor
+                }
+              }')
+            EVENT_TYPE="push"
           else
-            CMD="aetheris analysis --profile ci --timeout $TIMEOUT"
+            # Manual dispatch - treat as push to current ref
+            PAYLOAD=$(jq -n \
+              --arg ref "$PUSH_REF" \
+              --arg after "$PUSH_SHA" \
+              --arg repo_name "$REPO_FULL_NAME" \
+              --arg actor "$ACTOR" \
+              --arg mode "${INPUT_MODE:-analysis}" \
+              --arg timeout "${INPUT_TIMEOUT:-60m}" \
+              --argjson full_scan "${INPUT_FULL_SCAN:-false}" \
+              '{
+                ref: $ref,
+                after: $after,
+                repository: {
+                  full_name: $repo_name,
+                  clone_url: ("https://github.com/" + $repo_name + ".git")
+                },
+                sender: {
+                  login: $actor
+                },
+                workflow_dispatch: {
+                  mode: $mode,
+                  timeout: $timeout,
+                  full_scan: $full_scan
+                }
+              }')
+            EVENT_TYPE="push"
           fi
 
-          # Add changed files if available and not full scan
-          if [ -n "$CHANGED_FILES" ] && [ "$INPUT_FULL_SCAN" != "true" ]; then
-            CMD="$CMD --changed-files-only --files \"$CHANGED_FILES\""
+          echo "Triggering Aetheris worker..."
+          echo "Event: $EVENT_TYPE"
+          echo "Repository: $REPO_FULL_NAME"
+
+          # Calculate signature if secret is set
+          SIGNATURE_HEADER=""
+          if [ -n "$WEBHOOK_SECRET" ]; then
+            SIGNATURE="sha256=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | cut -d' ' -f2)"
+            SIGNATURE_HEADER="X-Hub-Signature-256: $SIGNATURE"
           fi
 
-          echo "Running: $CMD"
-          eval "$CMD" || true  # Don't fail the workflow on analysis issues
+          # Send webhook to Railway worker
+          if [ -n "$SIGNATURE_HEADER" ]; then
+            RESPONSE=$(curl -s -w "\n%{http_code}" \
+              -X POST \
+              -H "Content-Type: application/json" \
+              -H "X-GitHub-Event: $EVENT_TYPE" \
+              -H "$SIGNATURE_HEADER" \
+              -d "$PAYLOAD" \
+              "${WORKER_URL}/webhook/github")
+          else
+            RESPONSE=$(curl -s -w "\n%{http_code}" \
+              -X POST \
+              -H "Content-Type: application/json" \
+              -H "X-GitHub-Event: $EVENT_TYPE" \
+              -d "$PAYLOAD" \
+              "${WORKER_URL}/webhook/github")
+          fi
 
-      - name: Skip message (no changes)
-        if: steps.changed.outputs.has_changes == 'false'
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "Response: $BODY"
+          echo "HTTP Code: $HTTP_CODE"
+
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+            echo "✓ Analysis triggered successfully"
+            echo ""
+            echo "The Aetheris worker will:"
+            echo "  1. Clone the repository"
+            echo "  2. Run AI-powered code analysis"
+            echo "  3. Post results as PR comments (for PRs) or commit status (for pushes)"
+            echo ""
+            echo "Check your Railway dashboard for worker logs."
+          else
+            echo "::error::Failed to trigger worker (HTTP $HTTP_CODE)"
+            exit 1
+          fi
+
+      # ==================================
+      # Status Summary
+      # ==================================
+      - name: Summary
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REPO: ${{ github.repository }}
+          REF: ${{ github.ref }}
+          SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
         run: |
-          echo "No code files changed - skipping analysis"
-
-      # ==================================
-      # Upload Artifacts
-      # ==================================
-      - name: Prepare artifact
-        if: always()
-        run: |
-          mkdir -p artifact/docs
-          cp -r docs/analyses artifact/docs/ 2>/dev/null || true
-          cp -r docs/architecture_overview.md artifact/docs/ 2>/dev/null || true
-
-          # Create README for artifact
-          cat > artifact/README.md << 'ARTIFACT_EOF'
-          # Aetheris Analysis Results
-
-          This archive contains the code analysis reports generated by Aetheris.
-
-          ## Contents
-
-          - `docs/analyses/` - Individual file analysis reports
-          - `docs/architecture_overview.md` - Architecture analysis
-
-          ## Viewing Results
-
-          1. Extract this archive
-          2. Open `docs/analyses/` in your browser or Markdown viewer
-          3. Review the findings and recommendations
-
-          ## Running Locally
-
-          To run Aetheris locally:
-
-          ```bash
-          pip install adryserage-aetheris
-          export GEMINI_API_KEY=your_key_here
-          aetheris analysis
-          ```
-
-          ## Learn More
-
-          - [Aetheris Documentation](https://adryserage.github.io/aetheris/)
-          - [PyPI Package](https://pypi.org/project/adryserage-aetheris/)
-          ARTIFACT_EOF
-
-      - name: Upload analysis artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: aetheris-analysis-${{ github.sha }}
-          path: artifact/
-          retention-days: 30
-
-      # ==================================
-      # PR Comment
-      # ==================================
-      - name: Comment on PR
-        if: github.event_name == 'pull_request' && steps.changed.outputs.has_changes != 'false'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-
-            // Read analysis summary if available
-            let summary = '';
-            const qaReportPath = 'docs/analyses/quality_assurance_report.md';
-
-            if (fs.existsSync(qaReportPath)) {
-              const content = fs.readFileSync(qaReportPath, 'utf8');
-              // Extract first section as summary (limit to prevent huge comments)
-              const lines = content.split('\n').slice(0, 30);
-              summary = lines.join('\n');
-            }
-
-            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-
-            const body = `## Aetheris Analysis Complete
-
-            ${summary ? '### Summary\n\n' + summary : ''}
-
-            **Download full results:** [Analysis Artifacts](${runUrl})
-
-            ---
-            *Generated by [Aetheris](https://pypi.org/project/adryserage-aetheris/) v2.13*
-            `;
-
-            // Find existing comment
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number
-            });
-
-            const botComment = comments.find(c =>
-              c.user.type === 'Bot' &&
-              c.body.includes('Aetheris Analysis Complete')
-            );
-
-            if (botComment) {
-              // Update existing comment
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: botComment.id,
-                body: body
-              });
-            } else {
-              // Create new comment
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: body
-              });
-            }
+          echo "## Aetheris Analysis Triggered" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Detail | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Event | $EVENT_NAME |" >> $GITHUB_STEP_SUMMARY
+          echo "| Repository | $REPO |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch/Ref | $REF |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | $SHA |" >> $GITHUB_STEP_SUMMARY
+          echo "| Actor | $ACTOR |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Analysis is running on the Railway worker. Results will be posted:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Pull Requests**: As PR comments" >> $GITHUB_STEP_SUMMARY
+          echo "- **Push events**: As commit status checks" >> $GITHUB_STEP_SUMMARY

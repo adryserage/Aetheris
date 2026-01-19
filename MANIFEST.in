@@ -7,6 +7,9 @@ include LICENSE
 include pyproject.toml
 include setup.py
 
+# Include locale files (JSON translations) - CRITICAL for i18n
+recursive-include src/locales *.json
+
 # Include package __init__.py files (needed as stubs for imports)
 recursive-include src __init__.py
 

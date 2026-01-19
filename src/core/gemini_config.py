@@ -111,7 +111,6 @@ class BatchJobInfo:
 MODELS_WITH_CODE_EXECUTION = [
     "gemini-3-pro-preview",
     "gemini-2.5-pro",
-    "gemini-3-pro-preview",
     "gemini-2.0-flash-exp",
 ]
 
@@ -123,7 +122,6 @@ MODELS_WITH_THINKING = [
 MODELS_WITH_CACHING = [
     "gemini-3-pro-preview",
     "gemini-2.5-pro",
-    "gemini-3-pro-preview",
     "gemini-1.5-pro",
     "gemini-1.5-flash",
 ]
@@ -131,7 +129,6 @@ MODELS_WITH_CACHING = [
 MODELS_WITH_BATCH = [
     "gemini-3-pro-preview",
     "gemini-2.5-pro",
-    "gemini-3-pro-preview",
     "gemini-2.0-flash",
 ]
 
