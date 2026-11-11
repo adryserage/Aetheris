@@ -1,4 +1,5 @@
-# Consolidated Release workflow: Build, Publish, Create Release, Deploy Docs
+# Release workflow: Build, Publish, Create Release, Deploy Docs
+# Runs only on a pushed vX.Y.Z tag or a manual dispatch: releases are a deliberate decision.
 # Replaces: publish.yml, build-wheels.yml, create-release.yml, auto-release.yml, docs-deploy.yml
 
 name: Release
@@ -7,15 +8,6 @@ on:
   push:
     tags:
       - 'v*'
-    branches:
-      - main
-      - master
-    paths:
-      - 'pyproject.toml'
-      - 'CHANGELOG.md'
-      - 'docs/**'
-      - 'mkdocs.yml'
-      - 'README.md'
   release:
     types: [published]
   workflow_dispatch:
@@ -46,103 +38,6 @@ env:
   PYTHON_VERSION: '3.11'
 
 jobs:
-  # ============================================
-  # AUTO-RELEASE: Detect version change and create tag
-  # ============================================
-  auto-release:
-    name: Auto Release on Version Change
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
-    outputs:
-      tag_created: ${{ steps.create_tag.outputs.tag_created }}
-      tag_name: ${{ steps.create_tag.outputs.tag_name }}
-      should_release: ${{ steps.create_tag.outputs.should_release }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Detect version change and create tag
-        id: create_tag
-        run: |
-          # Extract version from pyproject.toml
-          CURRENT_VERSION=$(python3 -c "
-          import tomllib, sys
-          with open('pyproject.toml', 'rb') as f:
-              data = tomllib.load(f)
-          version = data.get('project', {}).get('version') or data.get('tool', {}).get('poetry', {}).get('version')
-          if not version:
-              print('ERREUR: Version non trouvée', file=sys.stderr)
-              sys.exit(1)
-          print(version)
-          ")
-          TAG_NAME="v$CURRENT_VERSION"
-
-          # Validate semver format
-          SEMVER_REGEX='^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*)?$'
-          if ! echo "$CURRENT_VERSION" | grep -qE "$SEMVER_REGEX"; then
-            echo "❌ Invalid version format: $CURRENT_VERSION"
-            exit 1
-          fi
-
-          echo "Current version: $CURRENT_VERSION"
-          echo "Tag: $TAG_NAME"
-
-          # Check if version changed
-          VERSION_CHANGED=false
-          if git diff HEAD~1 HEAD -- pyproject.toml 2>/dev/null | grep -q "^+version ="; then
-            VERSION_CHANGED=true
-          elif git diff HEAD~1 HEAD --name-only | grep -q "pyproject.toml"; then
-            VERSION_CHANGED=true
-          fi
-
-          if [ "$VERSION_CHANGED" != "true" ]; then
-            echo "ℹ️ No version change detected."
-            echo "tag_created=false" >> $GITHUB_OUTPUT
-            echo "should_release=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          # Check if tag already exists
-          TAG_EXISTS=false
-          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
-            TAG_EXISTS=true
-            echo "⚠️ Tag $TAG_NAME already exists."
-          fi
-
-          if [ "$TAG_EXISTS" = "true" ]; then
-            # Tag exists but version changed - allow release via workflow_dispatch
-            echo "ℹ️ Version changed but tag exists. Use 'gh workflow run release.yml -f tag=$TAG_NAME' to release."
-            echo "tag_created=false" >> $GITHUB_OUTPUT
-            echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
-            echo "should_release=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          # Create and push tag
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          if git tag -a "$TAG_NAME" -m "Release $TAG_NAME" 2>/dev/null; then
-            git push origin "$TAG_NAME"
-            echo "✅ Tag $TAG_NAME created and pushed"
-            echo "tag_created=true" >> $GITHUB_OUTPUT
-            echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
-            echo "should_release=true" >> $GITHUB_OUTPUT
-          else
-            echo "⚠️ Tag creation failed."
-            echo "tag_created=false" >> $GITHUB_OUTPUT
-            echo "should_release=false" >> $GITHUB_OUTPUT
-          fi
-
   # ============================================
   # BUILD: Source distribution and wheels
   # ============================================
@@ -317,7 +212,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       (github.event_name == 'release') ||
-      (github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')) ||
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.skip_docs != 'true')
 
     steps:
@@ -349,7 +244,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       (github.event_name == 'release') ||
-      (github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')) ||
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.skip_docs != 'true')
     environment:
       name: github-pages

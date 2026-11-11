@@ -1,8 +1,7 @@
-# Promote develop to main workflow
-# Auto-promote when all quality gates pass
-# Replaces: develop-to-main.yml
+# Quality checks on develop (lint, types, build).
+# Merging develop into main is manual: releases are a deliberate decision.
 
-name: Promote
+name: Develop checks
 
 on:
   push:
@@ -11,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   PYTHON_VERSION: '3.11'
@@ -78,32 +77,3 @@ jobs:
 
       - name: Verify package
         run: twine check dist/*
-
-  promote-to-main:
-    name: Promote to Main
-    needs: [lint, typecheck, build]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Merge develop into main
-        run: |
-          git checkout main
-          git merge develop --no-ff -m "chore: auto-promote develop to main [skip ci]"
-          git push origin main
-
-      - name: Summary
-        run: |
-          echo "## Promotion Complete" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Successfully merged develop into main." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The release workflow will now handle version detection and publishing." >> $GITHUB_STEP_SUMMARY

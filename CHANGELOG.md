@@ -7,15 +7,21 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
-### ✨ Nouvelles fonctionnalités
+### 🔒 Sécurité
+
+- Retrait du code malveillant injecté dans `main.py` en mars 2026, y compris de l'historique git. Le paquet PyPI 3.0.0, publié avant l'attaque, ne le contient pas.
+- Retrait des secrets `GEMINI_API_KEY` et `PYPI_API_TOKEN` du dépôt GitHub. La publication sur PyPI passe par Trusted Publishing, sans jeton.
 
 ### 🔧 Modifications
 
-### 🐛 Corrections
+- Les specs des versions 2.5 à 3.0.0 sont archivées dans `docs/archive/specs/`, hors du site de documentation.
+- Retrait de l'outillage inutilisé : `.serena/`, `.specify/` et les commandes SpecKit, `docs-dev/`, `generate_bugs_cache.py`, `scripts/analyze_changes.py` et `scripts/create_missing_releases.py`.
+- Les releases ne partent plus toutes seules. `promote.yml` ne fusionne plus `develop` dans `main`, et `release.yml` ne publie que sur une étiquette `vX.Y.Z` ou un lancement manuel, plus à chaque push sur `main`.
+- `scheduled.yml` ne commite plus les rapports générés, qui restent disponibles comme artefacts des exécutions. Git ignore désormais `docs/analyses/` et `docs/metrics/`.
 
 ### 📝 Documentation
 
-### 📦 Dépendances
+- `CLAUDE.md` réécrit en français, réduit à l'état actuel du dépôt.
 
 ## [3.0.0] - 2026-01-12
 
