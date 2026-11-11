@@ -14,13 +14,13 @@
 ### Independent Test
 Run `aetheris analysis --agents performance` and verify only performance agent (+ core 6) executes.
 
-- [ ] T001 Add `enabled_agents` and `compliance_agents` fields to AnalysisConfig in `src/core/config.py`
-- [ ] T002 Add config.json schema validation for new agent fields in `src/core/config.py`
-- [ ] T003 [P] Add `--agents` CLI option to `src/cli.py`
-- [ ] T004 [P] Add `--skip-agents` CLI option to `src/cli.py`
-- [ ] T005 [P] Add `--compliance` CLI option to `src/cli.py`
-- [ ] T006 Implement agent filtering logic in `src/core/analyzer.py`
-- [ ] T007 Add unit tests for configuration parsing in `tests/unit/test_config.py`
+- [x] T001 Add `enabled_agents` and `compliance_agents` fields to AnalysisConfig in `src/core/config.py`
+- [x] T002 Add config.json schema validation for new agent fields in `src/core/config.py`
+- [x] T003 [P] Add `--agents` CLI option to `src/cli.py`
+- [x] T004 [P] Add `--skip-agents` CLI option to `src/cli.py`
+- [x] T005 [P] Add `--compliance` CLI option to `src/cli.py`
+- [x] T006 Implement agent filtering logic in `src/core/analyzer.py`
+- [x] T007 Add unit tests for configuration parsing in `tests/unit/test_config.py`
 
 ---
 
@@ -31,10 +31,10 @@ Run `aetheris analysis --agents performance` and verify only performance agent (
 ### Independent Test
 Import all new dataclasses and verify Pydantic serialization works.
 
-- [ ] T008 [P] Add `PerformanceIssue` dataclass to `src/models/data_models.py`
-- [ ] T009 [P] Add `APIContractViolation` dataclass to `src/models/data_models.py`
-- [ ] T010 [P] Add `TypeSafetyIssue` dataclass to `src/models/data_models.py`
-- [ ] T011 [P] Add `PrivacyViolation` dataclass to `src/models/data_models.py`
+- [x] T008 [P] Add `PerformanceIssue` dataclass to `src/models/data_models.py`
+- [x] T009 [P] Add `APIContractViolation` dataclass to `src/models/data_models.py`
+- [x] T010 [P] Add `TypeSafetyIssue` dataclass to `src/models/data_models.py`
+- [x] T011 [P] Add `PrivacyViolation` dataclass to `src/models/data_models.py`
 
 ---
 
@@ -45,9 +45,9 @@ Import all new dataclasses and verify Pydantic serialization works.
 ### Independent Test
 Verify new WorkflowStage enum values are recognized by orchestrator.
 
-- [ ] T012 Add 4 new WorkflowStage enum values to `src/core/orchestrator.py`
-- [ ] T013 Register new workflow stages in orchestration flow `src/core/orchestrator.py`
-- [ ] T014 Add report generation paths for new agents in `src/core/analyzer.py`
+- [x] T012 Add 4 new WorkflowStage enum values to `src/core/orchestrator.py`
+- [x] T013 Register new workflow stages in orchestration flow `src/core/orchestrator.py`
+- [x] T014 Add report generation paths for new agents in `src/core/analyzer.py`
 
 ---
 
@@ -58,12 +58,12 @@ Verify new WorkflowStage enum values are recognized by orchestrator.
 ### Independent Test
 Analyze a TypeScript file with `any` and verify any_usage issues are reported.
 
-- [ ] T015 [US4] Create `src/agents/type_safety_agent.py` with BaseAgent inheritance
-- [ ] T016 [US4] Implement `any`/`Any` detection patterns
-- [ ] T017 [US4] Implement unsafe cast detection (`as any`, `# type: ignore`)
-- [ ] T018 [US4] Implement null safety check patterns
-- [ ] T019 [US4] Add type_safety_report.md generation in `src/core/analyzer.py`
-- [ ] T020 [US4] Add unit tests in `tests/unit/agents/test_type_safety_agent.py`
+- [x] T015 [US4] Create `src/agents/type_safety_agent.py` with BaseAgent inheritance
+- [x] T016 [US4] Implement `any`/`Any` detection patterns
+- [x] T017 [US4] Implement unsafe cast detection (`as any`, `# type: ignore`)
+- [x] T018 [US4] Implement null safety check patterns
+- [x] T019 [US4] Add type_safety_report.md generation in `src/core/analyzer.py`
+- [x] T020 [US4] Add unit tests in `tests/unit/agents/test_type_safety_agent.py`
 
 ---
 
@@ -74,13 +74,13 @@ Analyze a TypeScript file with `any` and verify any_usage issues are reported.
 ### Independent Test
 Analyze a file with nested loops on same collection and verify complexity issue reported.
 
-- [ ] T021 [US2] Create `src/agents/performance_analysis_agent.py` with BaseAgent inheritance
-- [ ] T022 [US2] Implement O(n²)/O(n³) detection (nested loops)
-- [ ] T023 [US2] Implement N+1 query pattern detection
-- [ ] T024 [US2] Implement memory leak pattern detection (unclosed resources)
-- [ ] T025 [US2] Implement blocking async detection
-- [ ] T026 [US2] Add performance_report.md generation in `src/core/analyzer.py`
-- [ ] T027 [US2] Add unit tests in `tests/unit/agents/test_performance_agent.py`
+- [x] T021 [US2] Create `src/agents/performance_analysis_agent.py` with BaseAgent inheritance
+- [x] T022 [US2] Implement O(n²)/O(n³) detection (nested loops)
+- [x] T023 [US2] Implement N+1 query pattern detection
+- [x] T024 [US2] Implement memory leak pattern detection (unclosed resources)
+- [x] T025 [US2] Implement blocking async detection
+- [x] T026 [US2] Add performance_report.md generation in `src/core/analyzer.py`
+- [x] T027 [US2] Add unit tests in `tests/unit/agents/test_performance_agent.py`
 
 ---
 
@@ -91,13 +91,13 @@ Analyze a file with nested loops on same collection and verify complexity issue 
 ### Independent Test
 Analyze an API with GET body and verify HTTP method violation reported.
 
-- [ ] T028 [US3] Create `src/agents/api_contract_agent.py` with BaseAgent inheritance
-- [ ] T029 [US3] Implement HTTP method violation detection
-- [ ] T030 [US3] Implement REST naming consistency checks
-- [ ] T031 [US3] Implement breaking change detection
-- [ ] T032 [US3] Implement undocumented endpoint detection
-- [ ] T033 [US3] Add api_contract_report.md generation in `src/core/analyzer.py`
-- [ ] T034 [US3] Add unit tests in `tests/unit/agents/test_api_contract_agent.py`
+- [x] T028 [US3] Create `src/agents/api_contract_agent.py` with BaseAgent inheritance
+- [x] T029 [US3] Implement HTTP method violation detection
+- [x] T030 [US3] Implement REST naming consistency checks
+- [x] T031 [US3] Implement breaking change detection
+- [x] T032 [US3] Implement undocumented endpoint detection
+- [x] T033 [US3] Add api_contract_report.md generation in `src/core/analyzer.py`
+- [x] T034 [US3] Add unit tests in `tests/unit/agents/test_api_contract_agent.py`
 
 ---
 
@@ -108,12 +108,12 @@ Analyze an API with GET body and verify HTTP method violation reported.
 ### Independent Test
 Configure `compliance_agents: ["gdpr"]` and verify PII in logs is detected.
 
-- [ ] T035 [US5] Create `src/agents/data_privacy_agent.py` with BaseAgent inheritance
-- [ ] T036 [US5] Implement PII detection patterns (email, SSN, phone)
-- [ ] T037 [US5] Implement sensitive data encryption checks
-- [ ] T038 [US5] Implement compliance framework mapping (GDPR, HIPAA, PCI_DSS, CCPA)
-- [ ] T039 [US5] Add privacy_report.md generation in `src/core/analyzer.py`
-- [ ] T040 [US5] Add unit tests in `tests/unit/agents/test_data_privacy_agent.py`
+- [x] T035 [US5] Create `src/agents/data_privacy_agent.py` with BaseAgent inheritance
+- [x] T036 [US5] Implement PII detection patterns (email, SSN, phone)
+- [x] T037 [US5] Implement sensitive data encryption checks
+- [x] T038 [US5] Implement compliance framework mapping (GDPR, HIPAA, PCI_DSS, CCPA)
+- [x] T039 [US5] Add privacy_report.md generation in `src/core/analyzer.py`
+- [x] T040 [US5] Add unit tests in `tests/unit/agents/test_data_privacy_agent.py`
 
 ---
 
@@ -121,14 +121,14 @@ Configure `compliance_agents: ["gdpr"]` and verify PII in logs is detected.
 
 **Goal**: Final integration, documentation, edge case handling
 
-- [ ] T041 [P] Update README.md agent table (6 → 10 agents)
-- [ ] T042 [P] Update docs/agents.md with new agent descriptions
-- [ ] T043 [P] Update docs/configuration.md with new config options
-- [ ] T044 Add integration test for all 10 agents in `tests/integration/test_extended_agents.py`
-- [ ] T045 Implement graceful degradation for agent failures in `src/core/analyzer.py`
-- [ ] T046 Add invalid agent name validation with helpful error messages
-- [ ] T047 Verify parallel execution performance (+30% max degradation)
-- [ ] T048 Final lint and typecheck pass
+- [x] T041 [P] Update README.md agent table (6 → 10 agents)
+- [x] T042 [P] Update docs/agents.md with new agent descriptions
+- [x] T043 [P] Update docs/configuration.md with new config options
+- [x] T044 Add integration test for all 10 agents in `tests/integration/test_extended_agents.py`
+- [x] T045 Implement graceful degradation for agent failures in `src/core/analyzer.py`
+- [x] T046 Add invalid agent name validation with helpful error messages
+- [x] T047 Verify parallel execution performance (+30% max degradation)
+- [x] T048 Final lint and typecheck pass
 
 ---
 

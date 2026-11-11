@@ -4,6 +4,9 @@ site_url: https://adryserage.github.io/aetheris/
 repo_url: https://github.com/adryserage/aetheris
 repo_name: adryserage/aetheris
 
+exclude_docs: |
+  archive/
+
 theme:
   name: material
   palette:
