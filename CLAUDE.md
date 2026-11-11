@@ -39,4 +39,6 @@ Outil d'analyse de code par plusieurs agents d'IA (qualité, sécurité, archite
 - Chaque changement visible pour l'utilisateur ajoute sa ligne dans la section `[Unreleased]` de `CHANGELOG.md`, dans le même commit. `CHANGELOG.md` est l'historique des versions du dépôt (format Keep a Changelog, versionnage sémantique).
 - À chaque release, la section `[Unreleased]` prend le numéro et la date de la version, et `pyproject.toml` et la feuille de route du `README.md` sont mis à jour. L'étiquette `vX.Y.Z` et la release GitHub suivent la règle globale. Une commande CLI ajoutée ou modifiée met à jour `docs/commands/`.
 - Le dépôt n'a ni SpecKit ni skill propre : le travail suit les règles globales et Plane.
+- Exception de langue, décidée par le propriétaire pour ce dépôt public : `README.md` est en anglais et `README.fr.md` en est la traduction. Toute modification de l'un se reporte dans l'autre. Les autres `.md` restent en français.
+- `.agents/product-marketing.md` décrit le positionnement du produit. Les textes publics (README, description du paquet et du dépôt) le suivent : aucun chiffre ni promesse sans source.
 - Lignes de 100 caractères au plus (black).

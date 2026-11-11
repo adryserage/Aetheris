@@ -1,5 +1,5 @@
 site_name: Aetheris Documentation
-site_description: AI Code Review That Actually Works - 6 AI agents for automated vulnerability detection
+site_description: MCP server with code review rules and reproducible checks for AI coding assistants
 site_url: https://adryserage.github.io/aetheris/
 repo_url: https://github.com/adryserage/aetheris
 repo_name: adryserage/aetheris

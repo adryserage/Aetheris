@@ -14,6 +14,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ### 🔧 Modifications
 
+- Licence : Aetheris passe sous licence Apache 2.0, avec un fichier `NOTICE`. Elle remplace la licence propriétaire.
 - Les specs des versions 2.5 à 3.0.0 sont archivées dans `docs/archive/specs/`, hors du site de documentation.
 - Retrait de l'outillage inutilisé : `.serena/`, `.specify/` et les commandes SpecKit, `docs-dev/`, `generate_bugs_cache.py`, `scripts/analyze_changes.py` et `scripts/create_missing_releases.py`.
 - Les releases ne partent plus toutes seules. `promote.yml` ne fusionne plus `develop` dans `main`, et `release.yml` ne publie que sur une étiquette `vX.Y.Z` ou un lancement manuel, plus à chaque push sur `main`.
@@ -21,6 +22,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ### 📝 Documentation
 
+- README réécrit pour la v4 (serveur MCP), en anglais, avec une traduction française dans `README.fr.md`. Retrait du sondage, des prix et des chiffres sans source. Les descriptions du paquet, du site de doc et du dépôt GitHub sont alignées sur la v4.
 - `CLAUDE.md` réécrit en français, réduit à l'état actuel du dépôt.
 
 ## [3.0.0] - 2026-01-12

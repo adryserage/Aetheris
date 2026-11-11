@@ -1,0 +1,93 @@
+# Aetheris
+
+Des règles de revue de code et des vérifications reproductibles pour votre assistant de code IA, servies par MCP. C'est votre assistant qui raisonne : Aetheris n'a besoin d'aucune clé d'API et ne coûte rien à faire tourner.
+
+[Read in English](https://github.com/adryserage/aetheris/blob/main/README.md)
+
+> **État :** Aetheris 4.0 est en développement sur la branche `develop`. La dernière version publiée sur PyPI est la 3.0.0 : l'ancien outil en ligne de commande, qui appelle Gemini, OpenAI ou Claude avec votre propre clé d'API. Sa documentation se trouve à l'[étiquette 3.0.0](https://github.com/adryserage/aetheris/tree/v3.0.0).
+
+## Ce qu'il fait
+
+Demandez à Claude Code, à Cursor ou à n'importe quel client MCP de relire un changement : il peut appeler Aetheris pour deux types d'aide.
+
+- Des règles de revue : pour chaque catégorie, Aetheris donne ce qu'il faut vérifier, comment noter la gravité et le format du rapport à remplir. Catégories : sécurité, performance, typage, données personnelles, contrats d'API, revue de code, architecture, QA, revue de pull request et parcours utilisateur.
+- Des vérifications sans IA : recherche de secrets, vulnérabilités connues de vos dépendances (base [OSV](https://osv.dev)), métriques de code, graphes de dépendances et suivi des appels d'API. Elles rendent le même résultat à chaque fois.
+
+Votre assistant choisit les outils à appeler, lit votre code et écrit la revue. Aetheris n'appelle jamais de modèle de langage.
+
+## Installation
+
+Aetheris tourne en local avec [`uvx`](https://docs.astral.sh/uv/). Il n'y a aucun compte à créer.
+
+### Claude Code
+
+```bash
+claude mcp add aetheris -- uvx adryserage-aetheris
+```
+
+### Cursor
+
+Ajoutez ceci à `.cursor/mcp.json` dans votre projet, ou à `~/.cursor/mcp.json` :
+
+```json
+{
+  "mcpServers": {
+    "aetheris": {
+      "command": "uvx",
+      "args": ["adryserage-aetheris"]
+    }
+  }
+}
+```
+
+### Autres clients MCP
+
+Lancez `uvx adryserage-aetheris` comme serveur stdio.
+
+Demandez ensuite à votre assistant, par exemple, « relis mes changements indexés avec Aetheris » ou « fais un audit de sécurité Aetheris de ce dépôt ».
+
+## Outils
+
+La liste ci-dessous est le plan de la 4.0 et peut changer avant la sortie.
+
+| Outil | Ce qu'il rend |
+|-------|---------------|
+| `list_rule_categories` | Les catégories de règles et les ensembles prédéfinis, comme un audit de sécurité |
+| `get_rules` | Les règles d'une catégorie, au besoin pour un langage, avec le format de rapport attendu |
+| `scan_secrets` | Les identifiants trouvés dans des fichiers ou un contenu, masqués |
+| `parse_dependencies` | Les paquets et leurs versions, lus dans `requirements.txt`, `pyproject.toml`, `package.json` ou `pubspec.yaml` |
+| `check_vulnerabilities` | Les vulnérabilités connues de ces paquets, d'après OSV |
+| `scan_patterns` | Les motifs trouvés pour la sécurité, la performance, le typage, les données personnelles ou les API |
+| `code_metrics` | Nombre de lignes, complexité cyclomatique, profondeur d'imbrication et duplication |
+| `dependency_graph` | Les imports entre fichiers, les cycles et les dépendants |
+| `impact_of` | Les fichiers touchés par un changement dans un fichier donné |
+| `detect_changes` | Les fichiers modifiés ou supprimés depuis une référence git |
+| `list_source_files` | Les fichiers à relire, après `.gitignore` et les exclusions courantes |
+| `prioritize_files` | Un ordre de revue pour les fichiers modifiés |
+| `list_exports` | L'API publique d'un fichier |
+| `trace_api_flows` | Les appels d'API sans point d'arrivée, et les points d'arrivée que rien n'appelle |
+| `parse_user_stories` | Des user stories structurées à partir de texte, de Markdown ou de Gherkin, avec un diagramme Mermaid |
+
+## Ce qui quitte votre machine
+
+En mode local, Aetheris lit les fichiers de votre dossier de projet et n'envoie rien à aucun fournisseur d'IA. Le seul appel réseau est `check_vulnerabilities`, qui envoie des noms de paquets et des versions à l'API d'OSV. Le fournisseur de votre assistant voit toujours ce que votre assistant lit, comme sans Aetheris.
+
+## Contribuer
+
+Les bogues et les idées vont dans les [GitHub Issues](https://github.com/adryserage/aetheris/issues). Les pull requests visent la branche `develop`. Une amélioration des règles de revue compte autant qu'une amélioration du code.
+
+## Versions
+
+Aetheris suit le [versionnage sémantique](https://semver.org/lang/fr/). Chaque changement est listé dans [CHANGELOG.md](https://github.com/adryserage/aetheris/blob/main/CHANGELOG.md), et chaque version a son étiquette et sa [release GitHub](https://github.com/adryserage/aetheris/releases).
+
+## Venir de la 3.x
+
+La version 4.0 retire l'outil en ligne de commande, les intégrations des fournisseurs d'IA et le worker Railway. Pour garder la CLI, fixez la dernière version 3.x :
+
+```bash
+pip install "adryserage-aetheris==3.0.0"
+```
+
+## Licence
+
+Licence Apache 2.0. Voir [LICENSE](https://github.com/adryserage/aetheris/blob/main/LICENSE) et [NOTICE](https://github.com/adryserage/aetheris/blob/main/NOTICE).

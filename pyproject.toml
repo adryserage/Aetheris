@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "adryserage-aetheris"
 version = "3.0.0"
-description = "Aetheris - Multi-agent AI code analysis system with PR review, multi-provider consensus (Gemini/Claude/OpenAI), security analysis, and automatic bug fixing via Claude Code"
+description = "MCP server with code review rules and reproducible checks (secrets, OSV vulnerabilities, metrics, dependency graphs) for AI coding assistants. No API key needed."
 readme = "README.md"
 requires-python = ">=3.9"
 license = {file = "LICENSE"}
@@ -16,17 +16,16 @@ maintainers = [
     {name = "Adryan Serage", email = "adryan@allowebs.com"}
 ]
 keywords = [
-    "code-analysis", "code-review", "static-analysis", "security", "quality-assurance",
-    "pr-review", "pull-request", "github", "multi-provider", "consensus",
-    "gemini", "claude", "openai", "ai-code-review", "ai", "llm", "automated-review",
-    "vulnerability-scanner", "code-quality", "devops", "ci-cd"
+    "mcp", "mcp-server", "model-context-protocol", "code-review", "static-analysis",
+    "security", "secret-scanning", "vulnerability-scanner", "osv", "code-quality",
+    "pr-review", "claude-code", "cursor", "ai-coding-assistant", "llm"
 ]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Information Technology",
     "Intended Audience :: System Administrators",
-    "License :: Other/Proprietary License",
+    "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS",
@@ -70,7 +69,7 @@ aetheris = "src.cli:main"
 Homepage = "https://github.com/adryserage/aetheris"
 Repository = "https://github.com/adryserage/aetheris"
 Issues = "https://github.com/adryserage/aetheris/issues"
-"📣 Vote: Open Source?" = "https://adryanserage.ca/poll/aetheris"
+Changelog = "https://github.com/adryserage/aetheris/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where = ["."]

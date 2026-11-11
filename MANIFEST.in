@@ -3,7 +3,9 @@
 
 # Include essential files
 include README.md
+include README.fr.md
 include LICENSE
+include NOTICE
 include pyproject.toml
 include setup.py
 
