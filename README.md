@@ -48,25 +48,17 @@ Then ask your assistant something like "review my staged changes with Aetheris" 
 
 ## Tools
 
-The tool list below is the 4.0 plan and may change before the release.
+Aetheris exposes five tools. Together they form the review flow your assistant follows.
 
 | Tool | What it returns |
 |------|-----------------|
-| `list_rule_categories` | Rule categories and preset rule sets, such as a security audit |
-| `get_rules` | The rules for one category, optionally for one language, with the expected report format |
-| `scan_secrets` | Credentials found in files or content, masked |
-| `parse_dependencies` | Packages and versions from `requirements.txt`, `pyproject.toml`, `package.json` or `pubspec.yaml` |
-| `check_vulnerabilities` | Known vulnerabilities for those packages, from OSV |
-| `scan_patterns` | Pattern matches for security, performance, typing, personal data or API issues |
-| `code_metrics` | Line counts, cyclomatic complexity, nesting depth and duplication |
-| `dependency_graph` | Imports between files, cycles and dependents |
-| `impact_of` | Files affected by a change to a given file |
-| `detect_changes` | Files changed or deleted since a git reference |
-| `list_source_files` | Files worth reviewing, after `.gitignore` and common exclusions |
-| `prioritize_files` | A review order for changed files |
-| `list_exports` | The public API of a file |
-| `trace_api_flows` | API calls with no matching endpoint, and endpoints nothing calls |
-| `parse_user_stories` | Structured user stories from text, Markdown or Gherkin, with a Mermaid flow diagram |
+| `list_agents` | The 10 agents (security, architecture, code quality, metrics, dependency, QA synthesis, type safety, performance, API contract, data privacy) and the preset agent sets, such as a security audit |
+| `plan_review` | The files to review in priority order (your git diff, given paths, or the whole repository), the languages found, and the agents to run, each with its reason |
+| `get_rules` | One agent's review rules, optionally for one language, and the schema of a finding |
+| `run_checks` | Findings from one agent's checks: secrets, known vulnerabilities (OSV), metrics, circular imports, and security, typing, performance, API or personal data patterns |
+| `synthesize_report` | One report from all findings: duplicates merged, sorted by severity, counted, and scored from 0 to 100 |
+
+The 10 agents hold 143 rules, stored as YAML files in [`aetheris/rules/`](https://github.com/adryserage/aetheris/tree/main/aetheris/rules).
 
 ## What leaves your machine
 

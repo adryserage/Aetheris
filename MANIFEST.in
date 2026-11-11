@@ -3,7 +3,7 @@ include README.fr.md
 include LICENSE
 include NOTICE
 include CHANGELOG.md
-recursive-include config *.json
+recursive-include aetheris/rules *.yaml
 
 prune build
 prune dist

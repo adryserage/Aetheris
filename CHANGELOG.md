@@ -7,11 +7,18 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### ✨ Nouvelles fonctionnalités
+
+- Serveur MCP en stdio, lancé par `uvx adryserage-aetheris` ou `python -m aetheris`. Il expose cinq outils qui forment le déroulé de revue : `list_agents`, `plan_review`, `get_rules`, `run_checks` et `synthesize_report`.
+- 10 agents portant 143 règles de revue, rangées en fichiers YAML dans `aetheris/rules/` : sécurité, architecture, qualité du code, métriques, dépendances, synthèse QA, typage, performance, contrat d'API, données personnelles.
+- Vérifications sans IA : secrets masqués, vulnérabilités connues par OSV, métriques par fonction, imports circulaires, motifs de sécurité, de typage, de performance, d'API et de données personnelles (cartes validées par Luhn), points d'arrivée d'API orphelins.
+- Lecture limitée au dossier du projet (`AETHERIS_ROOT` ou dossier courant). Le seul appel réseau va à OSV.
+
 ### 💥 Changements incompatibles
 
 - Début de la v4 : Aetheris devient un serveur MCP et n'appelle plus aucune API d'IA. Retrait de la CLI (`aetheris`), de `main.py`, du mode interactif, des fournisseurs Gemini, OpenAI et Claude, de l'orchestrateur, du mode sans interface (`aetheris run`), de l'intégration Claude Code, des commandes GitHub (issues, PR, correctifs), des statistiques, de la traduction de la CLI, du client MCP, des skills, du worker Railway et de l'analyse des user stories. Pour garder la CLI : `pip install "adryserage-aetheris==3.0.0"`.
-- Le paquet devient un wheel en pur Python. Fin de la compilation Cython. Le sdist contient de nouveau le code source.
-- Dépendances réduites à `pydantic`, `pathspec`, `requests` et `pyyaml`.
+- Le paquet d'import `src` devient `aetheris`, publié en wheel pur Python. Fin de la compilation Cython. Le sdist contient de nouveau le code source.
+- Dépendances réduites à `mcp`, `pydantic`, `pathspec`, `requests` et `pyyaml`. Python 3.10 ou plus.
 
 ### 🔒 Sécurité
 

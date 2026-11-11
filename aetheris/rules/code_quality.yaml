@@ -1,0 +1,161 @@
+agent: code_quality
+name: Code quality
+summary: Finds bugs, error-handling gaps, missing tests and maintainability debt in individual files and in the lines a change touches.
+rules:
+  - id: CQ-001
+    title: Logic error or unhandled edge case
+    severity: high
+    check: >-
+      Read each changed function for conditions that are inverted, off by one, use the
+      wrong variable, compare with `is` or `==` incorrectly, or skip an edge case the inputs
+      allow (empty collection, zero, negative number, missing key, `None`, first or last
+      element). Report only a case you can name with a concrete input that produces the wrong
+      result.
+    languages: []
+    references: []
+  - id: CQ-002
+    title: Exception swallowed
+    severity: high
+    check: >-
+      Look for `except:` or `except Exception: pass`, empty `catch {}` blocks, and handlers
+      that log and continue in a state that is now wrong (partial write, missing value used
+      later). A narrow exception caught on purpose with a comment or a fallback value that is
+      correct for that case is not a violation.
+    languages: []
+    references: [CWE-390, CWE-396]
+  - id: CQ-003
+    title: Resource not released
+    severity: medium
+    check: >-
+      Look for files, sockets, database connections, cursors, locks or temporary directories
+      opened without `with`, `try/finally`, `using`, `defer` or an equivalent, so an exception
+      leaves them open. Objects whose lifetime is the whole process, and resources handed to a
+      caller that clearly owns closing them, are not violations.
+    languages: []
+    references: [CWE-772, CWE-404]
+  - id: CQ-004
+    title: High cyclomatic complexity
+    severity: medium
+    check: >-
+      Look for functions with cyclomatic complexity above 15, as reported by the metrics
+      check, and propose one concrete split (extract the validation branch, replace a
+      condition chain with a lookup table, return early). A flat `switch` or `match` that maps
+      many cases to one-line results counts high but is easy to read; report it as low.
+    languages: []
+    references: [CWE-1121]
+  - id: CQ-005
+    title: Deep nesting
+    severity: low
+    check: >-
+      Look for code nested more than four levels deep in loops, conditions and try blocks,
+      and suggest guard clauses or extracting the inner block into a named function. Nesting
+      that comes only from a class, a function and one context manager is normal.
+    languages: []
+    references: [CWE-1124]
+  - id: CQ-006
+    title: Long function
+    severity: low
+    check: >-
+      Look for functions longer than 80 lines that do several separate steps, and name the
+      steps that should become functions. A long function that is one linear sequence of
+      simple statements, such as a table of route registrations or a data literal, is not a
+      violation.
+    languages: []
+    references: []
+  - id: CQ-007
+    title: Duplicated block
+    severity: low
+    check: >-
+      Look for blocks of five or more lines repeated within a file or across files with only
+      names or literals changed, and suggest the shared function or loop. Test cases that
+      repeat a short arrange-act-assert shape on purpose for readability are not violations.
+    languages: []
+    references: [CWE-1041]
+  - id: CQ-008
+    title: Changed behavior without a test
+    severity: medium
+    check: >-
+      For each behavior a change adds or fixes, check whether a test asserts it, and name
+      the missing test case by its input and expected output. Pure refactors with existing
+      coverage, documentation changes and configuration tweaks do not need new tests.
+    languages: []
+    references: []
+  - id: CQ-009
+    title: Test that cannot fail
+    severity: medium
+    check: >-
+      Look for tests with no assertion, assertions on a mock's own return value, `assert`
+      on a constant, tests that catch the exception they should check for, and tests skipped
+      or marked expected-to-fail without a reason. A smoke test whose only purpose is to
+      import a module or start a process, and says so in its name, is not a violation.
+    languages: []
+    references: []
+  - id: CQ-010
+    title: Dead or unreachable code
+    severity: low
+    check: >-
+      Look for functions, classes, branches and variables that nothing reads, code after an
+      unconditional `return` or `raise`, commented-out code blocks, and feature flags that are
+      always on or always off. Public API that external callers may use, and entry points
+      registered by name (plugins, CLI commands, framework hooks), are not dead code.
+    languages: []
+    references: [CWE-561, CWE-563]
+  - id: CQ-011
+    title: Magic number or string
+    severity: low
+    check: >-
+      Look for unexplained numeric or string literals that encode a business rule, limit,
+      timeout or status code and appear in more than one place. `0`, `1`, `-1`, empty strings,
+      and literals whose meaning is obvious from the line (`range(len(x))`, HTTP 404 next to
+      a not-found message) are not violations.
+    languages: []
+    references: [CWE-1106]
+  - id: CQ-012
+    title: Mutable default or shared state between calls
+    severity: high
+    check: >-
+      Look for mutable default arguments (`def f(x=[])`, `def f(opts={})`), class-level
+      lists or dicts mutated through instances, and closures in loops that capture the loop
+      variable by reference. A mutable default that is never mutated and only read is low.
+    languages: [python, javascript, typescript]
+    references: []
+  - id: CQ-013
+    title: Misleading name or comment
+    severity: low
+    check: >-
+      Look for names whose meaning contradicts what the code does (a `get_` function that
+      writes, a boolean named like a count), and comments or docstrings that describe
+      behavior the code no longer has. Short names in small scopes (`i`, `k`, `v`, `e`) are not
+      violations.
+    languages: []
+    references: [CWE-1116]
+  - id: CQ-014
+    title: Leftover debugging or temporary code
+    severity: low
+    check: >-
+      Look for `print`, `console.log`, `debugger`, `breakpoint()`, `pdb.set_trace`, `dump`,
+      hardcoded test credentials or URLs pointing to localhost, and TODO or FIXME comments
+      added by the change. Output that is the program's real interface (a CLI writing its
+      result to stdout) and structured logging calls are not violations.
+    languages: []
+    references: []
+  - id: CQ-015
+    title: Too many parameters
+    severity: low
+    check: >-
+      Look for functions taking more than five parameters, or several boolean flags that
+      change behavior, and suggest an options object or separate functions. Constructors of
+      plain data classes and framework callbacks with a fixed signature are not violations.
+    languages: []
+    references: [CWE-1064]
+  - id: CQ-016
+    title: Concurrency hazard
+    severity: high
+    check: >-
+      Look for check-then-act sequences on shared data (read, test, write) without a lock or
+      atomic operation, non-awaited coroutines or promises, `async` callbacks passed where a
+      synchronous one is expected (such as `forEach`), and shared collections mutated from
+      several threads. Code that runs in one thread or one event loop with no shared state is
+      not a violation.
+    languages: []
+    references: [CWE-362, CWE-367]

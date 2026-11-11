@@ -1,0 +1,147 @@
+agent: architecture
+name: Architecture
+summary: Reviews module boundaries, dependency direction and coupling across the codebase, starting from the import graph.
+rules:
+  - id: ARC-001
+    title: Circular dependency between modules
+    severity: high
+    check: >-
+      Look for import cycles between modules or packages, starting with the cycles the import
+      graph check reports, and name the import that should be removed or inverted to break
+      each one. Imports done only for type checking (`if TYPE_CHECKING:`, `import type`) and
+      a lazy import inside a function used to break a known cycle are not cycles at runtime;
+      report those as low only when the cycle shows a misplaced type.
+    languages: []
+    references: [CWE-1047]
+  - id: ARC-002
+    title: Dependency points the wrong way
+    severity: medium
+    check: >-
+      Look for low-level or core modules (domain models, utilities, data access) importing
+      from higher layers (HTTP handlers, CLI commands, UI components), and for a domain module
+      importing a web framework or database driver directly. Infer the layers from the folder
+      layout and the project's own docs; do not report a direction the project clearly
+      chose on purpose, such as an adapter package that imports the framework.
+    languages: []
+    references: []
+  - id: ARC-003
+    title: Business logic inside transport or UI code
+    severity: medium
+    check: >-
+      Look for route handlers, controllers, CLI commands or UI components that hold pricing,
+      validation, state transitions or data rules longer than a few lines instead of calling a
+      function that can be tested without the framework. Handlers that only parse input,
+      call one service function and format the response are the expected shape.
+    languages: []
+    references: []
+  - id: ARC-004
+    title: Data access outside the data layer
+    severity: medium
+    check: >-
+      Look for raw SQL, ORM sessions or HTTP clients to the project's own storage used
+      directly from views, templates or UI components when the codebase has a repository or
+      service layer for that data. Small scripts and migrations that query the database
+      directly are not violations.
+    languages: []
+    references: [CWE-1057]
+  - id: ARC-005
+    title: God module
+    severity: medium
+    check: >-
+      Look for a single file or class that many unrelated modules import and that mixes
+      several responsibilities, such as configuration, I/O, formatting and business rules, in
+      one place (often named `utils`, `helpers`, `common`, `manager`). A cohesive module that
+      is large because its one domain is large is not a violation; report what each separate
+      responsibility should become.
+    languages: []
+    references: []
+  - id: ARC-006
+    title: Duplicated logic across modules
+    severity: medium
+    check: >-
+      Look for the same algorithm, validation, mapping or constant table implemented in two
+      or more modules so that a change to one copy can silently diverge from the other. Small
+      idiomatic snippets (a three-line guard, standard boilerplate) and generated code are
+      not violations.
+    languages: []
+    references: [CWE-1041]
+  - id: ARC-007
+    title: Global mutable state shared across modules
+    severity: high
+    check: >-
+      Look for module-level mutable objects (dicts, lists, singletons, class attributes)
+      written from several modules or from concurrent requests, threads or tasks without a
+      lock or clear owner. Constants, caches with a single owner and thread-safe primitives,
+      and configuration loaded once at startup and then read only, are not violations.
+    languages: []
+    references: []
+  - id: ARC-008
+    title: Concrete dependency hardwired where tests need a seam
+    severity: low
+    check: >-
+      Look for functions that construct their own database clients, HTTP clients, clocks or
+      file system access deep inside business logic, so the logic cannot be tested without
+      the real service. Constructing a dependency once at the application entry point and
+      passing it in is the expected pattern; do not ask for an interface when there is only
+      one implementation and the code is already testable.
+    languages: []
+    references: []
+  - id: ARC-009
+    title: Inconsistent interface between modules
+    severity: high
+    check: >-
+      Look for a caller and a callee in different modules that disagree on a contract, such
+      as argument order or names, the type or shape of a returned object, units, nullability,
+      or the exceptions raised, including imports of names the target module no longer
+      exports. Report both locations.
+    languages: []
+    references: []
+  - id: ARC-010
+    title: Missing or unresolved internal import
+    severity: high
+    check: >-
+      Look for imports of project modules or files that do not exist at the resolved path,
+      including stale relative imports after a move. Imports of third-party packages that are
+      declared in the manifest, and optional imports guarded by `try/except ImportError`, are
+      not violations.
+    languages: []
+    references: []
+  - id: ARC-011
+    title: Deep inheritance hierarchy
+    severity: low
+    check: >-
+      Look for class hierarchies more than three levels deep in project code, or base classes
+      whose subclasses override most methods, where composition would make behavior easier to
+      follow. Hierarchies required by a framework (Django models, exception classes) are not
+      violations.
+    languages: []
+    references: [CWE-1074]
+  - id: ARC-012
+    title: Configuration and secrets scattered through code
+    severity: medium
+    check: >-
+      Look for environment variables, URLs, feature flags or limits read in many modules with
+      their own defaults instead of being parsed once into a configuration object at startup.
+      A single settings module that every other module imports is the expected pattern.
+    languages: []
+    references: []
+  - id: ARC-013
+    title: Speculative abstraction
+    severity: low
+    check: >-
+      Look for interfaces, factories, plugin registries or base classes with exactly one
+      implementation and no stated plan for a second, and for wrapper functions with one
+      caller that only forward their arguments. Abstractions required by a framework, or
+      used to substitute a test double that tests really use, are not violations.
+    languages: []
+    references: []
+  - id: ARC-014
+    title: Error handling strategy differs between layers
+    severity: medium
+    check: >-
+      Look for layers that mix error styles for the same kind of failure, such as one module
+      returning `None` or error codes while its neighbors raise exceptions, or exceptions from
+      a library leaking through several layers to the user. Converting library errors into
+      the project's own error type at the boundary is the expected pattern.
+    languages: []
+    references: []

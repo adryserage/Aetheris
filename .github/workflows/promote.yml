@@ -31,13 +31,13 @@ jobs:
         run: pip install black isort flake8
 
       - name: Check black formatting
-        run: black --check --line-length 100 src/
+        run: black --check --line-length 100 aetheris/ tests/
 
       - name: Check isort imports
-        run: isort --check-only --profile black src/
+        run: isort --check-only --profile black aetheris/ tests/
 
       - name: Run flake8
-        run: flake8 src/ --max-line-length=100 --extend-ignore=E203,W503,E501,E402,F401
+        run: flake8 aetheris/ tests/ --max-line-length=100 --extend-ignore=E203,W503,E501,E402,F401
 
   typecheck:
     name: Type Check
@@ -56,7 +56,7 @@ jobs:
           pip install mypy types-requests types-PyYAML
 
       - name: Run mypy
-        run: mypy src/ --ignore-missing-imports --no-error-summary
+        run: mypy aetheris/ --ignore-missing-imports --no-error-summary
 
   build:
     name: Build Package

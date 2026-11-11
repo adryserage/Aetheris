@@ -1,0 +1,153 @@
+agent: api_contract
+name: API contract
+summary: Reviews HTTP endpoints and their callers for method misuse, breaking changes, inconsistent responses and missing protection.
+rules:
+  - id: API-001
+    title: Breaking change to a published endpoint
+    severity: high
+    check: >-
+      Look for a change that removes or renames an endpoint, a response field or an accepted
+      parameter, changes a field's type or meaning, adds a new required request field, or
+      tightens validation, on an API that clients outside the repository call. Additive
+      changes (new optional fields, new endpoints) and changes behind a new version prefix
+      are not violations.
+    languages: []
+    references: []
+  - id: API-002
+    title: Caller and endpoint disagree
+    severity: high
+    check: >-
+      Look for client code in the repository whose URL, HTTP method, parameters or expected
+      response fields do not match the server route it calls, and for orphan calls to routes
+      that no handler defines. Start from the orphan endpoints and calls the check reports and
+      confirm each one, since routes registered dynamically or served by another service can
+      look orphaned.
+    languages: []
+    references: []
+  - id: API-003
+    title: Unsafe method used for a safe operation, or the reverse
+    severity: medium
+    check: >-
+      Look for GET or HEAD handlers that create, change or delete data, and for POST used
+      only to read data that could be a GET with query parameters. POST for a search with a
+      large or structured filter body, documented as such, is not a violation.
+    languages: []
+    references: [RFC 9110]
+  - id: API-004
+    title: GET or DELETE with a request body
+    severity: medium
+    check: >-
+      Look for routes or clients that send or read a body on GET requests, or rely on a body
+      for DELETE. RFC 9110 gives such bodies no defined meaning and proxies may drop them; use
+      query parameters, the path, or POST. Clients that never send a body are not violations.
+    languages: []
+    references: [RFC 9110]
+  - id: API-005
+    title: Verb in a resource path
+    severity: low
+    check: >-
+      Look for paths such as `/getUsers`, `/createOrder`, `/deleteItem/{id}` that repeat the
+      action the HTTP method already carries. Action sub-resources for operations that are not
+      CRUD (`/orders/{id}/cancel`), RPC-style APIs that the project uses consistently, and
+      GraphQL or JSON-RPC endpoints are not violations.
+    languages: []
+    references: []
+  - id: API-006
+    title: Inconsistent naming across endpoints
+    severity: low
+    check: >-
+      Look for the same API mixing plural and singular collection names (`/users` and
+      `/product`), mixing `camelCase`, `snake_case` and `kebab-case` in paths or JSON fields,
+      or naming the same concept differently in two endpoints. Report the convention most
+      endpoints already follow as the one to align on.
+    languages: []
+    references: []
+  - id: API-007
+    title: Wrong or inconsistent status codes
+    severity: medium
+    check: >-
+      Look for handlers that return 200 with an error payload, 500 for invalid input, 404 for
+      an authorization failure that should be 403 (or the reverse without a stated reason), or
+      201 without the created resource or its location. Returning 404 instead of 403 on
+      purpose to hide whether a resource exists is not a violation when it is consistent.
+    languages: []
+    references: [RFC 9110]
+  - id: API-008
+    title: Inconsistent error response format
+    severity: medium
+    check: >-
+      Look for endpoints in the same API returning errors in different shapes (a bare
+      string, `{error}`, `{message}`, `{errors: []}`), so clients cannot handle them in one
+      place. Suggest one format such as RFC 9457 problem details. Framework default error
+      pages for routes outside the API are not violations.
+    languages: []
+    references: [RFC 9457]
+  - id: API-009
+    title: Endpoint without authentication or object-level authorization
+    severity: critical
+    check: >-
+      Look for API routes that return or change user data without an auth dependency,
+      decorator or middleware, and for routes that load a resource by an id from the path
+      without checking that the caller may access that specific object. Public endpoints that
+      are documented as public are not violations.
+    languages: []
+    references: [CWE-862, CWE-639, "OWASP API1:2023", "OWASP API5:2023"]
+  - id: API-010
+    title: Response exposes internal or sensitive fields
+    severity: high
+    check: >-
+      Look for handlers that serialize whole database models or internal objects (`return
+      user`, `model_to_dict`, `toJSON` of an entity) so that password hashes, tokens, internal
+      ids, flags or other users' data reach the client. Responses built from an explicit
+      output schema or DTO are not violations.
+    languages: []
+    references: [CWE-200, "OWASP API3:2023"]
+  - id: API-011
+    title: Mass assignment from the request body
+    severity: high
+    check: >-
+      Look for request bodies copied wholesale into a model or update query (`Model(**body)`,
+      `Object.assign(entity, req.body)`, `update(req.body)`) so a client can set fields such as
+      `role`, `is_admin`, `owner_id` or `price`. Bodies parsed through an input schema that
+      lists only the writable fields are not violations.
+    languages: []
+    references: [CWE-915, "OWASP API3:2023"]
+  - id: API-012
+    title: Unbounded list endpoint or payload
+    severity: medium
+    check: >-
+      Look for collection endpoints without pagination or a maximum page size, request
+      bodies or uploads without a size limit, and filters that let a client request every
+      row. Endpoints over a small fixed set (countries, enum values) are not violations.
+    languages: []
+    references: [CWE-770, "OWASP API4:2023"]
+  - id: API-013
+    title: Missing input validation on an endpoint
+    severity: high
+    check: >-
+      Look for handlers that read path, query or body values and use them without checking
+      type, range, length or format at the boundary. Handlers whose framework validates the
+      request against a declared schema (FastAPI models, zod, class-validator, JSON schema) are
+      not violations.
+    languages: []
+    references: [CWE-20]
+  - id: API-014
+    title: Endpoint missing from the API description
+    severity: low
+    check: >-
+      When the project keeps an OpenAPI or Swagger file, or generates one from annotations,
+      look for routes that it does not list and for documented routes that no handler serves.
+      Projects with no API description at all get one low finding for the whole API, not one
+      per route.
+    languages: []
+    references: ["OWASP API9:2023"]
+  - id: API-015
+    title: Non-idempotent retry-prone operation
+    severity: medium
+    check: >-
+      Look for POST endpoints that create payments, orders or messages with no idempotency
+      key or duplicate check, when clients or queues may retry on timeout. PUT and DELETE
+      handlers that are already idempotent, and operations whose duplicates are harmless, are
+      not violations.
+    languages: []
+    references: [RFC 9110]

@@ -1,0 +1,154 @@
+agent: data_privacy
+name: Data privacy
+summary: Finds personal data that is logged, stored, sent or kept in ways that break privacy rules such as GDPR, HIPAA and PCI DSS.
+rules:
+  - id: PRIV-001
+    title: Personal data written to logs
+    severity: high
+    check: >-
+      Look for log, print or telemetry calls that include emails, phone numbers, names with
+      addresses, government ids, card numbers, health data, passwords, tokens, whole user
+      objects or whole request bodies. Raise it to critical for passwords, card data or
+      government ids. Logging an opaque user id or a masked value (`j***@example.com`) is
+      not a violation.
+    languages: []
+    references: [CWE-532, CWE-359, "OWASP A09:2021", GDPR Art. 32]
+  - id: PRIV-002
+    title: Real personal data in source or fixtures
+    severity: high
+    check: >-
+      Look for literal emails, phone numbers, social insurance or social security numbers,
+      card numbers or addresses that look like real people's data in code, seed files or
+      test fixtures. Obviously fake values (`example.com` domains, `555` numbers, Luhn test
+      card numbers such as `4111 1111 1111 1111`) and the check's matches on version strings
+      or dates are not violations.
+    languages: []
+    references: [CWE-359, GDPR Art. 5]
+  - id: PRIV-003
+    title: Sensitive data stored in cleartext
+    severity: high
+    check: >-
+      Look for database columns, files or caches that store government ids, health records,
+      bank details, or authentication secrets without encryption at rest or hashing.
+      Encryption provided by the storage layer and stated in the configuration (encrypted
+      volumes, column encryption) counts as encrypted.
+    languages: []
+    references: [CWE-312, GDPR Art. 32, "OWASP A02:2021"]
+  - id: PRIV-004
+    title: Card data stored or logged
+    severity: critical
+    check: >-
+      Look for full card numbers (PAN), CVV or CVC codes, or magnetic-stripe data stored in
+      a database, file, log or analytics event, and for card fields posted to the
+      application's own server instead of a payment processor's tokenization form. Storing
+      the processor's token, the last four digits or the card brand is not a violation.
+    languages: []
+    references: [PCI DSS Req. 3, CWE-312]
+  - id: PRIV-005
+    title: Tokens or personal data in browser storage
+    severity: high
+    check: >-
+      Look for authentication tokens, passwords, or personal data written to `localStorage`,
+      `sessionStorage` or IndexedDB, and cookies holding them without `HttpOnly` and `Secure`.
+      Non-sensitive UI preferences in browser storage are not violations.
+    languages: [javascript, typescript]
+    references: [CWE-922, CWE-1004]
+  - id: PRIV-006
+    title: Personal data sent over plain HTTP
+    severity: high
+    check: >-
+      Look for `http://` URLs, disabled TLS or unencrypted protocols (FTP, SMTP without
+      STARTTLS) used to send personal or authentication data to another service. Requests to
+      `localhost` or to an internal sidecar over a loopback interface are not violations.
+    languages: []
+    references: [CWE-319, GDPR Art. 32, PCI DSS Req. 4]
+  - id: PRIV-007
+    title: Tracking without consent
+    severity: medium
+    check: >-
+      Look for analytics, advertising or session-replay calls (`gtag`, `analytics.track`,
+      `mixpanel.track`, Facebook pixel, Hotjar) and non-essential cookies that fire before a
+      consent check. Strictly necessary cookies (session, CSRF, load balancing) and tracking
+      that runs only after the consent manager reports opt-in are not violations.
+    languages: [javascript, typescript]
+    references: [GDPR Art. 6, GDPR Art. 7, ePrivacy Directive Art. 5(3)]
+  - id: PRIV-008
+    title: No retention limit for personal data
+    severity: medium
+    check: >-
+      Look for tables, buckets, logs or backups holding personal data with no deletion job,
+      TTL or retention setting, and for retention or cleanup flags set to false or null. Only
+      report what the repository shows; a retention policy may live in infrastructure outside
+      the repository, so phrase the finding as a question when the setting is not visible.
+    languages: []
+    references: [GDPR Art. 5]
+  - id: PRIV-009
+    title: Deletion that leaves personal data behind
+    severity: medium
+    check: >-
+      Look for account deletion or erasure flows that only set a flag, delete the main row
+      but leave personal data in related tables, files, search indexes, caches or third-party
+      services. Soft deletion followed by a scheduled hard delete or anonymization is not a
+      violation.
+    languages: []
+    references: [GDPR Art. 17]
+  - id: PRIV-010
+    title: Collecting more personal data than needed
+    severity: low
+    check: >-
+      Look for forms, API payloads, analytics events or database models that collect
+      personal fields the visible code never reads (birth date, full address, phone) or keep
+      precise values where a coarse one would do (full IP address, exact location). Fields a
+      legal or business process clearly needs are not violations.
+    languages: []
+    references: [GDPR Art. 5, GDPR Art. 25]
+  - id: PRIV-011
+    title: Personal data sent to a third party
+    severity: medium
+    check: >-
+      Look for calls that send emails, names, user ids, IP addresses or free text written by
+      users to external services (analytics, error tracking, AI or LLM APIs, CRMs), including
+      error trackers configured to send request bodies or user context by default. Name the
+      service and the fields sent. Data sent only to the application's own infrastructure is
+      not a violation.
+    languages: []
+    references: [CWE-359, GDPR Art. 28]
+  - id: PRIV-012
+    title: Special category or health data without extra protection
+    severity: high
+    check: >-
+      Look for fields holding health, biometric, genetic, religious, sexual orientation or
+      political data that are stored, logged or sent with the same handling as ordinary
+      fields, without encryption, restricted access or an explicit consent record. Report
+      only fields whose name or use clearly shows such data.
+    languages: []
+    references: [GDPR Art. 9, HIPAA 45 CFR 164.312]
+  - id: PRIV-013
+    title: Personal data exposed in URLs
+    severity: medium
+    check: >-
+      Look for emails, tokens, reset codes, government ids or session ids placed in URL paths
+      or query strings, where they end up in server logs, browser history and Referer headers.
+      Opaque, single-use, short-lived tokens in email confirmation links are low.
+    languages: []
+    references: [CWE-598]
+  - id: PRIV-014
+    title: Personal data in error tracking or crash reports
+    severity: medium
+    check: >-
+      Look for error tracking setup (Sentry, Bugsnag, Rollbar, Datadog) with options that send
+      default PII, request bodies, cookies or local variables, without a scrubbing hook such
+      as `before_send`. A configuration that turns these off or scrubs known fields is not a
+      violation.
+    languages: []
+    references: [CWE-532]
+  - id: PRIV-015
+    title: Missing export path for a user's own data
+    severity: low
+    check: >-
+      When the application stores accounts for people in the EU, look for an export or
+      download feature that returns a user's personal data in a machine-readable format.
+      Report a missing one once for the whole application, not per model, and only if the
+      code shows user accounts.
+    languages: []
+    references: [GDPR Art. 20]

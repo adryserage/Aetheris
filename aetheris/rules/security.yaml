@@ -1,0 +1,215 @@
+agent: security
+name: Security
+summary: Finds exploitable flaws in application code, such as injection, broken access control, leaked secrets and weak cryptography.
+rules:
+  - id: SEC-001
+    title: SQL injection
+    severity: critical
+    check: >-
+      Look for SQL text built by concatenation, f-strings, `.format()`, `%` formatting or
+      template literals that include a value coming from a request, file, environment or
+      function argument, then passed to `execute`, `query`, `raw` or an ORM raw-SQL escape hatch.
+      Parameterized queries (`?`, `%s`, `$1`, `:name` placeholders with a separate parameter list)
+      and query builders are not violations, and neither is interpolating a constant or a value
+      checked against a fixed allowlist of identifiers.
+    languages: []
+    references: [CWE-89, "OWASP A03:2021"]
+  - id: SEC-002
+    title: OS command injection
+    severity: critical
+    check: >-
+      Look for shell commands assembled from variables and run through `os.system`,
+      `subprocess` with `shell=True`, `child_process.exec`, `Runtime.exec` with a single string,
+      backticks, `system()` or `popen`. A command passed as an argument list without a shell
+      (`subprocess.run([...])`, `execFile`, `spawn` without `shell: true`) is not a violation,
+      and a fully constant command string is not one either.
+    languages: []
+    references: [CWE-78, "OWASP A03:2021"]
+  - id: SEC-003
+    title: Cross-site scripting
+    severity: high
+    check: >-
+      Look for untrusted data written into HTML without escaping, such as assignments to
+      `innerHTML` or `outerHTML`, `document.write`, `dangerouslySetInnerHTML`, `v-html`,
+      Jinja `|safe` or `Markup()`, and server templates with autoescape turned off. Raise it to
+      critical when the value is stored user content shown to other users. Text set through
+      `textContent`, framework bindings that escape by default, and HTML passed through a
+      sanitizer such as DOMPurify are not violations.
+    languages: []
+    references: [CWE-79, "OWASP A03:2021"]
+  - id: SEC-004
+    title: Dynamic code evaluation
+    severity: critical
+    check: >-
+      Look for `eval`, `exec`, `new Function`, `setTimeout` or `setInterval` with a string
+      argument, `compile()` or template engines rendering a template string that contains
+      input from outside the process. Evaluation of a literal written in the source, or of
+      code loaded only from the project's own files, is not a violation.
+    languages: []
+    references: [CWE-94, CWE-95, "OWASP A03:2021"]
+  - id: SEC-005
+    title: Hardcoded secret
+    severity: critical
+    check: >-
+      Look for passwords, API keys, tokens, private keys, connection strings with credentials
+      or signing secrets written as literals in source, config committed to the repository, or
+      test fixtures that hold a real-looking key. Report the location with the value masked.
+      Placeholders (`changeme`, `xxx`, `<your-key>`, empty strings), values read from the
+      environment or a secret manager, and public identifiers such as publishable Stripe keys
+      or OAuth client ids are not violations.
+    languages: []
+    references: [CWE-798, "OWASP A07:2021"]
+  - id: SEC-006
+    title: Weak cryptographic algorithm
+    severity: high
+    check: >-
+      Look for MD5, SHA-1, DES, 3DES, RC4, ECB mode, RSA keys under 2048 bits or a fixed or
+      zero IV used to protect data, sign messages, or verify integrity against an attacker.
+      MD5 or SHA-1 used only as a non-security checksum, cache key or content hash for
+      deduplication is not a violation.
+    languages: []
+    references: [CWE-327, CWE-328, "OWASP A02:2021"]
+  - id: SEC-007
+    title: Password stored with a fast hash
+    severity: high
+    check: >-
+      Look for user passwords hashed with a general-purpose hash (MD5, SHA-1, SHA-256, with
+      or without a salt) or stored reversibly encrypted. bcrypt, scrypt, Argon2 and PBKDF2
+      with a high iteration count are not violations.
+    languages: []
+    references: [CWE-916, "OWASP A02:2021"]
+  - id: SEC-008
+    title: Insecure randomness for security values
+    severity: high
+    check: >-
+      Look for `Math.random`, Python `random`, `java.util.Random`, `rand()` or `mt_rand`
+      generating tokens, session ids, password reset codes, nonces, salts or API keys. The
+      same generators used for jitter, sampling, shuffling test data or UI effects are not
+      violations; `secrets`, `crypto.randomBytes`, `crypto.getRandomValues` and `SecureRandom`
+      are the expected choices.
+    languages: []
+    references: [CWE-330, CWE-338]
+  - id: SEC-009
+    title: Missing authentication or authorization
+    severity: critical
+    check: >-
+      Look for route handlers, RPC methods or admin actions that read or change data without
+      an authentication check, and for handlers that load an object by an id from the request
+      without checking that the caller owns it or has the role for it. Endpoints that are
+      public by design (health checks, login, public content) are not violations; confirm the
+      check is not applied by middleware or a decorator before reporting.
+    languages: []
+    references: [CWE-306, CWE-862, CWE-639, "OWASP A01:2021"]
+  - id: SEC-010
+    title: Path traversal
+    severity: critical
+    check: >-
+      Look for file paths built from request parameters, archive entry names or other
+      outside input and passed to open, read, write, delete or send-file functions without
+      resolving the path and checking it stays inside an allowed directory. A path joined from
+      constants, or one validated with `realpath`/`resolve` plus a prefix check, is not a
+      violation; `os.path.join` alone does not protect against `../` or absolute paths.
+    languages: []
+    references: [CWE-22, "OWASP A01:2021"]
+  - id: SEC-011
+    title: Server-side request forgery
+    severity: high
+    check: >-
+      Look for HTTP clients fetching a URL, host or port taken from user input (webhooks,
+      image fetchers, URL previews, import-from-URL features) without an allowlist of hosts
+      and a block on private, loopback and link-local addresses. A request to a fixed base URL
+      where the user only controls a path segment or query value is not a violation.
+    languages: []
+    references: [CWE-918, "OWASP A10:2021"]
+  - id: SEC-012
+    title: Unsafe deserialization
+    severity: critical
+    check: >-
+      Look for `pickle.loads`, `yaml.load` without `SafeLoader`, `marshal`, Java
+      `ObjectInputStream`, .NET `BinaryFormatter`, PHP `unserialize` or Ruby `Marshal.load` on
+      data from a request, cookie, queue or file a user can supply. `json` parsing,
+      `yaml.safe_load` and deserialization of files the application wrote itself to a private
+      location are not violations.
+    languages: []
+    references: [CWE-502, "OWASP A08:2021"]
+  - id: SEC-013
+    title: XML external entities
+    severity: high
+    check: >-
+      Look for XML parsers that process untrusted documents with DTD or external entity
+      resolution left on (default `DocumentBuilderFactory`, `XMLInputFactory`, lxml with
+      `resolve_entities=True`, libxml with `LIBXML_NOENT`). `defusedxml`, parsers configured to
+      disallow DOCTYPE, and XML produced only by the application itself are not violations.
+    languages: []
+    references: [CWE-611, "OWASP A05:2021"]
+  - id: SEC-014
+    title: Permissive CORS
+    severity: high
+    check: >-
+      Look for CORS settings that reflect any request `Origin` or use `*` while also allowing
+      credentials, and for origin checks done with `startsWith`, `endsWith` or a substring
+      match. A wildcard origin on a public, unauthenticated, read-only API that sends no
+      cookies is not a violation.
+    languages: []
+    references: [CWE-942, "OWASP A05:2021"]
+  - id: SEC-015
+    title: TLS verification disabled
+    severity: high
+    check: >-
+      Look for `verify=False`, `rejectUnauthorized: false`, `InsecureSkipVerify: true`,
+      `NODE_TLS_REJECT_UNAUTHORIZED=0`, trust-all `TrustManager` or `HostnameVerifier`
+      implementations, or `CURLOPT_SSL_VERIFYPEER` set to false in code that reaches the
+      network. The same setting confined to a test that talks to a local mock server is not
+      a violation.
+    languages: []
+    references: [CWE-295, "OWASP A02:2021"]
+  - id: SEC-016
+    title: Sensitive data in error responses
+    severity: medium
+    check: >-
+      Look for stack traces, SQL errors, file paths, internal hostnames or exception messages
+      returned to the client, and for debug modes (`DEBUG = True`, `app.run(debug=True)`,
+      detailed error pages) enabled in production configuration. Logging the full error on the
+      server while returning a generic message is the expected pattern, not a violation.
+    languages: []
+    references: [CWE-209, "OWASP A05:2021"]
+  - id: SEC-017
+    title: Session cookie without secure flags
+    severity: medium
+    check: >-
+      Look for session or authentication cookies set without `HttpOnly`, without `Secure`, or
+      with `SameSite=None` and no CSRF protection, and for session settings such as
+      `SESSION_COOKIE_SECURE = False`. Cookies that hold only non-sensitive UI preferences are
+      not violations.
+    languages: []
+    references: [CWE-1004, CWE-614, "OWASP A07:2021"]
+  - id: SEC-018
+    title: Missing CSRF protection
+    severity: high
+    check: >-
+      Look for state-changing endpoints (POST, PUT, PATCH, DELETE) authenticated by cookies
+      where CSRF protection is disabled (`csrf_exempt`, `csrf: false`, middleware removed) and
+      no SameSite=Lax or Strict cookie or token check replaces it. APIs authenticated only by a
+      bearer token in a header are not violations.
+    languages: []
+    references: [CWE-352, "OWASP A01:2021"]
+  - id: SEC-019
+    title: Open redirect
+    severity: medium
+    check: >-
+      Look for redirects whose target comes from a query parameter or form field (`next`,
+      `returnUrl`, `redirect`) without checking it is a relative path or a host on an
+      allowlist. A redirect to a fixed route, or to a value looked up from a server-side map,
+      is not a violation.
+    languages: []
+    references: [CWE-601, "OWASP A01:2021"]
+  - id: SEC-020
+    title: NoSQL or LDAP injection
+    severity: high
+    check: >-
+      Look for MongoDB filters built from raw request objects (so a client can send `$ne`,
+      `$gt` or `$where`), JavaScript passed to `$where`, and LDAP filters concatenated with
+      user input. Filters built from typed, validated scalar values and LDAP values escaped
+      with the library's filter-escape function are not violations.
+    languages: []
+    references: [CWE-943, CWE-90, "OWASP A03:2021"]

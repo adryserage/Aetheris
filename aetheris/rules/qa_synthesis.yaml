@@ -1,0 +1,140 @@
+agent: qa_synthesis
+name: QA synthesis
+summary: Consolidates the findings of every other agent into one report, removing duplicates and false positives, ranking what is left and giving a verdict.
+rules:
+  - id: QA-001
+    title: Confirm every check finding before keeping it
+    severity: info
+    check: >-
+      Treat findings with `source` set to `check` as pattern matches, not confirmed defects.
+      Open the file at the reported line and keep the finding only if the code really does
+      what the rule describes; drop it otherwise and count it as a false positive in the
+      summary.
+    languages: []
+    references: []
+  - id: QA-002
+    title: Merge duplicates and shared root causes
+    severity: info
+    check: >-
+      Merge findings with the same file, line and rule into one. Then merge findings from
+      different agents that describe the same root cause at the same place (a hardcoded key
+      flagged by security and data_privacy, a complex function flagged by metrics and
+      code_quality): keep the most specific rule id, the highest severity, and mention the
+      other agents in the message.
+    languages: []
+    references: []
+  - id: QA-003
+    title: Rule out common false positives
+    severity: info
+    check: >-
+      Drop findings in test fixtures, examples, documentation, vendored or generated code,
+      and lockfiles, unless the rule is about those files or the code ships to production.
+      Drop secrets that are placeholders or read from the environment, PII patterns that match
+      version numbers, dates or sample data, and SQL built only from constants.
+    languages: []
+    references: []
+  - id: QA-004
+    title: Adjust severity to reachability and exposure
+    severity: info
+    check: >-
+      Lower a finding by one level when the code cannot be reached from outside input (dead
+      code, an internal script, a test helper) and raise it by one level when the code sits on
+      a public endpoint, handles money, or touches personal data. Write the reason for any
+      change in the message, and never lower a confirmed leaked secret below critical.
+    languages: []
+    references: []
+  - id: QA-005
+    title: Separate new findings from existing debt
+    severity: info
+    check: >-
+      When the review scope is a diff, mark whether each finding is on a line the change
+      added or modified, or on untouched code nearby. Lead with findings the change
+      introduced; list pre-existing issues after them, and do not let pre-existing issues
+      alone block the change unless they are critical.
+    languages: []
+    references: []
+  - id: QA-006
+    title: Order the report by severity then impact
+    severity: info
+    check: >-
+      Present findings sorted by severity (critical, high, medium, low, info), then by file.
+      Within the same severity, put exploitable security and data-loss issues before
+      correctness bugs, and correctness bugs before maintainability debt.
+    languages: []
+    references: []
+  - id: QA-007
+    title: Require evidence on every finding
+    severity: info
+    check: >-
+      Keep a finding only if it names a file, a line when one applies, and a short evidence
+      excerpt, and if its message says what is wrong and how to fix it in one or two sentences.
+      Rewrite vague findings ("improve error handling") into a concrete change or drop them.
+      Mask secrets in every excerpt, leaving at most the first four characters visible.
+    languages: []
+    references: []
+  - id: QA-008
+    title: Report only real problems
+    severity: info
+    check: >-
+      Leave out style preferences the project's formatter or linter already enforces, and
+      suggestions that would only rename, reorder or rephrase working code. Keep a low
+      finding only when it records concrete debt someone could act on.
+    languages: []
+    references: []
+  - id: QA-009
+    title: Use the computed score without inventing another
+    severity: info
+    check: >-
+      Quote the 0 to 100 score `synthesize_report` returns, and explain it by the counts that
+      produced it (critical 15, high 8, medium 3, low 1 point each subtracted from 100). Do not
+      compute a different score, weight categories again, or round it to a letter grade.
+    languages: []
+    references: []
+  - id: QA-010
+    title: Verdict wording
+    severity: info
+    check: >-
+      End with exactly one verdict. Request changes when any critical or high finding
+      remains on code the change introduced. Approve with comments when only medium or lower
+      findings remain. Approve when nothing remains after false positives are removed, and
+      say that plainly instead of inventing minor issues.
+    languages: []
+    references: []
+  - id: QA-011
+    title: Say what was not reviewed
+    severity: info
+    check: >-
+      List the agents that did not run, the files that were skipped or truncated, and any
+      check that returned an error (for example an OSV lookup failure), so the reader does not
+      take silence for a clean result. Use the `truncated` flags and `errors` lists from the
+      tool results.
+    languages: []
+    references: []
+  - id: QA-012
+    title: Give a short prioritized action list
+    severity: info
+    check: >-
+      After the findings, give at most five next actions in order, each tied to one or more
+      rule ids and files, starting with what blocks the change. Group fixes that touch the
+      same function into one action.
+    languages: []
+    references: []
+  - id: QA-013
+    title: Note what the change does well
+    severity: info
+    check: >-
+      When the review covers a change, add one to three specific strengths (a test that pins
+      the fixed bug, a removed duplicate, validation moved to the boundary). Skip this section
+      when there is nothing specific to say rather than writing generic praise.
+    languages: []
+    references: []
+  - id: QA-014
+    title: Keep assistant findings in the same schema
+    severity: info
+    check: >-
+      Record findings you raise yourself while reading code as `Finding` objects with
+      `source` set to `assistant`, a rule id from `get_rules` when one fits, and the same
+      severity scale, then pass them to `synthesize_report` together with the check findings.
+      Do not report findings only in prose where the synthesis cannot count or deduplicate them.
+    languages: []
+    references: []

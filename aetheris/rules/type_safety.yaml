@@ -1,0 +1,146 @@
+agent: type_safety
+name: Type safety
+summary: Finds places where the type system is bypassed or silenced, so type errors can reach runtime unnoticed.
+rules:
+  - id: TYP-001
+    title: Explicit any
+    severity: medium
+    check: >-
+      Look for `any` in TypeScript annotations, generics and casts, and `Any` in Python
+      signatures, on values the code then reads properties from or passes on. Use `unknown`
+      plus narrowing, a union, or a generic instead. `any` confined to a third-party typing
+      gap with a comment, or in test doubles, is low.
+    languages: [typescript, python]
+    references: []
+  - id: TYP-002
+    title: Unsafe cast or assertion
+    severity: high
+    check: >-
+      Look for `as unknown as T`, `as T` on data parsed from JSON, a request or storage,
+      `<T>value`, Python `cast()` on unvalidated data, Kotlin `as` without `?`, Swift `as!`,
+      and Go type assertions without the `, ok` form. A cast after a runtime check that proves
+      the type (a type guard, `isinstance`, schema validation) is not a violation.
+    languages: [typescript, python, kotlin, swift, go, java, csharp]
+    references: [CWE-704, CWE-843]
+  - id: TYP-003
+    title: Type checking suppressed
+    severity: medium
+    check: >-
+      Look for `@ts-ignore`, `@ts-nocheck`, `# type: ignore` without an error code,
+      `# pyright: ignore`, `eslint-disable` for type rules, and `@SuppressWarnings("unchecked")`.
+      A narrow suppression with an error code and a comment that names the upstream typing
+      bug is low; `@ts-expect-error` in a test that checks a type error is not a violation.
+    languages: [typescript, javascript, python, java]
+    references: []
+  - id: TYP-004
+    title: Non-null assertion on a possibly missing value
+    severity: medium
+    check: >-
+      Look for `!` non-null assertions in TypeScript, `!!` in Kotlin, force unwraps `!` in
+      Swift and Dart, and `.unwrap()` or `.expect()` in Rust outside tests, on values that can
+      really be absent (map lookups, `find`, DOM queries, environment variables, optional
+      fields of external data). An assertion right after a check that the value exists is not
+      a violation.
+    languages: [typescript, kotlin, swift, dart, rust]
+    references: [CWE-476]
+  - id: TYP-005
+    title: Missing None or null check
+    severity: high
+    check: >-
+      Look for attribute access, indexing or method calls on a value whose type includes
+      `None`, `null` or `undefined` (an `Optional` return, `dict.get`, `re.match`, `find`,
+      nullable database column) without a check on the path that reaches the access. A value
+      the type checker already narrows, or one guarded by an early return, is not a violation.
+    languages: []
+    references: [CWE-476]
+  - id: TYP-006
+    title: Untyped public function
+    severity: low
+    check: >-
+      Look for exported or public functions and methods without parameter or return type
+      annotations in a codebase that otherwise uses them, including implicit `any` parameters
+      in TypeScript with `noImplicitAny` off. Private helpers whose types the checker infers
+      fully and short lambdas are not violations.
+    languages: [typescript, python]
+    references: []
+  - id: TYP-007
+    title: External data used without parsing
+    severity: high
+    check: >-
+      Look for JSON bodies, environment variables, query strings, files and API responses
+      used as typed objects straight away (`JSON.parse(x) as User`, `**request.json` into a
+      dataclass) without validation by a schema (pydantic, zod, io-ts, serde, JSON schema) at
+      the boundary. Data already validated by the framework's typed request models is not a
+      violation.
+    languages: []
+    references: [CWE-20, CWE-1287]
+  - id: TYP-008
+    title: Strict compiler options turned off
+    severity: medium
+    check: >-
+      Look for `tsconfig.json` with `strict` or `strictNullChecks` false, mypy configured with
+      `ignore_errors`, `disallow_untyped_defs = False` on new code, or broad
+      `ignore_missing_imports`. Relaxed settings scoped to a legacy folder that the config
+      names explicitly are low.
+    languages: [typescript, python]
+    references: []
+  - id: TYP-009
+    title: Non-exhaustive handling of a union or enum
+    severity: medium
+    check: >-
+      Look for `switch`, `match` or `if/elif` chains over an enum, literal union or tagged
+      union that miss a variant and have no default that fails loudly (`assertNever`,
+      `typing.assert_never`, `raise`, a compiler-checked exhaustive `when` or `match`). A
+      default branch that handles the remaining variants correctly on purpose is not a
+      violation.
+    languages: []
+    references: []
+  - id: TYP-010
+    title: Primitive used for a value with meaning
+    severity: low
+    check: >-
+      Look for function signatures that take several parameters of the same primitive type
+      with different meanings (user id and order id both `str`, amounts in cents and dollars
+      both `int`), where swapping two arguments would type-check. Suggest a branded type,
+      `NewType`, value class or wrapper. Simple local values are not violations.
+    languages: []
+    references: []
+  - id: TYP-011
+    title: Loose equality or implicit coercion
+    severity: medium
+    check: >-
+      Look for `==` and `!=` comparisons in JavaScript and TypeScript between values that may
+      have different types, `+` mixing strings and numbers, and truthiness checks on values
+      where `0` or an empty string is valid. `== null` used deliberately to match both `null`
+      and `undefined` is not a violation.
+    languages: [javascript, typescript, php]
+    references: [CWE-1024]
+  - id: TYP-012
+    title: Unsafe numeric conversion
+    severity: medium
+    check: >-
+      Look for narrowing conversions that can overflow or lose precision (int64 to int32,
+      float to int, `parseInt` without a radix, money stored as floating point, Go or C#
+      integer casts from user-supplied sizes). Conversions checked against bounds first, or
+      on values known to be small constants, are not violations.
+    languages: []
+    references: [CWE-681, CWE-190]
+  - id: TYP-013
+    title: Generic type erased or misused
+    severity: low
+    check: >-
+      Look for raw generic types (`List` instead of `List<User>` in Java, `list` without a
+      parameter in public Python signatures, `Promise<any>`), and generic parameters that
+      appear once and add nothing over a concrete type. Generic code where the parameter
+      links input and output types is not a violation.
+    languages: [java, typescript, python, kotlin, csharp]
+    references: []
+  - id: TYP-014
+    title: Type declaration drifts from runtime data
+    severity: high
+    check: >-
+      Look for handwritten interfaces, TypedDicts or DTOs that duplicate a schema owned
+      elsewhere (an OpenAPI spec, a database model, a protobuf) and already disagree with it
+      on a field name, optionality or type. Types generated from the schema are not violations.
+    languages: []
+    references: []

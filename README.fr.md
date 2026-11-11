@@ -48,25 +48,17 @@ Demandez ensuite à votre assistant, par exemple, « relis mes changements index
 
 ## Outils
 
-La liste ci-dessous est le plan de la 4.0 et peut changer avant la sortie.
+Aetheris expose cinq outils. Ensemble, ils forment le déroulé de revue que suit votre assistant.
 
 | Outil | Ce qu'il rend |
 |-------|---------------|
-| `list_rule_categories` | Les catégories de règles et les ensembles prédéfinis, comme un audit de sécurité |
-| `get_rules` | Les règles d'une catégorie, au besoin pour un langage, avec le format de rapport attendu |
-| `scan_secrets` | Les identifiants trouvés dans des fichiers ou un contenu, masqués |
-| `parse_dependencies` | Les paquets et leurs versions, lus dans `requirements.txt`, `pyproject.toml`, `package.json` ou `pubspec.yaml` |
-| `check_vulnerabilities` | Les vulnérabilités connues de ces paquets, d'après OSV |
-| `scan_patterns` | Les motifs trouvés pour la sécurité, la performance, le typage, les données personnelles ou les API |
-| `code_metrics` | Nombre de lignes, complexité cyclomatique, profondeur d'imbrication et duplication |
-| `dependency_graph` | Les imports entre fichiers, les cycles et les dépendants |
-| `impact_of` | Les fichiers touchés par un changement dans un fichier donné |
-| `detect_changes` | Les fichiers modifiés ou supprimés depuis une référence git |
-| `list_source_files` | Les fichiers à relire, après `.gitignore` et les exclusions courantes |
-| `prioritize_files` | Un ordre de revue pour les fichiers modifiés |
-| `list_exports` | L'API publique d'un fichier |
-| `trace_api_flows` | Les appels d'API sans point d'arrivée, et les points d'arrivée que rien n'appelle |
-| `parse_user_stories` | Des user stories structurées à partir de texte, de Markdown ou de Gherkin, avec un diagramme Mermaid |
+| `list_agents` | Les 10 agents (sécurité, architecture, qualité du code, métriques, dépendances, synthèse QA, typage, performance, contrat d'API, données personnelles) et les ensembles prédéfinis, comme un audit de sécurité |
+| `plan_review` | Les fichiers à relire par ordre de priorité (votre diff git, des chemins donnés ou tout le dépôt), les langages trouvés, et les agents à lancer, chacun avec sa raison |
+| `get_rules` | Les règles de revue d'un agent, au besoin pour un langage, et le schéma d'un résultat |
+| `run_checks` | Les résultats des vérifications d'un agent : secrets, vulnérabilités connues (OSV), métriques, imports circulaires, et motifs de sécurité, de typage, de performance, d'API ou de données personnelles |
+| `synthesize_report` | Un rapport unique à partir de tous les résultats : doublons fusionnés, tri par gravité, comptes et score de 0 à 100 |
+
+Les 10 agents portent 143 règles, rangées en fichiers YAML dans [`aetheris/rules/`](https://github.com/adryserage/aetheris/tree/main/aetheris/rules).
 
 ## Ce qui quitte votre machine
 
