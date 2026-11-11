@@ -120,5 +120,5 @@ MANIFEST
 /.venv-mypy
 
 # Generated analysis reports (but not docs structure)
-/docs/analyses/*.md
-/docs/metrics/*.json
+/docs/analyses/
+/docs/metrics/
