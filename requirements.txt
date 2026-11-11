@@ -1,20 +1,9 @@
-# Dépendances principales
-google-genai>=1.0.0  # Nouveau SDK Google GenAI pour Gemini (structured outputs, function calling, etc.)
-pydantic>=2.0.0  # Validation de données et schémas structurés pour Gemini
-openai>=1.0.0  # API OpenAI pour l'analyse de code
-anthropic>=0.25.0  # API Claude (Anthropic) pour l'analyse de code
-pathspec>=0.12.0  # Gestion des patterns .gitignore
-requests>=2.32.0  # Requêtes HTTP pour l'API OSV (version minimale pour corriger CVE-2024-47081 et CVE-2024-35195)
-pyyaml>=6.0  # Parsing des fichiers YAML (pubspec.yaml pour Dart/Flutter)
-jsonschema>=4.0  # JSON Schema validation for headless task files (v2.8)
-ddgs>=1.0.0  # Recherche web pour enrichir les analyses (anciennement duckduckgo-search)
-rich>=13.0.0  # Barres de progression modernes avec couleurs et détails
-prompt_toolkit>=3.0.0  # Interactive CLI with autocomplete (v3.0)
-
-# Note: python-dotenv n'est pas utilisé car le code implémente sa propre fonction load_env_file
-# Si vous préférez utiliser python-dotenv, installez-le avec: pip install python-dotenv
+# Dépendances d'exécution (identiques à pyproject.toml)
+pydantic>=2.0.0
+pathspec>=0.12.0
+requests>=2.32.0
+pyyaml>=6.0
 
 # Outils de développement
-black>=24.0.0  # Formateur de code Python
-types-PyYAML>=6.0  # Type stubs for PyYAML (mypy compatibility)
-
+black>=24.0.0
+types-PyYAML>=6.0

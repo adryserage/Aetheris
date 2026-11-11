@@ -46,13 +46,13 @@ jobs:
         run: pip install black flake8 isort mypy
 
       - name: Check formatting (black)
-        run: black --check --line-length 100 src/ main.py
+        run: black --check --line-length 100 src/
 
       - name: Check imports (isort)
-        run: isort --check-only --profile black src/ main.py
+        run: isort --check-only --profile black src/
 
       - name: Lint (flake8)
-        run: flake8 src/ main.py --max-line-length=100 --extend-ignore=E203,W503,E501,E402,F401
+        run: flake8 src/ --max-line-length=100 --extend-ignore=E203,W503,E501,E402,F401
 
   test:
     name: Test & Coverage

@@ -7,6 +7,12 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### 💥 Changements incompatibles
+
+- Début de la v4 : Aetheris devient un serveur MCP et n'appelle plus aucune API d'IA. Retrait de la CLI (`aetheris`), de `main.py`, du mode interactif, des fournisseurs Gemini, OpenAI et Claude, de l'orchestrateur, du mode sans interface (`aetheris run`), de l'intégration Claude Code, des commandes GitHub (issues, PR, correctifs), des statistiques, de la traduction de la CLI, du client MCP, des skills, du worker Railway et de l'analyse des user stories. Pour garder la CLI : `pip install "adryserage-aetheris==3.0.0"`.
+- Le paquet devient un wheel en pur Python. Fin de la compilation Cython. Le sdist contient de nouveau le code source.
+- Dépendances réduites à `pydantic`, `pathspec`, `requests` et `pyyaml`.
+
 ### 🔒 Sécurité
 
 - Retrait du code malveillant injecté dans `main.py` en mars 2026, y compris de l'historique git. Le paquet PyPI 3.0.0, publié avant l'attaque, ne le contient pas.
