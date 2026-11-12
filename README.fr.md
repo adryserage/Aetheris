@@ -85,7 +85,7 @@ Les bogues et les idées vont dans les [GitHub Issues](https://github.com/adryse
 
 ## Versions
 
-Le numéro de version augmente de 0.0.1 pour un petit changement, de 0.1.0 pour un correctif de sécurité et de 1.0.0 pour un changement majeur. Chaque changement est listé dans [CHANGELOG.md](https://github.com/adryserage/aetheris/blob/main/CHANGELOG.md), et chaque version a son étiquette et sa [release GitHub](https://github.com/adryserage/aetheris/releases).
+Un petit changement augmente le dernier chiffre de la version (4.0.1), un correctif de sécurité celui du milieu (4.1.0) et un changement majeur le premier (5.0.0), en remettant à zéro ceux qui suivent. Chaque changement est listé dans [CHANGELOG.md](https://github.com/adryserage/aetheris/blob/main/CHANGELOG.md), et chaque version a son étiquette et sa [release GitHub](https://github.com/adryserage/aetheris/releases).
 
 Les releases sont rares : le mainteneur en publie une quand un changement compte pour beaucoup d'utilisateurs. D'ici là, les changements fusionnés attendent sous `[Unreleased]`. Pour lancer la branche `main` actuelle au lieu de la dernière release :
 

@@ -3,7 +3,7 @@
 Tous les changements notables de ce projet seront documentés dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
-et la numérotation ajoute 0.0.1 pour un petit changement, 0.1.0 pour un correctif de sécurité et 1.0.0 pour un changement majeur.
+et la numérotation augmente le dernier chiffre pour un petit changement, celui du milieu pour un correctif de sécurité et le premier pour un changement majeur, en remettant à zéro ceux qui suivent.
 
 ## [Unreleased]
 
