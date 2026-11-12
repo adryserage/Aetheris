@@ -10,8 +10,8 @@ Des règles de revue de code et des vérifications reproductibles pour votre ass
 
 Demandez à Claude Code, à Cursor ou à n'importe quel client MCP de relire un changement : il peut appeler Aetheris pour deux types d'aide.
 
-- Des règles de revue : pour chaque catégorie, Aetheris donne ce qu'il faut vérifier, comment noter la gravité et le format du rapport à remplir. Catégories : sécurité, performance, typage, données personnelles, contrats d'API, revue de code, architecture, QA, revue de pull request et parcours utilisateur.
-- Des vérifications sans IA : recherche de secrets, vulnérabilités connues de vos dépendances (base [OSV](https://osv.dev)), métriques de code, graphes de dépendances et suivi des appels d'API. Elles rendent le même résultat à chaque fois.
+- Les règles de revue de 10 agents : sécurité, architecture, qualité du code, métriques, dépendances, typage, performance, contrats d'API, données personnelles, et synthèse QA, qui réunit les résultats des autres en un seul rapport. Chaque règle dit quoi chercher et quelle est sa gravité.
+- Des vérifications sans IA : recherche de secrets, vulnérabilités connues de vos dépendances (base [OSV](https://osv.dev)), métriques des fichiers, code dupliqué et imports circulaires. Elles repèrent aussi les routes d'API que rien n'appelle, les appels vers des routes inexistantes, et des motifs de code pour la sécurité, le typage, la performance et les données personnelles. Elles rendent le même résultat à chaque fois.
 
 Votre assistant choisit les outils à appeler, lit votre code et écrit la revue. Aetheris n'appelle jamais de modèle de langage.
 

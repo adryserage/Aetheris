@@ -10,8 +10,8 @@ Code review rules and reproducible checks for your AI coding assistant, served o
 
 Ask Claude Code, Cursor or any MCP client to review a change, and it can call Aetheris for two kinds of help:
 
-- Review rules: for each category, Aetheris returns what to check, how to rate severity and the report format to fill in. Categories: security, performance, type safety, data privacy, API contracts, code review, architecture, QA, pull request review and user flows.
-- Checks that need no AI: secret scanning, known vulnerabilities in your dependencies (from the [OSV](https://osv.dev) database), code metrics, dependency graphs and API call tracing. They return the same result every time.
+- Review rules from 10 agents: security, architecture, code quality, metrics, dependencies, type safety, performance, API contracts, data privacy, and QA synthesis, which merges the findings of the others into one report. Each rule says what to look for and how severe it is.
+- Checks that need no AI: secret scanning, known vulnerabilities in your dependencies (from the [OSV](https://osv.dev) database), file metrics, duplicated code and circular imports. They also find API routes that nothing calls, calls to routes that do not exist, and code patterns for security, typing, performance and personal data. They return the same result every time.
 
 Your assistant chooses which tools to call, reads your code and writes the review. Aetheris never calls a language model.
 
