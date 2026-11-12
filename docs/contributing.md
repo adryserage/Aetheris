@@ -7,7 +7,7 @@ The full guide is [CONTRIBUTING.md](https://github.com/adryserage/aetheris/blob/
 - reporting a bug, a crash or a false positive;
 - proposing a new rule, with an issue form or a pull request;
 - setting up a development environment and running the tests;
-- opening a pull request against the `develop` branch.
+- opening a pull request against the `main` branch.
 
 Report security issues privately, as described in [Security](security.md).
 

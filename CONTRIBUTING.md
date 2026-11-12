@@ -16,7 +16,6 @@ You need Python 3.10 or later and git.
 ```bash
 git clone https://github.com/adryserage/aetheris
 cd aetheris
-git checkout develop
 python -m venv .venv && source .venv/bin/activate
 pip install -e . pytest pytest-cov black isort flake8 mypy types-requests types-PyYAML
 pytest tests -q
@@ -26,7 +25,7 @@ Run the server from your checkout in any MCP client with `uvx --from /path/to/ae
 
 ## Pull requests
 
-1. Fork the repository and branch from `develop`.
+1. Fork the repository and create a branch from `main`.
 2. Make one change per pull request: one rule, one fix, one check.
 3. Run the same checks as CI:
 
@@ -39,7 +38,7 @@ Run the server from your checkout in any MCP client with `uvx --from /path/to/ae
    ```
 
 4. Add a line under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md) when users will notice the change.
-5. Open the pull request against `develop`. The maintainer merges `develop` into `main` and cuts a release from `main` only when a change matters to many users, so a merged change can wait a while under `[Unreleased]`.
+5. Open the pull request against `main`. The maintainer cuts a release only when a change matters to many users, so a merged change can wait a while under `[Unreleased]`.
 
 ## Writing a rule
 

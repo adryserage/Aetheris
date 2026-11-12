@@ -81,7 +81,7 @@ En mode local, Aetheris lit les fichiers de votre dossier de projet et n'envoie 
 
 ## Contribuer
 
-Les bogues et les idées vont dans les [GitHub Issues](https://github.com/adryserage/aetheris/issues). Les pull requests visent la branche `develop`. Une amélioration des règles de revue compte autant qu'une amélioration du code.
+Les bogues et les idées vont dans les [GitHub Issues](https://github.com/adryserage/aetheris/issues). Les pull requests visent la branche `main`. Une amélioration des règles de revue compte autant qu'une amélioration du code.
 
 ## Versions
 

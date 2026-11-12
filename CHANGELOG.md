@@ -7,6 +7,10 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### 📝 Documentation
+
+- La branche `develop` disparaît : les pull requests visent `main`, depuis un fork ou une branche courte.
+
 ## [4.0.1] - 2026-11-12
 
 ### 🐛 Corrections
