@@ -43,7 +43,7 @@ Serveur MCP open source (Apache 2.0) qui donne à l'assistant de code IA les rè
 ## Règles du projet
 
 - Pas de branche de fonctionnalité : le travail se fait sur `develop`, et on peut y pousser du travail en cours.
-- `main` ne change que par une PR de `develop` vers `main`, liée à une issue GitHub qu'elle ferme (`Closes #N`). On ne pousse jamais directement sur `main`.
+- `main` ne change que par une PR de `develop` vers `main`, liée à une issue GitHub qu'elle ferme (`Closes #N`). On ne pousse jamais directement sur `main`. Le ruleset GitHub `main` l'impose : PR obligatoire, fusion par commit de fusion seulement, les 9 jobs de `ci.yml` au vert, ni suppression ni force push, aucune exception. Le ruleset `develop` interdit la suppression et le force push. Après une fusion, avancer `develop` sur `main` (`git merge --ff-only origin/main`).
 - Exception décidée par le propriétaire pour ce dépôt, à la place de la règle globale des releases : pas de release par défaut. Les changements fusionnés restent sous `[Unreleased]`. Une release ne se fait que pour un changement qui touche beaucoup d'utilisateurs avec un effet important, et le propriétaire la décide. Elle se fait alors en poussant l'étiquette `vX.Y.Z` sur `main`. Rien ne publie tout seul.
 - Chaque changement visible pour l'utilisateur ajoute sa ligne dans la section `[Unreleased]` de `CHANGELOG.md`, dans le même commit. `CHANGELOG.md` est l'historique des versions du dépôt (format Keep a Changelog, versionnage sémantique).
 - À chaque release, la section `[Unreleased]` prend le numéro et la date de la version, et `pyproject.toml` est mis à jour. L'étiquette `vX.Y.Z` et la release GitHub suivent la règle globale.
