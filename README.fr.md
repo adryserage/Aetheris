@@ -15,6 +15,8 @@ Demandez à Claude Code, à Cursor ou à n'importe quel client MCP de relire un 
 
 Votre assistant choisit les outils à appeler, lit votre code et écrit la revue. Aetheris n'appelle jamais de modèle de langage.
 
+![L'assistant appelle Aetheris par MCP ; Aetheris lit le projet, et son seul appel réseau va à OSV](https://raw.githubusercontent.com/adryserage/aetheris/main/docs/assets/diagrams/how-it-works.fr.svg)
+
 ## Installation
 
 Aetheris tourne en local avec [`uvx`](https://docs.astral.sh/uv/). Il n'y a aucun compte à créer.
@@ -57,6 +59,8 @@ Demandez ensuite à votre assistant, par exemple, « relis mes changements index
 ## Outils
 
 Aetheris expose six outils. Ensemble, ils forment le déroulé de revue que suit votre assistant.
+
+![Déroulé d'une revue : plan_review, puis get_rules, get_playbook et run_checks pour chaque agent, puis synthesize_report](https://raw.githubusercontent.com/adryserage/aetheris/main/docs/assets/diagrams/review-flow.fr.svg)
 
 | Outil | Ce qu'il rend |
 |-------|---------------|

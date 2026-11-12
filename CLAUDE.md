@@ -28,7 +28,7 @@ Serveur MCP open source (Apache 2.0) qui donne à l'assistant de code IA les rè
 - `aetheris/files.py` et `aetheris/changes.py` : choix des fichiers (`.gitignore`, exclusions, limite au dossier du projet) et diff git.
 - `aetheris/synthesis.py` : la synthèse QA (dédoublonnage, tri, score).
 - `tests/` : tests pytest du comportement de chaque outil.
-- `docs/` : doc v4 publiée sur GitHub Pages à chaque release (installation, déroulé de revue, outils, agents, playbooks, sécurité, migration). `docs/rules/` est généré à partir des règles par `scripts/gen_rules_docs.py` : après toute modification d'une règle, relancer le script, sinon `tests/test_docs.py` échoue. `docs/archive/specs/` garde les specs des versions 2.5 à 3.0.0, hors du site.
+- `docs/` : doc v4 publiée sur GitHub Pages à chaque release (installation, déroulé de revue, outils, agents, playbooks, sécurité, migration). `docs/rules/` est généré à partir des règles par `scripts/gen_rules_docs.py` : après toute modification d'une règle, relancer le script, sinon `tests/test_docs.py` échoue. `docs/assets/diagrams/` contient les schémas du README, produits par `scripts/gen_diagrams.py` (à relancer quand les agents, les règles ou les outils changent). `docs/archive/specs/` garde les specs des versions 2.5 à 3.0.0, hors du site.
 - `.agents/product-marketing.md` : positionnement du produit.
 
 ## Services et déploiement

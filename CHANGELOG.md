@@ -44,6 +44,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Le site de doc est réécrit pour la v4 : installation, déroulé de revue avec un exemple réel, référence des six outils, des 10 agents et des playbooks, sécurité, migration depuis la 3.x. La référence des 152 règles est générée à partir des fichiers YAML (`scripts/gen_rules_docs.py`), et un test échoue si elle n'est plus à jour. Les pages de la 3.x sont retirées.
 - Ajout de `CONTRIBUTING.md` (proposer une règle, signaler un faux positif, écrire une vérification, PR vers `develop`) et de modèles d'issue GitHub : bogue, nouvelle règle, faux positif. `SECURITY.md` est mis à jour pour la v4 : versions prises en charge, et ce qu'Aetheris fait du code.
 - README réécrit pour la v4 (serveur MCP), en anglais, avec une traduction française dans `README.fr.md`. Retrait du sondage, des prix et des chiffres sans source. Les descriptions du paquet, du site de doc et du dépôt GitHub sont alignées sur la v4.
+- Le README retrouve ses deux schémas, redessinés pour la v4 : le fonctionnement (assistant, serveur MCP, projet, OSV) et le déroulé des six outils avec les 10 agents. `scripts/gen_diagrams.py` les produit en anglais et en français, à partir des règles.
 - `CLAUDE.md` réécrit en français, réduit à l'état actuel du dépôt.
 
 ## [3.0.0] - 2026-01-12

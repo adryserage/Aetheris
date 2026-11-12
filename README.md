@@ -15,6 +15,8 @@ Ask Claude Code, Cursor or any MCP client to review a change, and it can call Ae
 
 Your assistant chooses which tools to call, reads your code and writes the review. Aetheris never calls a language model.
 
+![Your assistant calls Aetheris over MCP; Aetheris reads your project, and its only network call goes to OSV](https://raw.githubusercontent.com/adryserage/aetheris/main/docs/assets/diagrams/how-it-works.en.svg)
+
 ## Install
 
 Aetheris runs locally through [`uvx`](https://docs.astral.sh/uv/). There is no account to create.
@@ -57,6 +59,8 @@ Then ask your assistant something like "review my staged changes with Aetheris" 
 ## Tools
 
 Aetheris exposes six tools. Together they form the review flow your assistant follows.
+
+![Review flow: plan_review, then get_rules, get_playbook and run_checks for each agent, then synthesize_report](https://raw.githubusercontent.com/adryserage/aetheris/main/docs/assets/diagrams/review-flow.en.svg)
 
 | Tool | What it returns |
 |------|-----------------|

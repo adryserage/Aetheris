@@ -45,3 +45,12 @@ Ce script est utilisé automatiquement par le workflow `.github/workflows/releas
 2. Utilise ce script pour extraire les notes du CHANGELOG
 3. Crée une release GitHub avec ces notes
 
+## gen_diagrams.py
+
+Dessine les deux schémas du README (fonctionnement et déroulé de revue) dans `docs/assets/diagrams/`, en anglais et en français. Les noms des agents et le nombre de règles et de playbooks viennent du registre : relance le script quand ils changent.
+
+```bash
+python scripts/gen_diagrams.py
+```
+
+`README.md` et `README.fr.md` chargent les SVG depuis la branche `main` sur GitHub, ce qui marche aussi sur PyPI.
