@@ -7,7 +7,7 @@ Thanks for helping. Aetheris is mostly review rules and checks, so a better rule
 - Report a bug or a crash: open a [bug report](https://github.com/adryserage/aetheris/issues/new?template=bug_report.yml).
 - Report a false positive: a check flagged code that is fine. Use the [false positive form](https://github.com/adryserage/aetheris/issues/new?template=false_positive.yml).
 - Propose a rule: something a reviewer should catch and Aetheris misses. Use the [new rule form](https://github.com/adryserage/aetheris/issues/new?template=new_rule.yml), or open a pull request directly.
-- Security issues go through [SECURITY.md](SECURITY.md), never a public issue.
+- Security issues go through GitHub's [private vulnerability report](https://github.com/adryserage/aetheris/security/advisories/new), never a public issue. See [SECURITY.md](SECURITY.md).
 
 ## Development setup
 

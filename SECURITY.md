@@ -11,9 +11,9 @@ Version 3.x and earlier are no longer maintained. They called AI providers with 
 
 ## Reporting a vulnerability
 
-Do not report security vulnerabilities through public GitHub issues.
+Do not report security vulnerabilities in a public issue: anyone could exploit them before a fix ships.
 
-Send them by email to security@allowebs.com, or use GitHub's private vulnerability reporting from the [Security tab](https://github.com/adryserage/aetheris/security) ("Report a vulnerability").
+Report them privately with GitHub: open the [Security tab](https://github.com/adryserage/aetheris/security) and choose "Report a vulnerability", or go straight to the [private report form](https://github.com/adryserage/aetheris/security/advisories/new). Only the maintainers see the report. It becomes a public security advisory once the fix is released.
 
 Please include:
 
