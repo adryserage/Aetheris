@@ -7,6 +7,12 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### 📝 Documentation
+
+- La branche `develop` disparaît : les pull requests visent `main`, depuis un fork ou une branche courte.
+
+## [4.0.1] - 2026-11-12
+
 ### 🐛 Corrections
 
 - Moins de faux positifs dans les vérifications. Dans un fichier de test, les motifs de code (sécurité, typage, performance, API) passent en `info`, avec la mention « (test file) ». Les secrets et les données personnelles gardent leur gravité partout, tests et doc compris.
@@ -1364,7 +1370,8 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Génération de rapports détaillés en Markdown
 - Configuration flexible via variables d'environnement
 
-[Unreleased]: https://github.com/adryserage/aetheris/compare/v4.0.0...HEAD
+[Unreleased]: https://github.com/adryserage/aetheris/compare/v4.0.1...HEAD
+[4.0.1]: https://github.com/adryserage/aetheris/compare/v4.0.0...v4.0.1
 [4.0.0]: https://github.com/adryserage/aetheris/compare/v3.0.0...v4.0.0
 [3.0.0]: https://github.com/adryserage/aetheris/compare/v2.13.0...v3.0.0
 [2.13.0]: https://github.com/adryserage/aetheris/compare/v2.12.0...v2.13.0

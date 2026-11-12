@@ -81,7 +81,7 @@ In local mode, Aetheris reads files under your project directory and sends nothi
 
 ## Contributing
 
-Bug reports and ideas go to [GitHub Issues](https://github.com/adryserage/aetheris/issues). Pull requests target the `develop` branch. Improvements to the review rules are as welcome as code.
+Bug reports and ideas go to [GitHub Issues](https://github.com/adryserage/aetheris/issues). Pull requests target the `main` branch. Improvements to the review rules are as welcome as code.
 
 ## Versions
 

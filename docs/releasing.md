@@ -2,11 +2,11 @@
 
 This page is for the repository administrator, the only person who can release. Releases are rare: one is cut only when a change matters to many users. Until then, merged changes wait under `[Unreleased]` in `CHANGELOG.md`.
 
-`main` changes only through a pull request from `develop`. A GitHub ruleset enforces this: the CI must pass, the pull request is merged with a merge commit, and `main` cannot be force-pushed or deleted. Pushing a `vX.Y.Z` tag on `main` starts the release workflow.
+`main` changes only through a pull request. A GitHub ruleset enforces this: the CI must pass, the pull request is merged with a merge commit or squashed, and `main` cannot be force-pushed or deleted. Work happens on short-lived branches such as `fix/...` or `release/X.Y.Z`, deleted once merged. Pushing a `vX.Y.Z` tag on `main` starts the release workflow.
 
 ## Who does what
 
-- Contributors open pull requests to `develop`. The "develop pull requests" ruleset requires a pull request with the CI passing before any change reaches `develop`. Only repository administrators can push to `develop` directly.
+- Contributors open pull requests to `main`, from a fork or a branch.
 - Only repository administrators can release. The "version tags" ruleset lets only them create, move or delete a `v*` tag, so a contributor cannot start the release workflow. The administrator is also the only required reviewer of the `pypi` environment.
 - The repository is on a personal GitHub account, where the owner is the only administrator. The owner is therefore the one person who cuts releases.
 
@@ -16,7 +16,7 @@ The `main` ruleset requires no approval yet, because the project has no reviewer
 
 The example releases 4.0.1. Pick the number from the last tag with [semantic versioning](https://semver.org): patch for fixes, minor for new features, major for breaking changes.
 
-1. On `develop`, prepare the version:
+1. On a `release/4.0.1` branch from `main`, prepare the version:
 
     - set `version = "4.0.1"` in `pyproject.toml` and `__version__ = "4.0.1"` in `aetheris/__init__.py`;
     - in `CHANGELOG.md`, rename `## [Unreleased]` to `## [4.0.1] - YYYY-MM-DD` and add an empty `## [Unreleased]` above it;
@@ -30,32 +30,26 @@ The example releases 4.0.1. Pick the number from the last tag with [semantic ver
     Then commit and push:
 
     ```bash
-    git checkout develop && git pull
-    git commit -am "release: 4.0.1" && git push
+    git checkout main && git pull && git checkout -b release/4.0.1
+    git commit -am "release: 4.0.1" && git push -u origin release/4.0.1
     ```
 
-2. Open an issue, then a pull request from `develop` to `main` that closes it. Merge it once the CI passes:
+2. Open an issue, then a pull request from `release/4.0.1` to `main` that closes it. Merge it once the CI passes:
 
     ```bash
     gh issue create --title "Release 4.0.1" --body "Release 4.0.1"
-    gh pr create --base main --head develop --title "release: 4.0.1" --body "Closes #<issue>"
+    gh pr create --base main --head release/4.0.1 --title "release: 4.0.1" --body "Closes #<issue>"
     gh pr checks <pr> --watch
     gh pr merge <pr> --merge
     ```
 
-3. Bring `develop` level with `main`:
+3. Check the version number, then tag `main` and push the tag. The tag push cannot be undone: the GitHub release and the documentation go public a few minutes later, without waiting for any approval.
 
     ```bash
-    git fetch origin && git merge --ff-only origin/main && git push
+    git checkout main && git pull && git tag v4.0.1 && git push origin v4.0.1
     ```
 
-4. Check the version number, then tag `main` and push the tag. The tag push cannot be undone: the GitHub release and the documentation go public a few minutes later, without waiting for any approval.
-
-    ```bash
-    git tag v4.0.1 origin/main && git push origin v4.0.1
-    ```
-
-5. Approve the publication. In the Actions tab, open the "Release" run, click "Review deployments", select `pypi` and click "Approve".
+4. Approve the publication. In the Actions tab, open the "Release" run, click "Review deployments", select `pypi` and click "Approve".
 
 ## What the release workflow does
 

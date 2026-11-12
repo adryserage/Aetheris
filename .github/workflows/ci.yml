@@ -1,10 +1,10 @@
-# Quality checks on every push to develop or main and on every pull request.
+# Quality checks on every push to main and on every pull request.
 
 name: CI
 
 on:
   push:
-    branches: [develop, main]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
