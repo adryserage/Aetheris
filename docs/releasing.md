@@ -6,7 +6,7 @@ This page is for the repository administrator, the only person who can release. 
 
 ## Who does what
 
-- Contributors with write access push to `develop` and open pull requests to `main`.
+- Contributors open pull requests to `develop`. The "develop pull requests" ruleset requires a pull request with the CI passing before any change reaches `develop`. Only repository administrators can push to `develop` directly.
 - Only repository administrators can release. The "version tags" ruleset lets only them create, move or delete a `v*` tag, so a contributor cannot start the release workflow. The administrator is also the only required reviewer of the `pypi` environment.
 - The repository is on a personal GitHub account, where the owner is the only administrator. The owner is therefore the one person who cuts releases.
 
