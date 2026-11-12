@@ -6,6 +6,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
+# Coolify runs its health check with curl or wget inside the container; slim images ship neither.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /src
 COPY pyproject.toml README.md LICENSE NOTICE ./
 COPY aetheris ./aetheris
