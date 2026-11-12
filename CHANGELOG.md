@@ -7,6 +7,8 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-11-12
+
 ### ✨ Nouvelles fonctionnalités
 
 - Serveur MCP en stdio, lancé par `uvx adryserage-aetheris` ou `python -m aetheris`. Il expose cinq outils qui forment le déroulé de revue : `list_agents`, `plan_review`, `get_rules`, `run_checks` et `synthesize_report`.
@@ -1352,7 +1354,10 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Génération de rapports détaillés en Markdown
 - Configuration flexible via variables d'environnement
 
-[Unreleased]: https://github.com/adryserage/aetheris/compare/v2.12.0...HEAD
+[Unreleased]: https://github.com/adryserage/aetheris/compare/v4.0.0...HEAD
+[4.0.0]: https://github.com/adryserage/aetheris/compare/v3.0.0...v4.0.0
+[3.0.0]: https://github.com/adryserage/aetheris/compare/v2.13.0...v3.0.0
+[2.13.0]: https://github.com/adryserage/aetheris/compare/v2.12.0...v2.13.0
 [2.12.0]: https://github.com/adryserage/aetheris/compare/v2.11.0...v2.12.0
 [2.11.0]: https://github.com/adryserage/aetheris/compare/v2.10.0...v2.11.0
 [2.10.0]: https://github.com/adryserage/aetheris/compare/v2.9.0...v2.10.0

@@ -4,7 +4,7 @@ Code review rules and reproducible checks for your AI coding assistant, served o
 
 [Lire en français](https://github.com/adryserage/aetheris/blob/main/README.fr.md)
 
-> **Status:** Aetheris 4.0 is in development on the `develop` branch. The latest release on PyPI is 3.0.0, the older command-line tool that calls Gemini, OpenAI or Claude with your own API key. Its documentation is in the [3.0.0 tag](https://github.com/adryserage/aetheris/tree/v3.0.0).
+> Version 4.0 replaces the 3.x command-line tool, which called Gemini, OpenAI or Claude with your own API key. If you used it, read [Coming from 3.x](#coming-from-3x).
 
 ## What it does
 

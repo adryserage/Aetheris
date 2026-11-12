@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "adryserage-aetheris"
-version = "4.0.0.dev0"
+version = "4.0.0"
 description = "MCP server with code review rules and reproducible checks (secrets, OSV vulnerabilities, metrics, dependency graphs) for AI coding assistants. No API key needed."
 readme = "README.md"
 requires-python = ">=3.10"

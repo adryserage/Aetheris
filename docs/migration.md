@@ -2,8 +2,6 @@
 
 Aetheris 3.x was a command-line tool. It sent your code to Gemini, OpenAI or Claude with your own API key and wrote analysis reports. Aetheris 4 is an MCP server: your AI coding assistant runs the review, using the rules and checks Aetheris serves. There is no API key and no AI call.
 
-Version 4 is in development. PyPI still has 3.0.0 as the latest release.
-
 ## Removed commands
 
 These commands no longer exist: `analysis`, `fix`, `pr`, `pr-gen`, `issues`, `user-story`, `stats`, `run`, `cleanup` and `validate-package`. The `--cli` and `-c` flags are gone too. With 4.0, `aetheris` only has `install`, `uninstall` and `serve`.

@@ -2,7 +2,7 @@
 
 ## Projet
 
-Serveur MCP open source (Apache 2.0) qui donne à l'assistant de code IA les règles de revue de 10 agents et des vérifications sans IA. Paquet PyPI `adryserage-aetheris`, projet Plane `AETHERIS`. La v4 est sur `develop` (AETHERIS-7) et n'est pas encore publiée. La dernière version sur PyPI est la 3.0.0, l'ancienne CLI.
+Serveur MCP open source (Apache 2.0) qui donne à l'assistant de code IA les règles de revue de 10 agents et des vérifications sans IA. Paquet PyPI `adryserage-aetheris`, projet Plane `AETHERIS`. La version 4.0.0 remplace la CLI de la 3.x.
 
 ## Commandes
 

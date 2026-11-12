@@ -2,8 +2,8 @@
 
 Aetheris is an MCP server that gives your AI coding assistant review rules and checks that need no AI. Claude Code, Cursor or any MCP client calls it to review a change, a pull request or a whole repository. Your assistant does the reasoning, so Aetheris needs no API key and costs nothing to run.
 
-!!! note "Status"
-    Aetheris 4 is in development on the `develop` branch. The latest release on PyPI is 3.0.0, the older command-line tool that calls Gemini, OpenAI or Claude with your own API key. If you use that tool, see [Migrating from 3.x](migration.md).
+!!! note "Coming from 3.x"
+    Version 4.0 replaces the 3.x command-line tool, which called Gemini, OpenAI or Claude with your own API key. If you used it, see [Migrating from 3.x](migration.md).
 
 ## What it provides
 

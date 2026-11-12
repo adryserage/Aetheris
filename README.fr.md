@@ -4,7 +4,7 @@ Des règles de revue de code et des vérifications reproductibles pour votre ass
 
 [Read in English](https://github.com/adryserage/aetheris/blob/main/README.md)
 
-> **État :** Aetheris 4.0 est en développement sur la branche `develop`. La dernière version publiée sur PyPI est la 3.0.0 : l'ancien outil en ligne de commande, qui appelle Gemini, OpenAI ou Claude avec votre propre clé d'API. Sa documentation se trouve à l'[étiquette 3.0.0](https://github.com/adryserage/aetheris/tree/v3.0.0).
+> La version 4.0 remplace l'outil en ligne de commande de la 3.x, qui appelait Gemini, OpenAI ou Claude avec votre propre clé d'API. Si vous l'utilisiez, lisez [Venir de la 3.x](#venir-de-la-3x).
 
 ## Ce qu'il fait
 
