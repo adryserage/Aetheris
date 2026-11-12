@@ -24,13 +24,13 @@ TOOLS = {
 
 
 def test_in_process_client_lists_exactly_the_six_tools_and_calls_one(repo):
-    from mcp.shared.memory import create_connected_server_and_client_session
+    from mcp.client import Client
 
     write(repo, "a.py", f'KEY = "{FAKE_AWS_KEY}"\n')
 
     async def scenario():
         server = build_server()
-        async with create_connected_server_and_client_session(server._mcp_server) as client:
+        async with Client(server) as client:
             tools = await client.list_tools()
             called = await client.call_tool("run_checks", {"agent": "security"})
             return tools, called
@@ -89,10 +89,10 @@ def test_get_playbook_returns_steps_and_attribution(fixture_playbooks):
 
 
 def test_in_process_client_serves_a_shipped_playbook(repo):
-    from mcp.shared.memory import create_connected_server_and_client_session
+    from mcp.client import Client
 
     async def scenario():
-        async with create_connected_server_and_client_session(build_server()._mcp_server) as c:
+        async with Client(build_server()) as c:
             return await c.call_tool("get_playbook", {"id": "fp-check"})
 
     payload = json.loads(asyncio.run(scenario()).content[0].text)

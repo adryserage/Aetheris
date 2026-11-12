@@ -1,10 +1,10 @@
 # Dépendances d'exécution (identiques à pyproject.toml)
-mcp>=1.10,<2
+mcp>=2.3,<3
 pydantic>=2.0.0
 pathspec>=0.12.0
 requests>=2.32.0
 pyyaml>=6.0
 
 # Outils de développement
-black>=24.0.0
+black>=26.10.1
 types-PyYAML>=6.0.12.20261103

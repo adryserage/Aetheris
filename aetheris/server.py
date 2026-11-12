@@ -17,11 +17,12 @@ from collections.abc import Awaitable, Callable
 from typing import Any, Literal
 
 import anyio
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
+from mcp.server.mcpserver.exceptions import ToolError
 from pydantic import BaseModel
 
 from aetheris import __version__, registry
-from aetheris.changes import changed_files
+from aetheris.changes import GitError, changed_files
 from aetheris.checks import CHECKS, CheckContext
 from aetheris.domain import AGENT_IDS, AgentId, Finding, severity_rank
 from aetheris.files import (
@@ -337,7 +338,11 @@ def synthesize_report(findings: list[Finding]) -> dict[str, Any]:
 def _compact(fn: Callable[..., dict[str, Any]]) -> Callable[..., str]:
     @functools.wraps(fn)
     def wrapper(*args: Any, **kwargs: Any) -> str:
-        return json.dumps(fn(*args, **kwargs), separators=(",", ":"), ensure_ascii=False)
+        try:
+            result = fn(*args, **kwargs)
+        except (ValueError, GitError) as exc:  # the assistant must read why it was refused
+            raise ToolError(str(exc)) from exc
+        return json.dumps(result, separators=(",", ":"), ensure_ascii=False)
 
     return wrapper
 
@@ -352,21 +357,15 @@ def _in_thread(fn: Callable[..., str]) -> Callable[..., Awaitable[str]]:
     return wrapper
 
 
-def build_server(hosted: bool = False) -> FastMCP:
+def build_server(hosted: bool = False) -> MCPServer:
     """Local mode reads the project on disk; hosted mode only sees the contents it is sent."""
     if not hosted:
-        mcp = FastMCP("aetheris", instructions=NEXT_STEPS)
+        mcp = MCPServer("aetheris", instructions=NEXT_STEPS, version=__version__)
         tools = (list_agents, plan_review, get_rules, get_playbook, run_checks, synthesize_report)
         for tool in tools:
             mcp.tool(structured_output=False)(_compact(tool))
         return mcp
-    mcp = FastMCP(
-        "aetheris",
-        instructions=HOSTED_NEXT_STEPS,
-        host="0.0.0.0",  # Host and Origin are checked by aetheris.hosted, not by FastMCP
-        stateless_http=True,
-        json_response=True,
-    )
+    mcp = MCPServer("aetheris", instructions=HOSTED_NEXT_STEPS, version=__version__)
     hosted_tools = (
         ("list_agents", list_agents),
         ("plan_review", plan_sent_files),
