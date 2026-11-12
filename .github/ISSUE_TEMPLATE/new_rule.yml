@@ -1,0 +1,60 @@
+name: New rule
+description: Propose something reviewers should catch that Aetheris misses.
+labels: [rule]
+body:
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Agent
+      options:
+        - security
+        - architecture
+        - code_quality
+        - metrics
+        - dependency
+        - qa_synthesis
+        - type_safety
+        - performance
+        - api_contract
+        - data_privacy
+    validations:
+      required: true
+  - type: input
+    id: title
+    attributes:
+      label: Rule title
+      placeholder: Unrestricted file upload
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: See CONTRIBUTING.md for the scale.
+      options:
+        - critical
+        - high
+        - medium
+        - low
+        - info
+    validations:
+      required: true
+  - type: textarea
+    id: check
+    attributes:
+      label: What to look for
+      description: The code pattern to report, and what is not a violation.
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Example
+      description: A short snippet that breaks the rule, and its fixed version.
+      render: text
+  - type: input
+    id: references
+    attributes:
+      label: References
+      description: Real identifiers only (CWE, OWASP, RFC). Leave empty if unsure.
+      placeholder: CWE-434, OWASP A04:2021

@@ -44,7 +44,7 @@ Serveur MCP open source (Apache 2.0) qui donne à l'assistant de code IA les rè
 - Chaque changement visible pour l'utilisateur ajoute sa ligne dans la section `[Unreleased]` de `CHANGELOG.md`, dans le même commit. `CHANGELOG.md` est l'historique des versions du dépôt (format Keep a Changelog, versionnage sémantique).
 - À chaque release, la section `[Unreleased]` prend le numéro et la date de la version, et `pyproject.toml` est mis à jour. L'étiquette `vX.Y.Z` et la release GitHub suivent la règle globale.
 - Le dépôt n'a ni SpecKit ni skill propre : le travail suit les règles globales et Plane.
-- Exception de langue, décidée par le propriétaire pour ce dépôt public : `README.md` est en anglais et `README.fr.md` en est la traduction. Toute modification de l'un se reporte dans l'autre. Les autres `.md` restent en français.
+- Exception de langue, décidée par le propriétaire pour ce dépôt public : les fichiers pour les contributeurs extérieurs sont en anglais (`README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `.github/ISSUE_TEMPLATE/`). `README.fr.md` est la traduction du README, et toute modification de l'un se reporte dans l'autre. Les autres `.md` restent en français.
 - `.agents/product-marketing.md` décrit le positionnement du produit. Les textes publics (README, description du paquet et du dépôt) le suivent : aucun chiffre ni promesse sans source.
 - Aucun appel à une API d'IA. En mode local, le seul appel réseau va à OSV, et le serveur ne lit que les fichiers sous le dossier du projet.
 - Lignes de 100 caractères au plus (black).

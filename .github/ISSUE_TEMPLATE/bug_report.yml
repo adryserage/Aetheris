@@ -1,0 +1,39 @@
+name: Bug report
+description: Aetheris crashed, returned an error, or a tool behaved wrongly.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you got instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: The tool call or command, its arguments, and a minimal file that triggers it.
+      placeholder: |
+        run_checks(agent="security", paths=["app.py"])
+        app.py contains: ...
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Output or error
+      description: The tool result or the error message. Mask any secret.
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: Aetheris version
+      description: Output of `aetheris --version`.
+    validations:
+      required: true
+  - type: input
+    id: client
+    attributes:
+      label: MCP client and Python version
+      placeholder: Claude Code 2.x, Python 3.12, macOS
