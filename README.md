@@ -2,6 +2,8 @@
 
 Code review rules and reproducible checks for your AI coding assistant, served over MCP. Your assistant does the reasoning, so Aetheris needs no API key and costs nothing to run.
 
+[![PyPI](https://img.shields.io/pypi/v/adryserage-aetheris)](https://pypi.org/project/adryserage-aetheris/) [![Downloads](https://static.pepy.tech/badge/adryserage-aetheris)](https://pepy.tech/projects/adryserage-aetheris) [![Downloads per month](https://img.shields.io/pypi/dm/adryserage-aetheris)](https://pypistats.org/packages/adryserage-aetheris)
+
 [Lire en français](https://github.com/adryserage/aetheris/blob/main/README.fr.md)
 
 > Version 4.0 replaces the 3.x command-line tool, which called Gemini, OpenAI or Claude with your own API key. If you used it, read [Coming from 3.x](#coming-from-3x).
@@ -83,7 +85,7 @@ Bug reports and ideas go to [GitHub Issues](https://github.com/adryserage/aether
 
 ## Versions
 
-Aetheris follows [semantic versioning](https://semver.org). Every change is listed in [CHANGELOG.md](https://github.com/adryserage/aetheris/blob/main/CHANGELOG.md), and every version has a tag and a [GitHub release](https://github.com/adryserage/aetheris/releases).
+Aetheris follows [semantic versioning](https://semver.org). Every change is listed in [CHANGELOG.md](https://github.com/adryserage/aetheris/blob/main/CHANGELOG.md), and every version has a tag and a [GitHub release](https://github.com/adryserage/aetheris/releases). The download history is on [pepy.tech](https://pepy.tech/projects/adryserage-aetheris) and [pypistats.org](https://pypistats.org/packages/adryserage-aetheris).
 
 Releases are rare: the maintainer cuts one when a change matters to many users. Until then, merged changes wait under `[Unreleased]`. To run the current `main` branch instead of the last release:
 
