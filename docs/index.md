@@ -32,5 +32,6 @@ Aetheris never calls a language model. Your assistant chooses which tools to cal
 | [Security](security.md) | What the server reads and sends, and how to report a vulnerability |
 | [Migrating from 3.x](migration.md) | Removed commands and how to keep 3.0.0 |
 | [Contributing](contributing.md) | Bug reports, new rules, pull requests |
+| [Releasing](releasing.md) | Who can release, and the release steps |
 
 Aetheris is open source under the [Apache License 2.0](https://github.com/adryserage/aetheris/blob/main/LICENSE). The source is on [GitHub](https://github.com/adryserage/aetheris).

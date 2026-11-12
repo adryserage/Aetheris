@@ -39,7 +39,7 @@ Run the server from your checkout in any MCP client with `uvx --from /path/to/ae
    ```
 
 4. Add a line under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md) when users will notice the change.
-5. Open the pull request against `develop`. Releases are cut from `main` by the maintainer.
+5. Open the pull request against `develop`. The maintainer merges `develop` into `main` and cuts a release from `main` only when a change matters to many users, so a merged change can wait a while under `[Unreleased]`.
 
 ## Writing a rule
 

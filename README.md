@@ -85,6 +85,12 @@ Bug reports and ideas go to [GitHub Issues](https://github.com/adryserage/aether
 
 Aetheris follows [semantic versioning](https://semver.org). Every change is listed in [CHANGELOG.md](https://github.com/adryserage/aetheris/blob/main/CHANGELOG.md), and every version has a tag and a [GitHub release](https://github.com/adryserage/aetheris/releases).
 
+Releases are rare: the maintainer cuts one when a change matters to many users. Until then, merged changes wait under `[Unreleased]`. To run the current `main` branch instead of the last release:
+
+```bash
+uvx --from git+https://github.com/adryserage/Aetheris adryserage-aetheris
+```
+
 ## Coming from 3.x
 
 Version 4.0 removes the analysis commands, the AI provider integrations and the Railway worker. The `aetheris` command remains, to install the MCP server. Old commands such as `aetheris analysis` now print what changed and exit with code 2, so a CI job fails with a clear message. To keep using the 3.x CLI, pin the last 3.x release:
