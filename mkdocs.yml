@@ -1,5 +1,5 @@
-site_name: Aetheris Documentation
-site_description: MCP server with code review rules and reproducible checks for AI coding assistants
+site_name: Aetheris
+site_description: MCP server that gives AI coding assistants review rules, playbooks and checks that need no AI
 site_url: https://adryserage.github.io/aetheris/
 repo_url: https://github.com/adryserage/aetheris
 repo_name: adryserage/aetheris
@@ -58,39 +58,29 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Getting Started:
+  - Getting started:
     - Installation: installation.md
-    - Configuration: configuration.md
-    - Quick Start: quickstart.md
-  - Commands:
-    - Overview: commands/README.md
-    - analysis: commands/analysis.md
-    - run: commands/run.md
-    - stats: commands/stats.md
-    - fix: commands/fix.md
-    - pr: commands/pr-review.md
-    - issues: commands/issues.md
-    - pr-gen: commands/pr-gen.md
-    - user-story: commands/user-story.md
-    - cleanup: commands/cleanup.md
-    - validate-package: commands/validate-package.md
+    - Review flow: review-flow.md
   - Reference:
-    - AI Providers: ai-providers.md
-    - Analysis Agents: agents.md
-    - Features: features.md
-    - Architecture: architecture_overview.md
-  - Interactive CLI (v3.0):
-    - Overview: cli-interactive.md
-    - MCP Integration: mcp-integration.md
-    - Skills:
-      - Overview: skills/README.md
-      - Built-in Skills: skills/builtin-skills.md
-      - Custom Skills: skills/custom-skills.md
-  - Advanced:
-    - Headless Mode: headless.md
-    - GitHub Actions: github-actions.md
-    - Extending Agents: PLUGINS.md
-    - Troubleshooting: troubleshooting.md
+    - Tools: tools.md
+    - Agents: agents.md
+    - Playbooks: playbooks.md
+    - Rules:
+      - Overview: rules/index.md
+      - Security: rules/security.md
+      - Architecture: rules/architecture.md
+      - Code quality: rules/code_quality.md
+      - Metrics: rules/metrics.md
+      - Dependencies: rules/dependency.md
+      - QA synthesis: rules/qa_synthesis.md
+      - Type safety: rules/type_safety.md
+      - Performance: rules/performance.md
+      - API contract: rules/api_contract.md
+      - Data privacy: rules/data_privacy.md
+  - About:
+    - Security: security.md
+    - Migrating from 3.x: migration.md
+    - Contributing: contributing.md
 
 extra:
   social:

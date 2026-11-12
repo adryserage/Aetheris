@@ -1,108 +1,36 @@
-# Aetheris Documentation
+# Aetheris
 
-**AI Code Review That Actually Works**
+Aetheris is an MCP server that gives your AI coding assistant review rules and checks that need no AI. Claude Code, Cursor or any MCP client calls it to review a change, a pull request or a whole repository. Your assistant does the reasoning, so Aetheris needs no API key and costs nothing to run.
 
-10 AI agents. Automated vulnerability detection. Minutes instead of hours.
+!!! note "Status"
+    Aetheris 4 is in development on the `develop` branch. The latest release on PyPI is 3.0.0, the older command-line tool that calls Gemini, OpenAI or Claude with your own API key. If you use that tool, see [Migrating from 3.x](migration.md).
 
-## Quick Install
+## What it provides
 
-```bash
-pip install adryserage-aetheris
-echo "GEMINI_API_KEY=your_key" > .env
-aetheris analysis
-```
+- Review rules: 152 rules across 10 agents (security, architecture, code quality, metrics, dependencies, QA synthesis, type safety, performance, API contracts, data privacy). Each rule says what to look for and how severe a violation is. See the [rules reference](rules/index.md).
+- Deterministic checks: secret scanning, known vulnerabilities in your dependencies from the [OSV](https://osv.dev) database, code metrics, circular imports and code patterns. They return the same result for the same input. See [Agents](agents.md).
+- Playbooks: review methods adapted from [Trail of Bits Skills](https://github.com/trailofbits/skills), such as a differential review of a diff. See [Playbooks](playbooks.md).
 
-## What is Aetheris?
+Aetheris never calls a language model. Your assistant chooses which tools to call, reads your code and writes the review.
 
-Aetheris is a multi-agent AI code analysis system that coordinates **10 specialized AI agents** to review your codebase for:
+## Where to start
 
-- **Security vulnerabilities** — SQL injection, XSS, hardcoded secrets, OWASP Top 10
-- **Architecture issues** — Circular dependencies, coupling problems, anti-patterns
-- **Code quality** — Dead code, complexity hotspots, maintainability issues
-- **Dependencies** — CVE scanning, outdated packages, license compliance
-- **Metrics** — Cyclomatic complexity, duplication, LOC statistics
+1. [Install](installation.md) the server in your client.
+2. Ask your assistant: "review my changes with Aetheris".
+3. Read [the review flow](review-flow.md) to see which tools it calls and in what order.
 
-## Why Aetheris?
+## Pages
 
-| Traditional Tools | Aetheris |
-|:-----------------|:---------:|
-| Thousands of noisy warnings | **Actionable insights only** |
-| Pattern matching (shallow) | **Context-aware AI (deep)** |
-| Security OR quality OR architecture | **All 10 agents working together** |
-| Suggestions you ignore | **Auto-fix that actually works** |
+| Page | What it covers |
+| --- | --- |
+| [Installation](installation.md) | `aetheris install`, manual setup, running from a checkout |
+| [Review flow](review-flow.md) | The six tools in order, with a real example |
+| [Tools](tools.md) | Arguments, defaults, results and limits of each tool |
+| [Agents](agents.md) | The 10 agents, their checks and their playbooks |
+| [Rules](rules/index.md) | Every rule, generated from the YAML files |
+| [Playbooks](playbooks.md) | The 7 playbooks and their attribution |
+| [Security](security.md) | What the server reads and sends, and how to report a vulnerability |
+| [Migrating from 3.x](migration.md) | Removed commands and how to keep 3.0.0 |
+| [Contributing](contributing.md) | Bug reports, new rules, pull requests |
 
-## How It Works
-
-![Aetheris Workflow](./assets/images/workflow-diagram.svg)
-
-## Get Started
-
-<div class="grid cards" markdown>
-
--   :material-download:{ .lg .middle } **Installation**
-
-    ---
-
-    Install Aetheris and configure your AI provider
-
-    [:octicons-arrow-right-24: Installation Guide](installation.md)
-
--   :material-cog:{ .lg .middle } **Configuration**
-
-    ---
-
-    Configure AI providers, timeouts, and output formats
-
-    [:octicons-arrow-right-24: Configuration](configuration.md)
-
--   :material-console:{ .lg .middle } **Commands**
-
-    ---
-
-    Learn all available CLI commands
-
-    [:octicons-arrow-right-24: Commands Reference](commands/README.md)
-
--   :material-robot:{ .lg .middle } **AI Agents**
-
-    ---
-
-    Understand the 6 specialized analysis agents
-
-    [:octicons-arrow-right-24: Agents Guide](agents.md)
-
-</div>
-
-## Features
-
-- **Multi-Provider Support** — Gemini, OpenAI, Claude
-- **Incremental Analysis** — Analyze only changed files with `--reanalyze`
-- **Timeout Control** — Set analysis duration with `--timeout 30m`
-- **Auto-Fix** — Fix issues automatically with Claude Code
-- **GitHub Integration** — Create issues, review PRs, generate fix PRs
-- **Smart Caching** — 60-80% cost reduction on repeat analyses
-
-## Pricing
-
-Aetheris uses AI providers' APIs on a pay-per-use basis. No subscription required.
-
-| Project Size | Estimated Cost* |
-|--------------|-----------------|
-| Small (< 50 files) | $0.50 - $2 |
-| Medium (50-200 files) | $2 - $10 |
-| Large (200+ files) | $10 - $50 |
-
-*Costs vary by provider and model. Smart caching reduces repeat analysis costs by 60-80%.
-
-**Free Tier Options:**
-- Google Gemini offers a generous free tier
-- Cache unchanged files to minimize API calls
-
-[View detailed pricing](./ai-providers.md#pricing)
-
-## Links
-
-- [GitHub Repository](https://github.com/adryserage/aetheris)
-- [PyPI Package](https://pypi.org/project/adryserage-aetheris/)
-- [Get Free Gemini API Key](https://ai.google.dev)
-- [Report Issues](https://github.com/adryserage/aetheris/issues)
+Aetheris is open source under the [Apache License 2.0](https://github.com/adryserage/aetheris/blob/main/LICENSE). The source is on [GitHub](https://github.com/adryserage/aetheris).

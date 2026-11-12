@@ -71,7 +71,7 @@ Les 10 agents portent 152 règles, rangées en fichiers YAML dans [`aetheris/rul
 
 ## Ce qui quitte votre machine
 
-En mode local, Aetheris lit les fichiers de votre dossier de projet et n'envoie rien à aucun fournisseur d'IA. Le seul appel réseau est `check_vulnerabilities`, qui envoie des noms de paquets et des versions à l'API d'OSV. Le fournisseur de votre assistant voit toujours ce que votre assistant lit, comme sans Aetheris.
+En mode local, Aetheris lit les fichiers de votre dossier de projet et n'envoie rien à aucun fournisseur d'IA. Le seul appel réseau est la vérification `osv_lookup` de l'agent des dépendances (`run_checks` avec `agent="dependency"`), qui envoie des noms de paquets et des versions à l'API d'OSV. Le fournisseur de votre assistant voit toujours ce que votre assistant lit, comme sans Aetheris.
 
 ## Contribuer
 

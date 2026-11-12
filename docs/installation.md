@@ -1,98 +1,95 @@
-# Installation Guide
+# Installation
 
-## Prerequisites
+Aetheris runs locally through [`uvx`](https://docs.astral.sh/uv/), which comes with uv. There is no account to create and no API key to set.
 
-- **Python 3.9+** - [Download Python](https://www.python.org/downloads/)
-- **pip** - Python package manager (included with Python)
-
-### System Requirements
-
-| Requirement | Minimum | Recommended |
-|-------------|---------|-------------|
-| Python | 3.9 | 3.11+ |
-| RAM | 512 MB | 2 GB |
-| Disk | 100 MB | 500 MB (with cache) |
-| Network | Required | Required (AI API calls) |
-
-### Optional Prerequisites
-
-| Tool | Required For | Installation |
-|------|--------------|--------------|
-| GitHub CLI (`gh`) | `aetheris pr`, `aetheris issues`, `aetheris pr-gen` | [cli.github.com](https://cli.github.com/) |
-| Claude Code | `aetheris fix` | `npm install -g @anthropic-ai/claude-code` |
-
-## Installation from PyPI (Recommended)
+## Automatic setup
 
 ```bash
-pip install adryserage-aetheris
+uvx --from adryserage-aetheris aetheris install
 ```
 
-Verify installation:
+The command adds the server to every supported client it finds: Claude Code, Cursor and Claude Desktop. Restart the client afterwards, then ask it: "review my changes with Aetheris".
+
+| Option | Effect |
+| --- | --- |
+| `--client <id>` | Install in one client only: `claude-code`, `cursor` or `claude-desktop`. The default is `all`, which means every client found on this machine. |
+| `--project` | Write the configuration of the current directory instead of your user configuration. Claude Code uses its project scope and Cursor uses `.cursor/mcp.json`. Claude Desktop has no per-project file, so it is skipped. |
+
+Remove the server with the same options:
 
 ```bash
-aetheris --version
+uvx --from adryserage-aetheris aetheris uninstall
 ```
 
-## Installation from Source
+What each client gets:
+
+- Claude Code: the installer runs `claude mcp add` (scope `user`, or `project` with `--project`). If the `claude` command is not on your path, it prints the command for you to run.
+- Cursor: an `aetheris` entry in `~/.cursor/mcp.json`, or `.cursor/mcp.json` with `--project`.
+- Claude Desktop: an `aetheris` entry in `claude_desktop_config.json` (`~/Library/Application Support/Claude/` on macOS, `%APPDATA%\Claude\` on Windows, `~/.config/Claude/` on Linux).
+
+The installer only adds or removes the `aetheris` entry. It leaves the rest of the file alone and never rewrites a file it cannot parse as JSON. It stores the absolute path of `uvx` when it finds one, because desktop apps often start without your shell path.
+
+## Manual setup
+
+### Claude Code
 
 ```bash
-git clone https://github.com/adryserage/aetheris.git
-cd aetheris
-pip install -r requirements.txt
+claude mcp add aetheris -- uvx adryserage-aetheris
 ```
 
-Or install in development mode:
+Add `--scope project` to share the server with the project, or `--scope user` for all your projects.
+
+### Cursor
+
+Add this to `.cursor/mcp.json` in your project, or to `~/.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "aetheris": {
+      "command": "uvx",
+      "args": ["adryserage-aetheris"]
+    }
+  }
+}
+```
+
+### Other MCP clients
+
+Run `uvx adryserage-aetheris` as a stdio server. The same command is available as `aetheris serve` when the package is installed.
+
+## Choosing the project directory
+
+The server reads files under one directory, the project root. By default that is the directory the client starts it in. Set `AETHERIS_ROOT` to use another one. Every path an assistant passes to a tool is resolved inside this root, and a path that escapes it is refused.
+
+In a JSON client, add an `env` table to the entry:
+
+```json
+{
+  "mcpServers": {
+    "aetheris": {
+      "command": "uvx",
+      "args": ["adryserage-aetheris"],
+      "env": { "AETHERIS_ROOT": "/path/to/project" }
+    }
+  }
+}
+```
+
+## Running from a local checkout
+
+To try a clone of the repository, point `uvx` at the folder with `--from`:
 
 ```bash
-pip install -e .
+uvx --from /path/to/aetheris aetheris install
 ```
 
-## Dependencies
-
-| Package | Purpose |
-|---------|---------|
-| `google-genai` | Gemini AI SDK with Structured Outputs, Thinking, Code Execution |
-| `openai` | OpenAI API for code analysis |
-| `anthropic` | Claude (Anthropic) API for code analysis |
-| `pydantic` | JSON schema validation for Structured Outputs |
-| `pathspec` | .gitignore pattern handling |
-| `requests` | HTTP requests for OSV API |
-| `pyyaml` | YAML parsing (pubspec.yaml for Dart/Flutter) |
-| `ddgs` | Web search for documentation lookup |
-| `rich` | Terminal UI with progress bars |
-
-## API Keys
-
-You need at least one AI provider API key:
-
-| Provider | Environment Variable | Get Key |
-|----------|---------------------|---------|
-| Gemini | `GEMINI_API_KEY` | [Google AI Studio](https://makersuite.google.com/app/apikey) |
-| OpenAI | `OPENAI_API_KEY` | [OpenAI Platform](https://platform.openai.com/api-keys) |
-| Claude | `ANTHROPIC_API_KEY` | [Anthropic Console](https://console.anthropic.com/) |
-
-Create a `.env` file in your project root:
-
-```env
-AI_PROVIDER=gemini
-GEMINI_API_KEY=your_api_key_here
-```
-
-## Verify Installation
+The entry that `install` stores still names the published package. To make a client run your checkout, configure it by hand with `uvx --from /path/to/aetheris adryserage-aetheris` as the command line:
 
 ```bash
-# Check version
-aetheris --version
-
-# View help
-aetheris --help
-
-# Test analysis (dry run)
-aetheris analysis --help
+claude mcp add aetheris -- uvx --from /path/to/aetheris adryserage-aetheris
 ```
 
-## Next Steps
+## Check that it works
 
-- [Configuration Guide](./configuration.md) - Customize behavior
-- [Commands Reference](./commands/README.md) - Available commands
-- [AI Providers](./ai-providers.md) - Provider setup and models
+Ask your assistant to list the Aetheris tools, or run `aetheris --version` in a terminal. The server exposes six tools, described in [Tools](tools.md).

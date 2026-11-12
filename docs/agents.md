@@ -1,252 +1,75 @@
-# Analysis Agents
-
-Aetheris uses **10 specialized AI agents** that work together to analyze your code.
-
-## Agent Architecture
-
-![Agent Architecture](./assets/images/agent-architecture.svg)
-
-## Agent Overview
-
-### Core Agents (6)
-
-| Agent | Abbreviation | Purpose |
-|-------|--------------|---------|
-| Code Analysis Expert | CAE | Individual file analysis |
-| Architect Analysis Agent | AAA | Architecture overview |
-| Security Analysis Agent | SSA | Vulnerability detection |
-| Code Metrics Agent | CMA | Code metrics and complexity |
-| Dependency Vulnerability Agent | DVA | CVE scanning |
-| Quality Assurance Agent | QAA | Final synthesis |
-
-### Extended Agents (4) - v2.10+
-
-| Agent | Abbreviation | Purpose |
-|-------|--------------|---------|
-| Type Safety Agent | TSA | Type safety issues, `any` usage |
-| Performance Analysis Agent | PAA | O(n²), N+1 queries, memory leaks |
-| API Contract Agent | ACA | REST violations, breaking changes |
-| Data Privacy Agent | DPA | PII logging, GDPR/HIPAA compliance |
-
-## Code Analysis Expert (CAE)
-
-Analyzes each file individually to identify:
-
-- **Objectives**: Main purpose and functions
-- **Strengths**: Good practices and patterns
-- **Dependencies**: Relationships between files
-- **Risks**: Technical debt and issues
-- **Suggestions**: Improvement recommendations
-
-## Architect Analysis Agent (AAA)
-
-Produces architecture-level analysis:
-
-- **Overview**: Global system structure
-- **Patterns**: Architectural patterns identified
-- **Cohesion**: Inter-module consistency
-- **Dependencies**: Coupling and dependencies
-- **Refactoring**: Optimization plan
-
-## Security Analysis Agent (SSA)
-
-Detects security vulnerabilities:
-
-- **Injections**: SQL, XSS, command injection
-- **Secrets**: Hardcoded credentials and keys
-- **Cryptography**: Weak crypto implementations
-- **Authentication**: Auth/authz issues
-- **CWE/OWASP**: Standard classifications
-
-## Code Metrics Agent (CMA)
-
-Calculates code metrics:
-
-- **Complexity**: Cyclomatic complexity
-- **Duplication**: Code clone detection
-- **Nesting**: Depth of nested blocks
-- **Maintainability**: Maintainability index
-- **Size**: Lines of code, functions count
-
-## Dependency Vulnerability Agent (DVA)
-
-Analyzes dependency vulnerabilities via OSV API:
-
-- **npm**: package.json, package-lock.json
-- **PyPI**: requirements.txt, Pipfile
-- **Pub**: pubspec.yaml (Dart/Flutter)
-
-Identifies:
-- CVE identifiers
-- Severity levels
-- Fixed versions available
-
-**Runtime Environment**: DVA parses manifest files (package.json, requirements.txt, pubspec.yaml) and lockfiles directly without requiring package managers (npm, pip, flutter) to be installed. Dependency resolution is performed by reading the lockfile contents and querying the OSV API. If no lockfile is present, only direct dependencies from the manifest are analyzed.
-
-## Quality Assurance Agent (QAA)
-
-Synthesizes all analyses:
-
-- **Quality Score**: Global score (0-100)
-- **Dimensions**: Security, Maintainability, Architecture
-- **Action Plan**: Prioritized improvements
-- **Roadmap**: Improvement timeline
-
----
-
-## Extended Agents (v2.10+)
-
-### Type Safety Agent (TSA)
-
-Detects type safety issues in TypeScript, Python, and Java:
-
-- **Any Usage**: Detects use of `any`, `Any`, or untyped variables
-- **Unsafe Casts**: `as any`, `# type: ignore`, type assertions
-- **Type Ignores**: `@ts-ignore`, `@ts-nocheck`, `# type: ignore`
-- **Null Safety**: Missing null checks, optional chaining issues
-
-**Supported Languages**: TypeScript, Python, Java, JavaScript
-
-### Performance Analysis Agent (PAA)
-
-Detects performance anti-patterns:
-
-- **O(n²) Complexity**: Nested loops on same collection
-- **N+1 Queries**: Database queries inside loops
-- **Memory Leaks**: Unclosed resources, event listeners
-- **Blocking Async**: Sync operations in async context
-- **Inefficient Operations**: String concatenation in loops
-
-**Output**: `performance_report.md`
-
-### API Contract Agent (ACA)
-
-Detects REST API design issues:
-
-- **HTTP Method Violations**: GET with body, wrong methods
-- **REST Naming**: Verbs in URLs, inconsistent naming
-- **Breaking Changes**: Removed fields, type changes
-- **Undocumented Endpoints**: Missing OpenAPI annotations
-
-**Supported Frameworks**: Express, NestJS, FastAPI, Spring, Flask
-
-### Data Privacy Agent (DPA)
-
-Detects data privacy and compliance issues:
-
-- **PII Logging**: Sensitive data in logs
-- **Missing Encryption**: Unencrypted sensitive data
-- **Insecure Storage**: localStorage, cookies without httpOnly
-- **Compliance**: GDPR, HIPAA, PCI-DSS, CCPA violations
-
-**Compliance Frameworks**:
-
-| Framework | Focus Areas |
-|-----------|-------------|
-| GDPR | Email, name, phone, address, IP |
-| HIPAA | SSN, medical records, health data |
-| PCI-DSS | Credit cards, CVV, cardholder data |
-| CCPA | Email, name, financial data |
-
-**Configuration**:
-
-```bash
-# Enable specific compliance frameworks
-aetheris analysis --compliance gdpr,hipaa
-```
-
----
-
-## Data Security
-
-Before sending code to external AI providers, Aetheris applies **automatic sensitive data filtering** to protect secrets and intellectual property.
-
-![Data Security](./assets/images/data-security.svg)
-
-### Pre-processing (Scrubbing)
-
-The following data types are automatically masked before AI analysis:
-
-| Data Type | Pattern Examples | Replacement |
-|-----------|------------------|-------------|
-| API Keys | `AKIA...`, `sk-...`, `ghp_...` | `[REDACTED_API_KEY]` |
-| Passwords | `password=`, `pwd=`, `secret=` | `[REDACTED_SECRET]` |
-| Connection Strings | `mongodb://`, `postgres://` | `[REDACTED_CONNECTION_STRING]` |
-| Private Keys | `-----BEGIN RSA PRIVATE KEY-----` | `[REDACTED_PRIVATE_KEY]` |
-| JWT Tokens | `eyJ...` (base64 JWT format) | `[REDACTED_TOKEN]` |
-| AWS Credentials | `aws_access_key_id`, `aws_secret_access_key` | `[REDACTED_AWS_CREDENTIAL]` |
-| PII Patterns | Email addresses, phone numbers | `[REDACTED_PII]` |
-
-### Configuration
-
-Control sensitive data filtering via `config.json`:
-
-```json
-{
-  "security": {
-    "scrub_secrets": true,
-    "custom_patterns": [
-      {
-        "name": "internal_token",
-        "pattern": "MYCOMPANY_[A-Z0-9]{32}",
-        "replacement": "[REDACTED_INTERNAL_TOKEN]"
-      }
-    ],
-    "exclude_files": ["**/*.env", "**/secrets/**"]
-  }
-}
-```
-
-### Best Practices
-
-1. **Never commit secrets** - Use `.env` files excluded from analysis
-2. **Review before analysis** - Check what files will be sent to AI
-3. **Use `--dry-run`** - Preview analysis scope without sending data
-4. **Custom patterns** - Add company-specific secret formats to config
-5. **Audit logging** - Enable `audit_log_path` to track all AI interactions
-
-### File Exclusions
-
-By default, these files are excluded from AI analysis:
-
-- `.env`, `.env.*` - Environment files
-- `**/secrets/**` - Secret directories
-- `**/*.pem`, `**/*.key` - Certificate files
-- `**/credentials*` - Credential files
-
-## How Agents Work
-
-### Analysis Process
-
-Each agent performs a multi-step analysis:
-
-1. **Initial Scan** - Quick identification of potential issues
-2. **Deep Analysis** - Detailed examination of flagged areas
-3. **Cross-Reference** - Correlation with other agent findings
-4. **Synthesis** - Final prioritized recommendations
-
-### Output Quality
-
-All agents produce structured findings with:
-
-| Element | Description |
-|---------|-------------|
-| **Severity** | Critical, High, Medium, Low |
-| **Location** | File path and line numbers |
-| **Description** | Clear explanation of the issue |
-| **Recommendation** | Actionable fix suggestion |
-| **References** | CWE, OWASP, or best practice links |
-
-## Extending Aetheris
-
-Aetheris supports custom agents through its plugin system. See the [Plugin Guide](./PLUGINS.md) for details on:
-
-- Creating custom analysis agents
-- Registering hooks into the workflow
-- Building specialized analysis pipelines
-
-## Related Documentation
-
-- [Features](./features.md) - Full feature reference
-- [Configuration](./configuration.md) - Customizing agent behavior
-- [Troubleshooting](./troubleshooting.md) - Common issues and solutions
+# Agents
+
+An agent is a group of review rules with the deterministic checks that go with them. There are 10. `get_rules` returns an agent's rules, `run_checks` runs its checks, and `plan_review` chooses which agents to run. The full rule texts are in the [rules reference](rules/index.md).
+
+A check scans text and reports findings with the id of the rule it applies to. Checks are heuristics: your assistant confirms each match by reading the code. A rule without a check, and an agent without checks, are reviewed by the assistant reading the files.
+
+| Agent | Rules | Checks | Playbooks |
+| --- | --- | --- | --- |
+| [`security`](rules/security.md) | 28 | `secret_scan`, `security_patterns` | 6 |
+| [`architecture`](rules/architecture.md) | 14 | `circular_imports` | 0 |
+| [`code_quality`](rules/code_quality.md) | 17 | `metric_thresholds`, `duplicate_blocks` | 0 |
+| [`metrics`](rules/metrics.md) | 9 | `file_metrics` | 0 |
+| [`dependency`](rules/dependency.md) | 12 | `manifest_parse`, `osv_lookup` | 1 |
+| [`qa_synthesis`](rules/qa_synthesis.md) | 14 | none | 2 |
+| [`type_safety`](rules/type_safety.md) | 14 | `type_patterns` | 0 |
+| [`performance`](rules/performance.md) | 14 | `performance_patterns` | 0 |
+| [`api_contract`](rules/api_contract.md) | 15 | `api_patterns`, `orphan_endpoints` | 1 |
+| [`data_privacy`](rules/data_privacy.md) | 15 | `pii_patterns` | 1 |
+
+## What each check reports
+
+Each finding message starts with a finding name. When a rule is listed, the finding carries its id.
+
+| Agent and check | Finding names (rule) |
+| --- | --- |
+| `security` / `secret_scan` | Provider keys and tokens, private key headers and similar secrets (SEC-005). Values are masked in the evidence. High confidence matches are `critical`, the others `medium` |
+| `security` / `security_patterns` | `sql_injection` (SEC-001), `xss` (SEC-003), `dynamic_eval` (SEC-004), `weak_crypto` (SEC-006), `insecure_random` (SEC-008) |
+| `architecture` / `circular_imports` | `circular_imports` (ARC-001) for Python, JavaScript and TypeScript |
+| `code_quality` / `metric_thresholds` | `complexity` (CQ-004, above 15), `nesting` (CQ-005, above 4), `function_length` (CQ-006, above 80 lines) |
+| `code_quality` / `duplicate_blocks` | `duplicate_block` (CQ-007), blocks of 5 lines or more repeated in the inspected files |
+| `metrics` / `file_metrics` | `file_metrics`: size and complexity numbers per file, severity `info`, no rule id |
+| `dependency` / `manifest_parse` | `manifest_parse` (DEP-011): a manifest that could not be parsed |
+| `dependency` / `osv_lookup` | `osv_lookup` (DEP-001): a pinned package with known vulnerabilities in [OSV](https://osv.dev) |
+| `type_safety` / `type_patterns` | `any_usage` (TYP-001), `unsafe_cast` (TYP-002), `type_ignore` (TYP-003), `non_null_assertion` (TYP-004), `raw_generic` (TYP-013), `null_safety` (no rule id) |
+| `performance` / `performance_patterns` | `n_plus_one` (PERF-001), `nested_loops` (PERF-002), `string_concat_in_loop` (PERF-004), `blocking_async` (PERF-005), `sort_in_loop` (PERF-011) |
+| `api_contract` / `api_patterns` | `verb_in_url` (API-005) |
+| `api_contract` / `orphan_endpoints` | `orphan_endpoint` and `orphan_call` (API-002): a route no inspected file calls, or a call matching no route |
+| `data_privacy` / `pii_patterns` | `ssn`, `email_literal` and `credit_card` (PRIV-002), `pii_logging` (PRIV-001), `insecure_storage` (PRIV-005), `tracking_without_consent_check` (PRIV-007), `data_retention` (PRIV-008) |
+
+Some checks only see the files you pass. `circular_imports` and `orphan_endpoints` need the files that import each other or call each other, so run them on a directory or the whole repository, not on one file.
+
+`osv_lookup` needs network access, and only reads versions it can pin exactly, such as `requests==2.19.0` in `requirements.txt`. It reads `package.json`, `pubspec.yaml`, `requirements.txt` and `pyproject.toml`.
+
+## Which playbooks apply
+
+A playbook is a review method an agent can follow. `get_rules` lists the playbooks of an agent. `plan_review` goes further and says which ones fit the review in front of it.
+
+| Agent | Playbooks |
+| --- | --- |
+| `security` | `agentic-actions-auditor`, `differential-review`, `fp-check`, `insecure-defaults`, `sharp-edges`, `variant-analysis` |
+| `qa_synthesis` | `fp-check`, `vulnerability-triage-brocards` |
+| `dependency` | `vulnerability-triage-brocards` |
+| `api_contract` | `sharp-edges` |
+| `data_privacy` | `insecure-defaults` |
+
+`plan_review` points the `security` agent to `differential-review` when the scope is a diff, and to `agentic-actions-auditor` when files under `.github/workflows/` are in scope. It points `qa_synthesis` to `fp-check` and `vulnerability-triage-brocards`. See [Playbooks](playbooks.md).
+
+## Presets
+
+A preset is a named set of agents. Pass its name as `preset` to `plan_review`.
+
+| Preset | Agents |
+| --- | --- |
+| `full` | All 10 |
+| `core` | `code_quality`, `architecture`, `security`, `metrics`, `dependency`, `qa_synthesis` |
+| `security-audit` | `security`, `data_privacy`, `dependency`, `qa_synthesis` |
+| `performance-review` | `performance`, `metrics`, `architecture`, `qa_synthesis` |
+| `quick-scan` | `code_quality`, `security`, `qa_synthesis` |
+| `compliance-gdpr`, `compliance-hipaa`, `compliance-pci` | `data_privacy`, `qa_synthesis` |
+| `type-safety` | `type_safety`, `code_quality`, `qa_synthesis` |
+| `api-review` | `api_contract`, `security`, `qa_synthesis` |
+
+## Languages
+
+Files are matched to a language by extension: Python, TypeScript, JavaScript, Java, Kotlin, Go, Rust, Dart, C#, PHP, Ruby, Swift, C and C++. Some checks only apply to some of them. The type checks, for example, cover TypeScript, Python and Java.

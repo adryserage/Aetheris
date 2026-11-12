@@ -71,7 +71,7 @@ The 10 agents hold 152 rules, stored as YAML files in [`aetheris/rules/`](https:
 
 ## What leaves your machine
 
-In local mode, Aetheris reads files under your project directory and sends nothing to any AI provider. The only network call is `check_vulnerabilities`, which sends package names and versions to the OSV API. Your assistant's own provider still sees whatever your assistant reads, as it does without Aetheris.
+In local mode, Aetheris reads files under your project directory and sends nothing to any AI provider. The only network call is the dependency agent's `osv_lookup` check (`run_checks` with `agent="dependency"`), which sends package names and versions to the OSV API. Your assistant's own provider still sees whatever your assistant reads, as it does without Aetheris.
 
 ## Contributing
 
