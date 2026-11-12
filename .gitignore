@@ -122,3 +122,7 @@ MANIFEST
 # Generated analysis reports (but not docs structure)
 /docs/analyses/
 /docs/metrics/
+
+# Local assistant instructions, never committed
+CLAUDE.md
+.claude/
