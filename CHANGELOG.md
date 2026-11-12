@@ -7,6 +7,8 @@ et la numérotation augmente le dernier chiffre pour un petit changement, celui 
 
 ## [Unreleased]
 
+## [5.0.0] - 2026-11-12
+
 ### 🔄 Compatibilité
 
 - Le serveur passe au SDK MCP 2 (`mcp>=2.3,<3`). Les six outils, leurs schémas et leurs messages d'erreur ne changent pas. `serverInfo.version` donne maintenant la version d'Aetheris au lieu de celle du SDK.
@@ -1375,7 +1377,8 @@ et la numérotation augmente le dernier chiffre pour un petit changement, celui 
 - Génération de rapports détaillés en Markdown
 - Configuration flexible via variables d'environnement
 
-[Unreleased]: https://github.com/adryserage/aetheris/compare/v4.0.1...HEAD
+[Unreleased]: https://github.com/adryserage/aetheris/compare/v5.0.0...HEAD
+[5.0.0]: https://github.com/adryserage/aetheris/compare/v4.0.1...v5.0.0
 [4.0.1]: https://github.com/adryserage/aetheris/compare/v4.0.0...v4.0.1
 [4.0.0]: https://github.com/adryserage/aetheris/compare/v3.0.0...v4.0.0
 [3.0.0]: https://github.com/adryserage/aetheris/compare/v2.13.0...v3.0.0
