@@ -135,6 +135,24 @@ def resolve_in_root(root: Path, rel: str) -> Path:
     return candidate
 
 
+def check_label(raw: str) -> str:
+    """A path the client sent with a file's content: only a label, never opened.
+
+    It must be relative, without `..`, a NUL byte or a drive letter. Returns it normalized.
+    """
+    parts = raw.replace("\\", "/").split("/")
+    if "\0" in raw:
+        raise ValueError("path contains a NUL byte")
+    if raw.startswith(("/", "\\")) or (len(raw) > 1 and raw[1] == ":"):
+        raise ValueError(f"path must be relative: {raw[:200]}")
+    if ".." in parts:
+        raise ValueError(f"path must not contain '..': {raw[:200]}")
+    label = "/".join(part for part in parts if part not in ("", "."))
+    if not label:
+        raise ValueError("path is empty")
+    return label
+
+
 def to_rel(root: Path, path: Path) -> str:
     return path.relative_to(root).as_posix()
 

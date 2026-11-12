@@ -39,6 +39,7 @@ vulnerabilities (OSV), metrics, circular imports and code patterns. It needs no 
   aetheris install     add the server to Claude Code, Cursor and Claude Desktop
   aetheris uninstall   remove it
   aetheris serve       run the server over stdio (what your assistant launches)
+  aetheris serve --http  run the hosted server over HTTP (needs the `hosted` extra)
 
 Then ask your assistant: "review my changes with Aetheris".
 """
@@ -235,7 +236,12 @@ def build_parser() -> argparse.ArgumentParser:
             action="store_true",
             help="use the current project's configuration instead of the user's",
         )
-    sub.add_parser("serve", help="run the MCP server over stdio")
+    serve = sub.add_parser("serve", help="run the MCP server over stdio")
+    serve.add_argument(
+        "--http",
+        action="store_true",
+        help="run the hosted HTTP server instead (configured through environment variables)",
+    )
     return parser
 
 
@@ -247,6 +253,11 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(args_in)
     if args.command is None:
         print(OVERVIEW)
+        return 0
+    if args.command == "serve" and args.http:
+        from aetheris.hosted import main as serve_http
+
+        serve_http()
         return 0
     if args.command == "serve":
         from aetheris.server import main as serve

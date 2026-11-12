@@ -1,4 +1,7 @@
-"""MCP server (stdio). Six tools that drive a code review; no AI API is ever called.
+"""MCP server. Six tools that drive a code review; no AI API is ever called.
+
+Local mode (stdio) reads the project on disk. Hosted mode (aetheris.hosted, over HTTP) never
+touches a disk: the assistant sends the contents of the files to check.
 
 Playbooks are review methods adapted from third-party sources (aetheris/playbooks/); get_playbook
 returns one with its attribution block, which must travel with any reproduction.
@@ -8,18 +11,23 @@ import functools
 import json
 import logging
 import sys
+import time
 from collections import Counter
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from typing import Any, Literal
 
+import anyio
 from mcp.server.fastmcp import FastMCP
+from pydantic import BaseModel
 
 from aetheris import __version__, registry
 from aetheris.changes import changed_files
 from aetheris.checks import CHECKS, CheckContext
 from aetheris.domain import AGENT_IDS, AgentId, Finding, severity_rank
 from aetheris.files import (
+    MAX_FILE_BYTES,
     MAX_FILES,
+    check_label,
     is_manifest,
     language_of,
     project_root,
@@ -28,16 +36,28 @@ from aetheris.files import (
 from aetheris.synthesis import synthesize
 
 MAX_FINDINGS = 200
+MAX_SENT_FILES = 100
 log = logging.getLogger("aetheris")
 
-NEXT_STEPS = (
-    "For each agent listed: 1) call get_rules(agent) and read the rules; 2) call "
-    "run_checks(agent, paths) to get deterministic findings; 3) read the listed files and judge "
+_STEPS = (
+    "For each agent listed: 1) call get_rules(agent) and read the rules; 2) call {run} to get "
+    "deterministic findings; 3) read the listed files and judge "
     "them against the rules, adding your own findings (source='assistant', same schema as "
     "the Finding schema returned by get_rules). Finish with synthesize_report(findings) on all "
     "findings together, and report its score and top findings. Review qa_synthesis last. "
     "When an agent lists playbooks, read each one with get_playbook(id) before judging, and "
     "keep its attribution if you reproduce it."
+)
+NEXT_STEPS = _STEPS.format(run="run_checks(agent, paths)")
+HOSTED_NEXT_STEPS = (
+    "This Aetheris server cannot see your files: you send their contents. "
+    + _STEPS.format(
+        run=(
+            f"run_checks(agent, files) with the path and full content of each file (at most "
+            f"{MAX_SENT_FILES} files of {MAX_FILE_BYTES // 2**20} MB each per call; split larger "
+            "reviews into several calls)"
+        )
+    )
 )
 
 _CODE_REASONS: dict[AgentId, str] = {
@@ -122,6 +142,26 @@ def list_agents() -> dict[str, Any]:
     }
 
 
+def _plan(
+    selected: list[str], scope: str, preset: str | None, agents: list[AgentId] | None
+) -> dict[str, Any]:
+    files = sorted(
+        selected,
+        key=lambda f: (0 if language_of(f) else 1 if is_manifest(f) else 2, f),
+    )
+    languages = Counter(lang for f in files if (lang := language_of(f)))
+    return {
+        "scope": scope,
+        "files": files,
+        "file_count": len(files),
+        "languages": dict(languages.most_common()),
+        "agents": [
+            {**a, "playbooks": _playbooks_for(a["id"], scope, files)}
+            for a in _select_agents(files, preset, agents)
+        ],
+    }
+
+
 def plan_review(
     scope: Literal["diff", "paths", "repo"] = "diff",
     paths: list[str] | None = None,
@@ -143,25 +183,55 @@ def plan_review(
         selection = select_files(root, paths)
     else:
         selection = select_files(root)
-    files = sorted(
-        selection.files,
-        key=lambda f: (0 if language_of(f) else 1 if is_manifest(f) else 2, f),
-    )
-    languages = Counter(lang for f in files if (lang := language_of(f)))
     return {
         "root": str(root),
-        "scope": scope,
+        **_plan(selection.files, scope, preset, agents),
         "base": base if scope == "diff" else None,
-        "files": files,
-        "file_count": len(files),
         "truncated": selection.truncated,
         "max_files": MAX_FILES,
-        "languages": dict(languages.most_common()),
-        "agents": [
-            {**a, "playbooks": _playbooks_for(a["id"], scope, files)}
-            for a in _select_agents(files, preset, agents)
-        ],
         "next_steps": NEXT_STEPS,
+    }
+
+
+class NamedFile(BaseModel):
+    """A file to review. Only path is used to plan; content may be left out."""
+
+    path: str
+    content: str | None = None
+
+
+class SentFile(BaseModel):
+    """A file to check: path is a label (relative, no '..'), content is its full text."""
+
+    path: str
+    content: str
+
+
+def _within_limit(files: list[Any]) -> None:
+    if len(files) > MAX_SENT_FILES:
+        raise ValueError(
+            f"{len(files)} files sent; the limit is {MAX_SENT_FILES} per call, "
+            "split them into several calls"
+        )
+
+
+def plan_sent_files(
+    files: list[NamedFile] | None = None,
+    preset: str | None = None,
+    agents: list[AgentId] | None = None,
+) -> dict[str, Any]:
+    """Plan a review of files you will send: priority order, languages, agents, next steps.
+
+    Pass the files you mean to review (path is enough here). Agents are chosen from the file
+    names. The server never sees your project: run_checks needs the contents.
+    """
+    named = files or []
+    _within_limit(named)
+    labels = list(dict.fromkeys(check_label(f.path) for f in named))
+    return {
+        **_plan(labels, "provided", preset, agents),
+        "max_files": MAX_SENT_FILES,
+        "next_steps": HOSTED_NEXT_STEPS,
     }
 
 
@@ -209,29 +279,52 @@ def get_playbook(id: str) -> dict[str, Any]:
     }
 
 
-def run_checks(agent: AgentId, paths: list[str] | None = None) -> dict[str, Any]:
-    """Run the deterministic checks of one agent on paths (default: the whole repo)."""
-    root = project_root()
-    selection = select_files(root, paths)
+def _run(agent: AgentId, ctx: CheckContext, truncated: bool) -> dict[str, Any]:
     checks = CHECKS[agent]
     result: dict[str, Any] = {"agent": agent, "checks": list(checks)}
     if not checks:
         result["note"] = "qa_synthesis has no deterministic checks; call synthesize_report."
-    ctx = CheckContext(root=root, files=selection.files)
     findings: list[Finding] = []
     for name, check in checks.items():
         try:
             findings.extend(check(ctx))
         except Exception as exc:  # one broken check must not hide the others
-            log.exception("check %s failed", name)
+            # The exception text can quote file content: it goes to the client, not to the log.
+            log.error("check %s failed: %s", name, type(exc).__name__)
             ctx.errors.append(f"{name}: {type(exc).__name__}: {exc}"[:300])
     findings.sort(key=lambda f: (severity_rank(f.severity), f.file or "", f.line or 0))
     result.update(
-        checked_files=len(selection.files),
+        checked_files=len(ctx.files),
         findings=[f.model_dump(exclude_none=True) for f in findings[:MAX_FINDINGS]],
         finding_count=len(findings),
         errors=ctx.errors,
-        truncated=selection.truncated or len(findings) > MAX_FINDINGS,
+        truncated=truncated or len(findings) > MAX_FINDINGS,
+    )
+    return result
+
+
+def run_checks(agent: AgentId, paths: list[str] | None = None) -> dict[str, Any]:
+    """Run the deterministic checks of one agent on paths (default: the whole repo)."""
+    root = project_root()
+    selection = select_files(root, paths)
+    return _run(agent, CheckContext(root=root, files=selection.files), selection.truncated)
+
+
+def check_sent_files(agent: AgentId, files: list[SentFile]) -> dict[str, Any]:
+    """Run the deterministic checks of one agent on the files you send (path and full content).
+
+    At most 100 files of 1 MB each per call. Evidence in findings is redacted.
+    """
+    _within_limit(files)
+    started = time.monotonic()
+    ctx = CheckContext.from_contents((f.path, f.content) for f in files)
+    result = _run(agent, ctx, truncated=False)
+    log.info(
+        "run_checks agent=%s files=%d bytes=%d duration_ms=%d",
+        agent,
+        len(files),
+        sum(len(f.content.encode("utf-8")) for f in files),
+        (time.monotonic() - started) * 1000,
     )
     return result
 
@@ -249,11 +342,41 @@ def _compact(fn: Callable[..., dict[str, Any]]) -> Callable[..., str]:
     return wrapper
 
 
-def build_server() -> FastMCP:
-    mcp = FastMCP("aetheris", instructions=NEXT_STEPS)
-    tools = (list_agents, plan_review, get_rules, get_playbook, run_checks, synthesize_report)
-    for tool in tools:
-        mcp.tool(structured_output=False)(_compact(tool))
+def _in_thread(fn: Callable[..., str]) -> Callable[..., Awaitable[str]]:
+    """Keep the HTTP event loop free while a check reads, parses or calls OSV."""
+
+    @functools.wraps(fn)
+    async def wrapper(*args: Any, **kwargs: Any) -> str:
+        return await anyio.to_thread.run_sync(functools.partial(fn, *args, **kwargs))
+
+    return wrapper
+
+
+def build_server(hosted: bool = False) -> FastMCP:
+    """Local mode reads the project on disk; hosted mode only sees the contents it is sent."""
+    if not hosted:
+        mcp = FastMCP("aetheris", instructions=NEXT_STEPS)
+        tools = (list_agents, plan_review, get_rules, get_playbook, run_checks, synthesize_report)
+        for tool in tools:
+            mcp.tool(structured_output=False)(_compact(tool))
+        return mcp
+    mcp = FastMCP(
+        "aetheris",
+        instructions=HOSTED_NEXT_STEPS,
+        host="0.0.0.0",  # Host and Origin are checked by aetheris.hosted, not by FastMCP
+        stateless_http=True,
+        json_response=True,
+    )
+    hosted_tools = (
+        ("list_agents", list_agents),
+        ("plan_review", plan_sent_files),
+        ("get_rules", get_rules),
+        ("get_playbook", get_playbook),
+        ("run_checks", check_sent_files),
+        ("synthesize_report", synthesize_report),
+    )
+    for name, fn in hosted_tools:
+        mcp.tool(name=name, structured_output=False)(_in_thread(_compact(fn)))
     return mcp
 
 

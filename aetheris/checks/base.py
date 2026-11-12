@@ -1,12 +1,12 @@
 """Shared plumbing for the deterministic checks."""
 
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from aetheris.domain import AgentId, Finding, Severity
-from aetheris.files import language_of, read_text
+from aetheris.files import MAX_FILE_BYTES, check_label, language_of, read_text
 
 MAX_PER_FILE_PATTERN = 20
 COMMENT_PREFIXES = ("//", "#", "*", "/*")
@@ -14,14 +14,32 @@ COMMENT_PREFIXES = ("//", "#", "*", "/*")
 
 @dataclass
 class CheckContext:
-    root: Path
+    """The files a check sees. root=None means the contents were sent and the disk is never read."""
+
+    root: Path | None
     files: list[str]
     errors: list[str] = field(default_factory=list)
     _cache: dict[str, str | None] = field(default_factory=dict)
 
+    @classmethod
+    def from_contents(cls, files: Iterable[tuple[str, str]]) -> "CheckContext":
+        """Files sent as (path, content). Paths are labels: relative, no `..`, no NUL byte.
+
+        Same rules as a file read from disk: over MAX_FILE_BYTES is refused, binary is skipped.
+        """
+        cache: dict[str, str | None] = {}
+        for raw, content in files:
+            rel = check_label(raw)
+            if rel in cache:
+                raise ValueError(f"path sent twice: {rel}")
+            if len(content.encode("utf-8")) > MAX_FILE_BYTES:
+                raise ValueError(f"{rel}: content exceeds the limit of {MAX_FILE_BYTES} bytes")
+            cache[rel] = None if "\0" in content[:1024] else content
+        return cls(root=None, files=list(cache), _cache=cache)
+
     def read(self, rel: str) -> str | None:
         if rel not in self._cache:
-            self._cache[rel] = read_text(self.root, rel)
+            self._cache[rel] = None if self.root is None else read_text(self.root, rel)
         return self._cache[rel]
 
     def code_files(self) -> list[str]:
