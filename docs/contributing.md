@@ -9,6 +9,8 @@ The full guide is [CONTRIBUTING.md](https://github.com/adryserage/aetheris/blob/
 - setting up a development environment and running the tests;
 - opening a pull request against the `main` branch.
 
+Versions before 4.0 were proprietary while we built the foundation. Aetheris now needs new features, so it is open under the Apache License 2.0: developers and anyone else who wants to help can shape how it grows and make a real difference for the people who use it.
+
 Report security issues privately, as described in [Security](security.md).
 
 Only the repository administrator cuts releases, as described in [Releasing](releasing.md).
