@@ -46,3 +46,17 @@ def test_sorted_by_severity_then_file_and_top_is_capped():
     ]
     top = synthesize_report(items)["top_findings"]
     assert len(top) == 20 and top[0]["file"] == "z.py" and top[1]["file"] == "f00.py"
+
+
+def test_two_line_less_findings_with_one_rule_stay_separate():
+    def osv(package: str) -> Finding:
+        return Finding(
+            agent="dependency",
+            severity="high",
+            file="requirements.txt",
+            rule_id="DEP-001",
+            message=f"osv_lookup: {package}@1.0 has known vulnerabilities",
+        )
+
+    report = synthesize_report([osv("django"), osv("flask"), osv("flask")])
+    assert report["total"] == 2 and report["duplicates_removed"] == 1

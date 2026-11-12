@@ -10,7 +10,9 @@ _PY = ("python",)
 PATTERNS = [
     pattern("any_usage", r":\s*any\b|<any>|\bas\s+any\b", "medium", "'any' disables checks", _TS),
     pattern("unsafe_cast", r"\bas\s+unknown\s+as\b", "high", "double cast hides type errors", _TS),
-    pattern("unsafe_cast", r"\w!\.|\w!\[", "high", "non-null assertion", _TS, ignore_case=False),
+    pattern(
+        "non_null_assertion", r"\w!\.|\w!\[", "high", "non-null assertion", _TS, ignore_case=False
+    ),
     pattern(
         "type_ignore",
         r"@ts-ignore|@ts-nocheck|@ts-expect-error",
@@ -34,7 +36,7 @@ PATTERNS = [
         "compiler warnings suppressed",
         ("java",),
     ),
-    pattern("any_usage", r"<\?>", "low", "unbounded wildcard", ("java",)),
+    pattern("raw_generic", r"<\?>", "low", "unbounded wildcard", ("java",)),
     pattern("null_safety", r"\breturn\s+null\b", "low", "returns null", ("java",)),
 ]
 

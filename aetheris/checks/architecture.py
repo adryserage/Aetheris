@@ -4,7 +4,7 @@ import ast
 import re
 from pathlib import PurePosixPath
 
-from aetheris.checks.base import CheckContext
+from aetheris.checks.base import CheckContext, make_finding
 from aetheris.domain import Finding
 from aetheris.files import language_of
 
@@ -176,12 +176,13 @@ def circular_imports(ctx: CheckContext) -> list[Finding]:
         shown = ", ".join(component[:MAX_CYCLE_FILES_SHOWN])
         extra = len(component) - MAX_CYCLE_FILES_SHOWN
         findings.append(
-            Finding(
-                agent="architecture",
-                severity="high",
-                file=component[0],
-                message=f"circular_imports: {len(component)} files import each other: {shown}"
+            make_finding(
+                "circular_imports",
+                "architecture",
+                "high",
+                f"{len(component)} files import each other: {shown}"
                 + (f" (+{extra} more)" if extra > 0 else ""),
+                component[0],
             )
         )
     return findings

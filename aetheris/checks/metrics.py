@@ -4,7 +4,7 @@ import ast
 import re
 from dataclasses import dataclass, field
 
-from aetheris.checks.base import CheckContext
+from aetheris.checks.base import CheckContext, make_finding
 from aetheris.domain import Finding, Severity
 from aetheris.files import language_of
 
@@ -230,15 +230,14 @@ def file_metrics(ctx: CheckContext) -> list[Finding]:
             continue
         m = compute_metrics(content, language_of(rel))
         findings.append(
-            Finding(
-                agent="metrics",
-                severity="info",
-                file=rel,
-                message=(
-                    f"file_metrics: lines={m.lines} code_lines={m.code_lines} "
-                    f"complexity={m.complexity} max_nesting={m.max_nesting} "
-                    f"functions={len(m.functions)}"
-                ),
+            make_finding(
+                "file_metrics",
+                "metrics",
+                "info",
+                f"lines={m.lines} code_lines={m.code_lines} "
+                f"complexity={m.complexity} max_nesting={m.max_nesting} "
+                f"functions={len(m.functions)}",
+                rel,
             )
         )
     return findings
@@ -254,30 +253,32 @@ def metric_thresholds(ctx: CheckContext) -> list[Finding]:
             if fn.complexity > COMPLEXITY_LIMIT:
                 findings.append(
                     _quality(
+                        "complexity",
                         rel,
                         fn.line,
                         "medium",
-                        f"complexity: {fn.name} has cyclomatic complexity {fn.complexity} "
+                        f"{fn.name} has cyclomatic complexity {fn.complexity} "
                         f"(limit {COMPLEXITY_LIMIT})",
                     )
                 )
             if fn.nesting > NESTING_LIMIT:
                 findings.append(
                     _quality(
+                        "nesting",
                         rel,
                         fn.line,
                         "low",
-                        f"nesting: {fn.name} nests {fn.nesting} levels deep (limit {NESTING_LIMIT})",
+                        f"{fn.name} nests {fn.nesting} levels deep (limit {NESTING_LIMIT})",
                     )
                 )
             if fn.length > FUNCTION_LENGTH_LIMIT:
                 findings.append(
                     _quality(
+                        "function_length",
                         rel,
                         fn.line,
                         "low",
-                        f"function_length: {fn.name} is {fn.length} lines "
-                        f"(limit {FUNCTION_LENGTH_LIMIT})",
+                        f"{fn.name} is {fn.length} lines " f"(limit {FUNCTION_LENGTH_LIMIT})",
                     )
                 )
     return findings
@@ -292,20 +293,15 @@ def duplicate_blocks(ctx: CheckContext) -> list[Finding]:
         for start, end, first in find_duplicate_blocks(content):
             findings.append(
                 _quality(
+                    "duplicate_block",
                     rel,
                     start,
                     "low",
-                    f"duplicate_block: lines {start}-{end} repeat the block at line {first}",
+                    f"lines {start}-{end} repeat the block at line {first}",
                 )
             )
     return findings
 
 
-def _quality(rel: str, line: int, severity: Severity, message: str) -> Finding:
-    return Finding(
-        agent="code_quality",
-        severity=severity,
-        file=rel,
-        line=line,
-        message=message,
-    )
+def _quality(name: str, rel: str, line: int, severity: Severity, message: str) -> Finding:
+    return make_finding(name, "code_quality", severity, message, rel, line)

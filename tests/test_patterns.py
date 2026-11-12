@@ -56,3 +56,44 @@ def test_privacy_ssn_card_and_logging(repo):
     assert any(m.startswith("credit_card") for m in found)
     assert any(m.startswith("pii_logging") for m in found)
     assert "4111 1111 1111 1111" not in str(run_checks("data_privacy"))
+
+
+SQL_POSITIVE = [
+    'q = "SELECT * FROM u WHERE id=" + uid',
+    'q = "SELECT * FROM u WHERE id=%s" % uid',
+    'q = f"SELECT * FROM u WHERE id={uid}"',
+    'q = "DELETE FROM u WHERE id={}".format(uid)',
+    "const q = `SELECT * FROM u WHERE id=${id}`;",
+    "cur.execute('UPDATE u SET n=' + name)",
+]
+SQL_NEGATIVE = [
+    'cur.execute("SELECT * FROM u WHERE id=%s", (uid,))',
+    'menu_label = "Please select an item from " + menu',
+    'print(f"delete from cache {key}")',
+    'q = "INSERT INTO u (a) VALUES (?)"',
+]
+
+
+def _sql_hits(repo, lines: list[str]) -> list[str]:
+    write(repo, "db.py", "\n".join(lines) + "\n")
+    return [m for m in messages("security") if m.startswith("sql_injection")]
+
+
+def test_sql_injection_true_positives(repo):
+    assert len(_sql_hits(repo, SQL_POSITIVE)) == len(SQL_POSITIVE)
+
+
+def test_sql_injection_true_negatives(repo):
+    assert _sql_hits(repo, SQL_NEGATIVE) == []
+
+
+def test_security_findings_carry_rule_ids(repo):
+    write(repo, "a.js", "el.innerHTML = x;\nrun(eval(y));\nconst r = Math.random();\n")
+    write(repo, "b.py", 'q = "SELECT * FROM u WHERE id=" + uid\n')
+    found = {f["message"].split(":")[0]: f["rule_id"] for f in run_checks("security")["findings"]}
+    assert found == {
+        "xss": "SEC-003",
+        "dynamic_eval": "SEC-004",
+        "insecure_random": "SEC-008",
+        "sql_injection": "SEC-001",
+    }

@@ -3,7 +3,7 @@
 import re
 from dataclasses import dataclass
 
-from aetheris.checks.base import CheckContext
+from aetheris.checks.base import CheckContext, make_finding
 from aetheris.domain import Finding, Severity
 from aetheris.files import MAX_FILE_BYTES
 
@@ -143,13 +143,14 @@ def secret_scan(ctx: CheckContext) -> list[Finding]:
                 continue
             for hit in find_secrets(line):
                 findings.append(
-                    Finding(
-                        agent="security",
-                        severity=_SEVERITY[hit.confidence],
-                        file=rel,
-                        line=number,
-                        message=f"secret_scan: possible {hit.name.replace('_', ' ')}",
-                        evidence=redact(line.strip())[:120],
+                    make_finding(
+                        "secret_scan",
+                        "security",
+                        _SEVERITY[hit.confidence],
+                        f"possible {hit.name.replace('_', ' ')}",
+                        rel,
+                        number,
+                        redact(line.strip())[:120],
                     )
                 )
     return findings

@@ -7,6 +7,7 @@ Serveur MCP open source (Apache 2.0) qui donne à l'assistant de code IA les rè
 ## Commandes
 
 - Installer : `pip install -e . pytest pytest-cov` (Python 3.10 ou plus)
+- Installer le serveur dans les clients : `aetheris install` (Claude Code, Cursor, Claude Desktop ; `--client`, `--project`), `aetheris uninstall` pour le retirer.
 - Lancer le serveur MCP (stdio) : `adryserage-aetheris` ou `python -m aetheris`, depuis le dossier du projet à relire, ou avec `AETHERIS_ROOT=<dossier>`. Depuis le dépôt sans installer : `uvx --from . adryserage-aetheris`.
 - Tester : `pytest tests -q` (tests hors ligne, OSV simulé)
 - Lint, comme la CI : `black --check --line-length 100 aetheris tests`, `isort --check-only --profile black aetheris tests`, `flake8 aetheris tests --max-line-length=100 --extend-ignore=E203,W503,E501,E402,F401`
@@ -17,9 +18,10 @@ Serveur MCP open source (Apache 2.0) qui donne à l'assistant de code IA les rè
 ## Structure
 
 - `aetheris/server.py` : le serveur MCP et ses cinq outils (`list_agents`, `plan_review`, `get_rules`, `run_checks`, `synthesize_report`).
+- `aetheris/cli.py` : la commande `aetheris` (installation dans les clients, message de migration pour les anciennes commandes 3.x, qui sortent avec le code 2).
 - `aetheris/domain.py` : les types `Rule`, `Agent` et `Finding`, et les identifiants des 10 agents.
 - `aetheris/rules/<agent>.yaml` : les règles de revue de chaque agent. `aetheris/registry.py` les charge, les valide et définit les préréglages.
-- `aetheris/checks/` : les vérifications sans IA, un module par famille. `CHECK_NAMES` dans `checks/__init__.py` dit quel agent lance quoi.
+- `aetheris/checks/` : les vérifications sans IA, un module par famille. `CHECK_NAMES` dans `checks/__init__.py` dit quel agent lance quoi, et `RULE_IDS` dans `checks/base.py` relie chaque motif à sa règle. Tout résultat passe par `make_finding`.
 - `aetheris/files.py` et `aetheris/changes.py` : choix des fichiers (`.gitignore`, exclusions, limite au dossier du projet) et diff git.
 - `aetheris/synthesis.py` : la synthèse QA (dédoublonnage, tri, score).
 - `tests/` : tests pytest du comportement de chaque outil.

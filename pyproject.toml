@@ -61,6 +61,7 @@ Changelog = "https://github.com/adryserage/aetheris/blob/main/CHANGELOG.md"
 
 [project.scripts]
 adryserage-aetheris = "aetheris.server:main"
+aetheris = "aetheris.cli:entry"
 
 [tool.setuptools.packages.find]
 where = ["."]

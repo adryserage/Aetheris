@@ -9,7 +9,7 @@ from typing import Any
 import requests
 import yaml
 
-from aetheris.checks.base import CheckContext
+from aetheris.checks.base import CheckContext, make_finding
 from aetheris.domain import Finding
 
 log = logging.getLogger(__name__)
@@ -94,11 +94,12 @@ def manifest_parse(ctx: CheckContext) -> list[Finding]:
                 parser(content)
             except _PARSE_ERRORS as exc:
                 findings.append(
-                    Finding(
-                        agent="dependency",
-                        severity="low",
-                        file=rel,
-                        message=f"manifest_parse: cannot parse {Path(rel).name}: {exc}"[:200],
+                    make_finding(
+                        "manifest_parse",
+                        "dependency",
+                        "low",
+                        f"cannot parse {Path(rel).name}: {exc}"[:200],
+                        rel,
                     )
                 )
     return findings
@@ -150,12 +151,13 @@ def osv_lookup(ctx: CheckContext) -> list[Finding]:
             if ids:
                 shown = ", ".join(ids[:5]) + (f" (+{len(ids) - 5} more)" if len(ids) > 5 else "")
                 findings.append(
-                    Finding(
-                        agent="dependency",
-                        severity="high",
-                        file=rel,
-                        message=f"osv_lookup: {name}@{version} has known vulnerabilities: {shown}; "
+                    make_finding(
+                        "osv_lookup",
+                        "dependency",
+                        "high",
+                        f"{name}@{version} has known vulnerabilities: {shown}; "
                         "see https://osv.dev/vulnerability/<id> for severity and the fixed version",
+                        rel,
                     )
                 )
     return findings

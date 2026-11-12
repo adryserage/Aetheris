@@ -3,7 +3,7 @@
 import re
 from dataclasses import dataclass
 
-from aetheris.checks.base import CheckContext, is_comment
+from aetheris.checks.base import CheckContext, is_comment, make_finding
 from aetheris.checks.secrets import redact
 from aetheris.domain import Finding, Severity
 
@@ -74,14 +74,15 @@ def _collect(ctx: CheckContext) -> tuple[list[Route], list[Route]]:
     return routes, calls
 
 
-def _finding(severity: Severity, route: Route, message: str) -> Finding:
-    return Finding(
-        agent="api_contract",
-        severity=severity,
-        file=route.file,
-        line=route.line,
-        message=message,
-        evidence=redact(route.path)[:120],
+def _finding(name: str, severity: Severity, route: Route, message: str) -> Finding:
+    return make_finding(
+        name,
+        "api_contract",
+        severity,
+        message,
+        route.file,
+        route.line,
+        redact(route.path)[:120],
     )
 
 
@@ -92,9 +93,10 @@ def api_patterns(ctx: CheckContext) -> list[Finding]:
         if any(_VERB_SEGMENT.match(s) for s in route.segments):
             findings.append(
                 _finding(
+                    "verb_in_url",
                     "low",
                     route,
-                    f"verb_in_url: {route.method} {route.path} puts a verb in the URL; "
+                    f"{route.method} {route.path} puts a verb in the URL; "
                     "name the resource and let the HTTP method carry the action",
                 )
             )
@@ -110,9 +112,10 @@ def orphan_endpoints(ctx: CheckContext) -> list[Finding]:
         if not any(_matches(route.segments, c.segments) for c in calls):
             findings.append(
                 _finding(
+                    "orphan_endpoint",
                     "info",
                     route,
-                    f"orphan_endpoint: no call to {route.method} {route.path} in the "
+                    f"no call to {route.method} {route.path} in the "
                     "inspected files (external clients may still use it)",
                 )
             )
@@ -121,9 +124,10 @@ def orphan_endpoints(ctx: CheckContext) -> list[Finding]:
         if relative and not any(_matches(r.segments, call.segments) for r in routes):
             findings.append(
                 _finding(
+                    "orphan_call",
                     "medium",
                     call,
-                    f"orphan_call: {call.path} matches no route defined in the inspected files",
+                    f"{call.path} matches no route defined in the inspected files",
                 )
             )
     return findings

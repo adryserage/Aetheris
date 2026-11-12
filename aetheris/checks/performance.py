@@ -2,7 +2,13 @@
 
 import re
 
-from aetheris.checks.base import CheckContext, is_comment, pattern, scan_patterns
+from aetheris.checks.base import (
+    CheckContext,
+    is_comment,
+    make_finding,
+    pattern,
+    scan_patterns,
+)
 from aetheris.checks.secrets import redact
 from aetheris.domain import Finding, Severity
 
@@ -58,14 +64,14 @@ def _loop_findings(ctx: CheckContext) -> list[Finding]:
                     outer = stack[-1][1]
                     reported_outer.add(outer)
                     findings.append(
-                        Finding(
-                            agent="performance",
-                            severity="medium",
-                            file=rel,
-                            line=outer,
-                            message=f"nested_loops: loop nested at line {number}; "
-                            "quadratic cost on large inputs",
-                            evidence=redact(lines[outer - 1].strip())[:120],
+                        make_finding(
+                            "nested_loops",
+                            "performance",
+                            "medium",
+                            f"loop nested at line {number}; quadratic cost on large inputs",
+                            rel,
+                            outer,
+                            redact(lines[outer - 1].strip())[:120],
                         )
                     )
                 stack.append((indent, number))
@@ -75,13 +81,14 @@ def _loop_findings(ctx: CheckContext) -> list[Finding]:
             for name, regex, severity, message in _IN_LOOP:
                 if regex.search(line):
                     findings.append(
-                        Finding(
-                            agent="performance",
-                            severity=severity,
-                            file=rel,
-                            line=number,
-                            message=f"{name}: {message}",
-                            evidence=redact(stripped)[:120],
+                        make_finding(
+                            name,
+                            "performance",
+                            severity,
+                            message,
+                            rel,
+                            number,
+                            redact(stripped)[:120],
                         )
                     )
     return findings

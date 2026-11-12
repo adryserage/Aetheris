@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from aetheris.checks import CHECK_NAMES
+from aetheris.checks import CHECK_NAMES, RULE_IDS
 from aetheris.domain import AGENT_IDS
 from aetheris.registry import AGENTS, PRESETS, load_agents, rules_dir
 
@@ -51,3 +51,9 @@ def test_invalid_rule_is_rejected(tmp_path):
     )
     with pytest.raises(ValueError):
         load_agents(tmp_path)
+
+
+def test_every_mapped_rule_id_exists_in_the_shipped_rules():
+    shipped = {rule.id for agent in AGENTS.values() for rule in agent.rules}
+    mapped = {rid for rid in RULE_IDS.values() if rid is not None}
+    assert mapped <= shipped

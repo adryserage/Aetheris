@@ -13,10 +13,12 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - 10 agents portant 143 règles de revue, rangées en fichiers YAML dans `aetheris/rules/` : sécurité, architecture, qualité du code, métriques, dépendances, synthèse QA, typage, performance, contrat d'API, données personnelles.
 - Vérifications sans IA : secrets masqués, vulnérabilités connues par OSV, métriques par fonction, imports circulaires, motifs de sécurité, de typage, de performance, d'API et de données personnelles (cartes validées par Luhn), points d'arrivée d'API orphelins.
 - Lecture limitée au dossier du projet (`AETHERIS_ROOT` ou dossier courant). Le seul appel réseau va à OSV.
+- Chaque résultat d'une vérification porte l'identifiant de sa règle (`rule_id`, par exemple SEC-001). La requête SQL construite par concaténation, `%`, `.format()`, f-string ou gabarit JavaScript est détectée.
+- Commande `aetheris install` : ajoute le serveur MCP à Claude Code, Cursor et Claude Desktop, sans toucher aux autres serveurs déjà configurés. `aetheris uninstall` le retire, `aetheris serve` lance le serveur.
 
 ### 💥 Changements incompatibles
 
-- Début de la v4 : Aetheris devient un serveur MCP et n'appelle plus aucune API d'IA. Retrait de la CLI (`aetheris`), de `main.py`, du mode interactif, des fournisseurs Gemini, OpenAI et Claude, de l'orchestrateur, du mode sans interface (`aetheris run`), de l'intégration Claude Code, des commandes GitHub (issues, PR, correctifs), des statistiques, de la traduction de la CLI, du client MCP, des skills, du worker Railway et de l'analyse des user stories. Pour garder la CLI : `pip install "adryserage-aetheris==3.0.0"`.
+- Début de la v4 : Aetheris devient un serveur MCP et n'appelle plus aucune API d'IA. Les anciennes commandes (`aetheris analysis`, `fix`, `pr`, `issues`, `stats`, `run`…) affichent ce qui a changé et sortent avec le code 2. Retrait des commandes d'analyse de la CLI, de `main.py`, du mode interactif, des fournisseurs Gemini, OpenAI et Claude, de l'orchestrateur, du mode sans interface (`aetheris run`), de l'intégration Claude Code, des commandes GitHub (issues, PR, correctifs), des statistiques, de la traduction de la CLI, du client MCP, des skills, du worker Railway et de l'analyse des user stories. Pour garder la CLI : `pip install "adryserage-aetheris==3.0.0"`.
 - Le paquet d'import `src` devient `aetheris`, publié en wheel pur Python. Fin de la compilation Cython. Le sdist contient de nouveau le code source.
 - Dépendances réduites à `mcp`, `pydantic`, `pathspec`, `requests` et `pyyaml`. Python 3.10 ou plus.
 

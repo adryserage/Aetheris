@@ -2,7 +2,7 @@
 
 from aetheris.checks.api_contract import api_patterns, orphan_endpoints
 from aetheris.checks.architecture import circular_imports
-from aetheris.checks.base import Check, CheckContext
+from aetheris.checks.base import RULE_IDS, Check, CheckContext
 from aetheris.checks.data_privacy import pii_patterns
 from aetheris.checks.dependency import manifest_parse, osv_lookup
 from aetheris.checks.metrics import duplicate_blocks, file_metrics, metric_thresholds
@@ -27,4 +27,4 @@ CHECKS: dict[AgentId, dict[str, Check]] = {
 
 CHECK_NAMES: dict[AgentId, tuple[str, ...]] = {a: tuple(c) for a, c in CHECKS.items()}
 
-__all__ = ["CHECKS", "CHECK_NAMES", "Check", "CheckContext"]
+__all__ = ["CHECKS", "CHECK_NAMES", "RULE_IDS", "Check", "CheckContext"]

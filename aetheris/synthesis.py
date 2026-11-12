@@ -9,6 +9,8 @@ TOP_FINDINGS = 20
 
 def _key(finding: Finding) -> tuple[str | None, int | None, str]:
     identity = finding.rule_id or f"{finding.agent}:{finding.message}"
+    if finding.line is None and finding.rule_id:
+        identity = f"{identity}:{finding.message}"
     return (finding.file, finding.line, identity)
 
 

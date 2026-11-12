@@ -19,6 +19,14 @@ Your assistant chooses which tools to call, reads your code and writes the revie
 
 Aetheris runs locally through [`uvx`](https://docs.astral.sh/uv/). There is no account to create.
 
+The quickest way adds it to every client it finds (Claude Code, Cursor, Claude Desktop):
+
+```bash
+uvx --from adryserage-aetheris aetheris install
+```
+
+Add `--client cursor` to pick one client, or `--project` to write the current project's configuration. `aetheris uninstall` removes it. To set it up by hand instead:
+
 ### Claude Code
 
 ```bash
@@ -74,7 +82,7 @@ Aetheris follows [semantic versioning](https://semver.org). Every change is list
 
 ## Coming from 3.x
 
-Version 4.0 removes the command-line tool, the AI provider integrations and the Railway worker. To keep using the CLI, pin the last 3.x release:
+Version 4.0 removes the analysis commands, the AI provider integrations and the Railway worker. The `aetheris` command remains, to install the MCP server. Old commands such as `aetheris analysis` now print what changed and exit with code 2, so a CI job fails with a clear message. To keep using the 3.x CLI, pin the last 3.x release:
 
 ```bash
 pip install "adryserage-aetheris==3.0.0"

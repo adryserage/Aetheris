@@ -2,7 +2,7 @@
 
 import re
 
-from aetheris.checks.base import CheckContext, pattern, scan_patterns
+from aetheris.checks.base import CheckContext, make_finding, pattern, scan_patterns
 from aetheris.checks.secrets import redact
 from aetheris.domain import Finding
 
@@ -73,13 +73,14 @@ def _card_findings(ctx: CheckContext) -> list[Finding]:
                 if 13 <= len(digits) <= 16 and _luhn(digits):
                     masked = line.strip().replace(match.group(0), digits[:4] + "********")
                     findings.append(
-                        Finding(
-                            agent="data_privacy",
-                            severity="high",
-                            file=rel,
-                            line=number,
-                            message="credit_card: number passing the Luhn check",
-                            evidence=redact(masked)[:120],
+                        make_finding(
+                            "credit_card",
+                            "data_privacy",
+                            "high",
+                            "number passing the Luhn check",
+                            rel,
+                            number,
+                            redact(masked)[:120],
                         )
                     )
     return findings
