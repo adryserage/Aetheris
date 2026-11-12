@@ -97,9 +97,9 @@ def mask_secret(value: str, show_start: int = 4, show_end: int = 2) -> str:
 
 def _looks_like_literal(name: str, value: str) -> bool:
     """False for values that are not secrets: documented examples, placeholders, names."""
-    lowered = value.lower()
-    if "example" in lowered:
+    if "EXAMPLE" in value:
         return False  # documented sample keys, such as AWS's AKIA...EXAMPLE
+    lowered = value.lower()
     if name != "generic_secret":
         return True
     return not (_NOT_A_LITERAL.search(value) or any(p in lowered for p in _PLACEHOLDERS))
