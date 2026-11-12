@@ -162,7 +162,6 @@ def language_of(rel: str) -> str | None:
 
 
 TEST_DIRS = frozenset({"tests", "test", "__tests__", "fixtures", "testdata"})
-DOC_SUFFIXES = frozenset({".md", ".rst", ".txt", ".adoc"})
 
 
 def is_test_file(rel: str) -> bool:
@@ -179,10 +178,6 @@ def is_test_file(rel: str) -> bool:
         or ".test." in name
         or ".spec." in name
     )
-
-
-def is_doc_file(rel: str) -> bool:
-    return Path(rel).suffix.lower() in DOC_SUFFIXES
 
 
 def is_manifest(rel: str) -> bool:

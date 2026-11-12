@@ -9,7 +9,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ### 🐛 Corrections
 
-- Moins de faux positifs dans les vérifications. Dans un fichier de test, les motifs de sécurité, de typage, de performance, d'API et de données personnelles passent en `info`, avec la mention « (test file) ». Une clé de fournisseur y reste `critical`. Les secrets génériques d'un fichier de doc passent aussi en `info`.
+- Moins de faux positifs dans les vérifications. Dans un fichier de test, les motifs de code (sécurité, typage, performance, API) passent en `info`, avec la mention « (test file) ». Les secrets et les données personnelles gardent leur gravité partout, tests et doc compris.
 - `secret_scan` ignore les valeurs d'exemple documentées, comme les clés AWS finissant par `EXAMPLE`, et le paramètre d'un en-tête `WWW-Authenticate` (`Bearer resource_metadata="..."`).
 - `nested_loops` passe en gravité `low` et ne signale plus une boucle interne sur un littéral ou une constante. `any_usage` respecte la casse et ne prend plus le mot « any » d'une docstring. `xss` ne vérifie plus que le JavaScript et le TypeScript.
 

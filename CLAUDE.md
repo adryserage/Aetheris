@@ -43,7 +43,8 @@ Serveur MCP open source (Apache 2.0) qui donne à l'assistant de code IA les rè
 ## Règles du projet
 
 - Pas de branche de fonctionnalité : le travail se fait sur `develop`, et on peut y pousser du travail en cours.
-- Une release se décide : le propriétaire choisit le moment. Elle se fait en fusionnant `develop` dans `main`, puis en poussant l'étiquette `vX.Y.Z`. Rien ne publie tout seul.
+- `main` ne change que par une PR de `develop` vers `main`, liée à une issue GitHub qu'elle ferme (`Closes #N`). On ne pousse jamais directement sur `main`.
+- Exception décidée par le propriétaire pour ce dépôt, à la place de la règle globale des releases : pas de release par défaut. Les changements fusionnés restent sous `[Unreleased]`. Une release ne se fait que pour un changement qui touche beaucoup d'utilisateurs avec un effet important, et le propriétaire la décide. Elle se fait alors en poussant l'étiquette `vX.Y.Z` sur `main`. Rien ne publie tout seul.
 - Chaque changement visible pour l'utilisateur ajoute sa ligne dans la section `[Unreleased]` de `CHANGELOG.md`, dans le même commit. `CHANGELOG.md` est l'historique des versions du dépôt (format Keep a Changelog, versionnage sémantique).
 - À chaque release, la section `[Unreleased]` prend le numéro et la date de la version, et `pyproject.toml` est mis à jour. L'étiquette `vX.Y.Z` et la release GitHub suivent la règle globale.
 - Le dépôt n'a ni SpecKit ni skill propre : le travail suit les règles globales et Plane.

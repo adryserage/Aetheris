@@ -26,7 +26,7 @@ ENV = {
     "AETHERIS_HOTES_AUTORISES": "mcp.example.com,testserver",
     "MCP_TOKEN": KEY,
 }
-SECRET = FAKE_AWS_KEY
+LEAKED_KEY = FAKE_AWS_KEY
 MCP_HEADERS = {"Accept": "application/json, text/event-stream"}
 
 
@@ -104,9 +104,9 @@ def test_valid_session_passes_and_expired_session_is_refused():
     valid = (200, {"userId": "u1", "accessTokenExpiresAt": "2099-01-01T00:00:00.000Z"})
     expired = (200, {"userId": "u1", "accessTokenExpiresAt": "2020-01-01T00:00:00.000Z"})
     with client_for(FakeExecutor(valid), clock) as client:
-        assert rpc(client, "initialize", INITIALIZE, token="session-a").status_code == 200
+        assert rpc(client, "initialize", INITIALIZE, token="sess-a").status_code == 200
     with client_for(FakeExecutor(expired), clock) as client:
-        response = rpc(client, "initialize", INITIALIZE, token="session-b")
+        response = rpc(client, "initialize", INITIALIZE, token="sess-b")
     assert response.status_code == 401
     assert response.headers["www-authenticate"].endswith(', error="invalid_token"')
 
@@ -195,17 +195,17 @@ def no_disk(monkeypatch):
 
 def test_run_checks_finds_a_masked_secret_in_sent_content(no_disk, caplog):
     caplog.set_level(logging.INFO, logger="aetheris")
-    files = [{"path": "src/conf.py", "content": f'KEY = "{SECRET}"\n'}]
+    files = [{"path": "src/conf.py", "content": f'KEY = "{LEAKED_KEY}"\n'}]
     with client_for() as client:
         result = call_tool(client, "run_checks", {"agent": "security", "files": files})
         plan = call_tool(client, "plan_review", {"files": [{"path": "src/conf.py"}]})
     text = result["content"][0]["text"]
     payload = json.loads(text)
     assert payload["finding_count"] >= 1 and payload["findings"][0]["file"] == "src/conf.py"
-    assert SECRET not in text
+    assert LEAKED_KEY not in text
     assert json.loads(plan["content"][0]["text"])["scope"] == "provided"
     assert "files=1" in caplog.text
-    assert "src/conf.py" not in caplog.text and SECRET not in caplog.text
+    assert "src/conf.py" not in caplog.text and LEAKED_KEY not in caplog.text
 
 
 @pytest.mark.parametrize(

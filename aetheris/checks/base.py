@@ -116,7 +116,10 @@ Check = Callable[[CheckContext], list[Finding]]
 
 
 def demote_in_tests(findings: list[Finding]) -> list[Finding]:
-    """Code patterns found in a test file drop to info: fixtures hold unsafe code on purpose."""
+    """Code patterns found in a test file drop to info: fixtures hold unsafe code on purpose.
+
+    Not for secrets or personal data: those leak wherever they are committed.
+    """
     return [
         (
             f.model_copy(update={"severity": "info", "message": f"{f.message} (test file)"})
