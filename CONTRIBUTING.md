@@ -72,4 +72,6 @@ Checks are deterministic code in [`aetheris/checks/`](aetheris/checks). They mus
 
 ## License
 
+Versions before 4.0 were proprietary while we built the foundation. Aetheris now needs new features, so it is open under the Apache License 2.0: developers and anyone else who wants to help can shape how it grows and make a real difference for the people who use it.
+
 By contributing, you agree that your contribution is licensed under the [Apache License 2.0](LICENSE), as section 5 of the license states.
