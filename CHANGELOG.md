@@ -7,6 +7,12 @@ et la numérotation augmente le dernier chiffre pour un petit changement, celui 
 
 ## [Unreleased]
 
+## [5.0.1] - 2026-11-12
+
+### 📝 Documentation
+
+- Le guide de contribution explique pourquoi Aetheris est passé sous licence Apache 2.0.
+
 ## [5.0.0] - 2026-11-12
 
 ### 🔄 Compatibilité
@@ -1377,7 +1383,8 @@ et la numérotation augmente le dernier chiffre pour un petit changement, celui 
 - Génération de rapports détaillés en Markdown
 - Configuration flexible via variables d'environnement
 
-[Unreleased]: https://github.com/adryserage/aetheris/compare/v5.0.0...HEAD
+[Unreleased]: https://github.com/adryserage/aetheris/compare/v5.0.1...HEAD
+[5.0.1]: https://github.com/adryserage/aetheris/compare/v5.0.0...v5.0.1
 [5.0.0]: https://github.com/adryserage/aetheris/compare/v4.0.1...v5.0.0
 [4.0.1]: https://github.com/adryserage/aetheris/compare/v4.0.0...v4.0.1
 [4.0.0]: https://github.com/adryserage/aetheris/compare/v3.0.0...v4.0.0
