@@ -16,6 +16,7 @@ from aetheris.hosted import (
     build_app,
     read_config,
 )
+from tests.conftest import FAKE_AWS_KEY
 
 KEY = "k" * 40
 BASE = "https://mcp.example.com/aetheris"
@@ -25,7 +26,7 @@ ENV = {
     "AETHERIS_HOTES_AUTORISES": "mcp.example.com,testserver",
     "MCP_TOKEN": KEY,
 }
-SECRET = "AKIAIOSFODNN7EXAMPLE"
+SECRET = FAKE_AWS_KEY
 MCP_HEADERS = {"Accept": "application/json, text/event-stream"}
 
 

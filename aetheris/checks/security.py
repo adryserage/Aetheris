@@ -1,6 +1,6 @@
 """Security regex patterns. Hardcoded secrets are covered by secret_scan."""
 
-from aetheris.checks.base import CheckContext, pattern, scan_patterns
+from aetheris.checks.base import CheckContext, demote_in_tests, pattern, scan_patterns
 from aetheris.checks.secrets import redact
 from aetheris.domain import Finding
 
@@ -30,6 +30,7 @@ PATTERNS = [
         r"innerHTML\s*=|dangerouslySetInnerHTML|document\.write\s*\(",
         "high",
         "unsafe HTML sink; escape input or use a sanitizer",
+        ("javascript", "typescript"),
     ),
     pattern(
         "dynamic_eval",
@@ -53,4 +54,4 @@ PATTERNS = [
 
 
 def security_patterns(ctx: CheckContext) -> list[Finding]:
-    return scan_patterns(ctx, "security", PATTERNS, redact)
+    return demote_in_tests(scan_patterns(ctx, "security", PATTERNS, redact))

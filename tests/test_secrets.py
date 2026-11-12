@@ -1,8 +1,6 @@
 from aetheris.checks.secrets import find_secrets, mask_secret, redact
 from aetheris.server import run_checks
-from tests.conftest import write
-
-FAKE_AWS_KEY = "AKIAIOSFODNN7EXAMPLE"
+from tests.conftest import FAKE_AWS_KEY, write
 
 
 def test_leaked_key_is_found_and_never_returned_in_clear(repo):
@@ -27,7 +25,7 @@ def test_placeholders_and_references_are_not_secrets():
 
 
 def test_overlapping_matches_keep_one_hit_and_redact_it():
-    line = 'api_key = "AKIAIOSFODNN7EXAMPLE"'
+    line = f'api_key = "{FAKE_AWS_KEY}"'
     assert len(find_secrets(line)) == 1
     assert FAKE_AWS_KEY not in redact(line)
 

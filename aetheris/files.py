@@ -161,6 +161,30 @@ def language_of(rel: str) -> str | None:
     return LANGUAGES.get(Path(rel).suffix.lower())
 
 
+TEST_DIRS = frozenset({"tests", "test", "__tests__", "fixtures", "testdata"})
+DOC_SUFFIXES = frozenset({".md", ".rst", ".txt", ".adoc"})
+
+
+def is_test_file(rel: str) -> bool:
+    """A file of a test suite: a test directory, or a test file name in any language."""
+    path = Path(rel)
+    if any(part.lower() in TEST_DIRS for part in path.parts[:-1]):
+        return True
+    name = path.name
+    stem = name.split(".", 1)[0]
+    return (
+        name == "conftest.py"
+        or stem.startswith("test_")
+        or stem.endswith(("_test", "_spec", "Test", "Tests"))
+        or ".test." in name
+        or ".spec." in name
+    )
+
+
+def is_doc_file(rel: str) -> bool:
+    return Path(rel).suffix.lower() in DOC_SUFFIXES
+
+
 def is_manifest(rel: str) -> bool:
     return Path(rel).name in MANIFESTS
 

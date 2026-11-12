@@ -9,7 +9,6 @@ recursive-include aetheris/playbooks *.md LICENSE
 prune build
 prune dist
 prune docs
-prune assets
 prune scripts
 prune .github
 prune .agents

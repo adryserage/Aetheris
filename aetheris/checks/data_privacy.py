@@ -2,7 +2,13 @@
 
 import re
 
-from aetheris.checks.base import CheckContext, make_finding, pattern, scan_patterns
+from aetheris.checks.base import (
+    CheckContext,
+    demote_in_tests,
+    make_finding,
+    pattern,
+    scan_patterns,
+)
 from aetheris.checks.secrets import redact
 from aetheris.domain import Finding
 
@@ -87,4 +93,6 @@ def _card_findings(ctx: CheckContext) -> list[Finding]:
 
 
 def pii_patterns(ctx: CheckContext) -> list[Finding]:
-    return scan_patterns(ctx, "data_privacy", PATTERNS, redact) + _card_findings(ctx)
+    return demote_in_tests(
+        scan_patterns(ctx, "data_privacy", PATTERNS, redact) + _card_findings(ctx)
+    )

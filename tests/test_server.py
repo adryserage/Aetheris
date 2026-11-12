@@ -11,7 +11,7 @@ from aetheris.server import (
     plan_review,
     run_checks,
 )
-from tests.conftest import write
+from tests.conftest import FAKE_AWS_KEY, write
 
 TOOLS = {
     "list_agents",
@@ -26,7 +26,7 @@ TOOLS = {
 def test_in_process_client_lists_exactly_the_six_tools_and_calls_one(repo):
     from mcp.shared.memory import create_connected_server_and_client_session
 
-    write(repo, "a.py", 'KEY = "AKIAIOSFODNN7EXAMPLE"\n')
+    write(repo, "a.py", f'KEY = "{FAKE_AWS_KEY}"\n')
 
     async def scenario():
         server = build_server()
@@ -39,7 +39,7 @@ def test_in_process_client_lists_exactly_the_six_tools_and_calls_one(repo):
     assert {t.name for t in tools.tools} == TOOLS
     payload = json.loads(called.content[0].text)
     assert payload["agent"] == "security" and payload["finding_count"] >= 1
-    assert "AKIAIOSFODNN7EXAMPLE" not in called.content[0].text
+    assert FAKE_AWS_KEY not in called.content[0].text
 
 
 def test_list_agents_reports_rule_counts_checks_and_presets(fixture_agents, fixture_playbooks):
@@ -163,7 +163,7 @@ def test_run_checks_qa_synthesis_has_no_checks(repo):
 
 
 def test_findings_are_capped_and_flagged_truncated(repo):
-    write(repo, "many.py", "".join(f'k{i} = "AKIAIOSFODNN7EXAMPLE"\n' for i in range(250)))
+    write(repo, "many.py", "".join(f'k{i} = "{FAKE_AWS_KEY}"\n' for i in range(250)))
     result = run_checks("security")
     assert len(result["findings"]) == 200 and result["truncated"] is True
     assert result["finding_count"] == 250
@@ -175,7 +175,7 @@ def test_a_crashing_check_is_reported_and_others_still_run(repo, monkeypatch):
     def broken(ctx):
         raise RuntimeError("boom")
 
-    write(repo, "a.py", 'KEY = "AKIAIOSFODNN7EXAMPLE"\n')
+    write(repo, "a.py", f'KEY = "{FAKE_AWS_KEY}"\n')
     monkeypatch.setitem(server.CHECKS["security"], "security_patterns", broken)
     result = run_checks("security")
     assert "security_patterns: RuntimeError: boom" in result["errors"]

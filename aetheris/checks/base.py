@@ -6,7 +6,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from aetheris.domain import AgentId, Finding, Severity
-from aetheris.files import MAX_FILE_BYTES, check_label, language_of, read_text
+from aetheris.files import (
+    MAX_FILE_BYTES,
+    check_label,
+    is_test_file,
+    language_of,
+    read_text,
+)
 
 MAX_PER_FILE_PATTERN = 20
 COMMENT_PREFIXES = ("//", "#", "*", "/*")
@@ -107,6 +113,18 @@ def make_finding(
 
 
 Check = Callable[[CheckContext], list[Finding]]
+
+
+def demote_in_tests(findings: list[Finding]) -> list[Finding]:
+    """Code patterns found in a test file drop to info: fixtures hold unsafe code on purpose."""
+    return [
+        (
+            f.model_copy(update={"severity": "info", "message": f"{f.message} (test file)"})
+            if f.file and is_test_file(f.file)
+            else f
+        )
+        for f in findings
+    ]
 
 
 @dataclass(frozen=True)

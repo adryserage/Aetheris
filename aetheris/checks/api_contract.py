@@ -3,7 +3,7 @@
 import re
 from dataclasses import dataclass
 
-from aetheris.checks.base import CheckContext, is_comment, make_finding
+from aetheris.checks.base import CheckContext, demote_in_tests, is_comment, make_finding
 from aetheris.checks.secrets import redact
 from aetheris.domain import Finding, Severity
 
@@ -100,7 +100,7 @@ def api_patterns(ctx: CheckContext) -> list[Finding]:
                     "name the resource and let the HTTP method carry the action",
                 )
             )
-    return findings
+    return demote_in_tests(findings)
 
 
 def orphan_endpoints(ctx: CheckContext) -> list[Finding]:

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from aetheris.checks.base import CheckContext, make_finding
 from aetheris.domain import Finding, Severity
-from aetheris.files import MAX_FILE_BYTES
+from aetheris.files import MAX_FILE_BYTES, is_doc_file, is_test_file
 
 _CONFIDENCE_RANK = {"high": 0, "medium": 1}
 
@@ -61,7 +61,8 @@ _PATTERNS: list[tuple[str, str, str]] = [
         "medium",
     ),
     ("jwt_token", r"eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*", "medium"),
-    ("bearer_token", r"(?i)bearer\s+([A-Za-z0-9_\-\.=]{16,})", "medium"),
+    # Not an auth-param such as `Bearer resource_metadata="..."` (WWW-Authenticate).
+    ("bearer_token", r'(?i)bearer\s+(?![a-z_]+=")([A-Za-z0-9_\-\.=]{16,})', "medium"),
     ("basic_auth", r"(?i)basic\s+([A-Za-z0-9+/=]{20,})", "medium"),
     (
         "connection_string",
@@ -95,9 +96,12 @@ def mask_secret(value: str, show_start: int = 4, show_end: int = 2) -> str:
 
 
 def _looks_like_literal(name: str, value: str) -> bool:
+    """False for values that are not secrets: documented examples, placeholders, names."""
+    lowered = value.lower()
+    if "example" in lowered:
+        return False  # documented sample keys, such as AWS's AKIA...EXAMPLE
     if name != "generic_secret":
         return True
-    lowered = value.lower()
     return not (_NOT_A_LITERAL.search(value) or any(p in lowered for p in _PLACEHOLDERS))
 
 
@@ -138,15 +142,22 @@ def secret_scan(ctx: CheckContext) -> list[Finding]:
         content = ctx.read(rel)
         if content is None or len(content) > MAX_FILE_BYTES:
             continue
+        # Docs and tests hold sample credentials. A provider-specific key there still counts.
+        sample_place = is_doc_file(rel) or is_test_file(rel)
         for number, line in enumerate(content.splitlines(), start=1):
             if len(line) > 2000:
                 continue
             for hit in find_secrets(line):
+                severity: Severity = (
+                    "info"
+                    if sample_place and hit.confidence != "high"
+                    else _SEVERITY[hit.confidence]
+                )
                 findings.append(
                     make_finding(
                         "secret_scan",
                         "security",
-                        _SEVERITY[hit.confidence],
+                        severity,
                         f"possible {hit.name.replace('_', ' ')}",
                         rel,
                         number,

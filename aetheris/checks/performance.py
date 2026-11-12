@@ -4,6 +4,7 @@ import re
 
 from aetheris.checks.base import (
     CheckContext,
+    demote_in_tests,
     is_comment,
     make_finding,
     pattern,
@@ -13,6 +14,11 @@ from aetheris.checks.secrets import redact
 from aetheris.domain import Finding, Severity
 
 _LOOP = re.compile(r"^(?:for|while)\b|^for\s+await\b")
+# An inner loop over a literal or a module constant has a fixed size: no quadratic cost.
+_FIXED_SIZE_LOOP = re.compile(
+    r"^for\b.*?\b(?:in|of)\s+"
+    r"(?P<it>\([^()]*\)|\[[^\[\]]*\]|\{[^{}]*\}|_?[A-Z][A-Z0-9_]*)\s*[:){]"
+)
 _IN_LOOP: list[tuple[str, re.Pattern[str], Severity, str]] = [
     (
         "n_plus_one",
@@ -60,15 +66,18 @@ def _loop_findings(ctx: CheckContext) -> list[Finding]:
             while stack and indent <= stack[-1][0]:
                 stack.pop()
             if _LOOP.match(stripped):
-                if stack and stack[-1][1] not in reported_outer:
+                fixed = _FIXED_SIZE_LOOP.match(stripped)
+                fixed = fixed if fixed and " for " not in fixed["it"] else None
+                if stack and stack[-1][1] not in reported_outer and not fixed:
                     outer = stack[-1][1]
                     reported_outer.add(outer)
                     findings.append(
                         make_finding(
                             "nested_loops",
                             "performance",
-                            "medium",
-                            f"loop nested at line {number}; quadratic cost on large inputs",
+                            "low",
+                            f"loop nested at line {number}; quadratic only if both loops grow "
+                            "with the input",
                             rel,
                             outer,
                             redact(lines[outer - 1].strip())[:120],
@@ -95,4 +104,6 @@ def _loop_findings(ctx: CheckContext) -> list[Finding]:
 
 
 def performance_patterns(ctx: CheckContext) -> list[Finding]:
-    return _loop_findings(ctx) + scan_patterns(ctx, "performance", _LINE_PATTERNS, redact)
+    return demote_in_tests(
+        _loop_findings(ctx) + scan_patterns(ctx, "performance", _LINE_PATTERNS, redact)
+    )

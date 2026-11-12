@@ -6,6 +6,10 @@ import pytest
 from aetheris import registry
 from aetheris.domain import Agent, Playbook, Rule
 
+# A key shaped like an AWS access key. Split so this file holds no matching literal, and not
+# AWS's documented sample (AKIA...EXAMPLE), which the scan ignores.
+FAKE_AWS_KEY = "AKIA" + "Q7RZ3MX2B4K6N8P1"
+
 
 def write(root: Path, rel: str, content: str) -> Path:
     path = root / rel
