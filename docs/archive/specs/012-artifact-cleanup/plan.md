@@ -175,8 +175,8 @@ tests/
 | AWS Access Key | `AKIA[0-9A-Z]{16}` | `AKIAIOSFODNN7EXAMPLE` |
 | AWS Secret Key | `(?i)aws_secret_access_key\s*=\s*['"]?([A-Za-z0-9/+=]{40})` | `aws_secret_access_key = wJalrXUtnFEMI...` |
 | Generic API Key | `(?i)(api[_-]?key|apikey)\s*[=:]\s*['"]?([a-zA-Z0-9_-]{20,})` | `API_KEY=sk-1234...` |
-| Generic Secret | `(?i)(secret|password|passwd|pwd)\s*[=:]\s*['"]?([^\s'"]{8,})` | `PASSWORD=mysecret` |
-| Generic Token | `(?i)(token|auth[_-]?token|bearer)\s*[=:]\s*['"]?([a-zA-Z0-9_.-]{20,})` | `TOKEN=eyJhbGc...` |
+| Generic Secret | `(?i)(secret|password|passwd|pwd)\s*[=:]\s*['"]?([^\s'"]{8,})` | `PASSWORD=<value>` |
+| Generic Token | `(?i)(token|auth[_-]?token|bearer)\s*[=:]\s*['"]?([a-zA-Z0-9_.-]{20,})` | `TOKEN=<token>` |
 
 ### Medium Confidence Patterns
 

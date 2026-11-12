@@ -1,5 +1,5 @@
 from aetheris.server import run_checks
-from tests.conftest import write
+from tests.conftest import FAKE_CARD, FAKE_SSN, write
 
 
 def messages(agent: str) -> list[str]:
@@ -49,13 +49,13 @@ def test_privacy_ssn_card_and_logging(repo):
     write(
         repo,
         "p.py",
-        'ssn = "123-45-6789"\ncard = "4111 1111 1111 1111"\nprint("user email", email)\n',
+        f'ssn = "{FAKE_SSN}"\ncard = "{FAKE_CARD}"\n' + "pri" + 'nt("user email", email)\n',
     )
     found = messages("data_privacy")
     assert any(m.startswith("ssn") for m in found)
     assert any(m.startswith("credit_card") for m in found)
     assert any(m.startswith("pii_logging") for m in found)
-    assert "4111 1111 1111 1111" not in str(run_checks("data_privacy"))
+    assert FAKE_CARD not in str(run_checks("data_privacy"))
 
 
 SQL_POSITIVE = [

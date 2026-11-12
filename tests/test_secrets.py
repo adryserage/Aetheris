@@ -1,6 +1,6 @@
 from aetheris.checks.secrets import find_secrets, mask_secret, redact
 from aetheris.server import run_checks
-from tests.conftest import FAKE_AWS_KEY, write
+from tests.conftest import FAKE_AWS_KEY, PASSWORD_LINE, write
 
 
 def test_leaked_key_is_found_and_never_returned_in_clear(repo):
@@ -21,7 +21,7 @@ def test_mask_keeps_only_edges():
 def test_placeholders_and_references_are_not_secrets():
     assert not find_secrets("password = os.environ['DB_PASSWORD']")
     assert not find_secrets('token = "your_token_here"')
-    assert find_secrets('password = "hunter2hunter2"')
+    assert find_secrets(PASSWORD_LINE)
 
 
 def test_overlapping_matches_keep_one_hit_and_redact_it():

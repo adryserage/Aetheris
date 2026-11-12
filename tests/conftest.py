@@ -9,6 +9,11 @@ from aetheris.domain import Agent, Playbook, Rule
 # A key shaped like an AWS access key. Split so this file holds no matching literal, and not
 # AWS's documented sample (AKIA...EXAMPLE), which the scan ignores.
 FAKE_AWS_KEY = "AKIA" + "Q7RZ3MX2B4K6N8P1"
+# Same idea for the other fixtures: the scanners must find nothing in this repository.
+PASSWORD_LINE = "password" + ' = "hunter2hunter2"'
+FAKE_SSN = "123-45-" + "6789"
+FAKE_CARD = "4111 1111 " + "1111 1111"
+TEST_EMAIL = "test" + "@example.com"
 
 
 def write(root: Path, rel: str, content: str) -> Path:
@@ -32,7 +37,7 @@ def git_repo(repo: Path) -> Path:
         subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True)
 
     git("init", "-q")
-    git("config", "user.email", "test@example.com")
+    git("config", "user.email", TEST_EMAIL)
     git("config", "user.name", "Test")
     write(repo, "tracked.py", "x = 1\n")
     git("add", ".")

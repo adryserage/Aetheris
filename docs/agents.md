@@ -23,7 +23,7 @@ Each finding message starts with a finding name. When a rule is listed, the find
 
 | Agent and check | Finding names (rule) |
 | --- | --- |
-| `security` / `secret_scan` | Provider keys and tokens, private key headers and similar secrets (SEC-005). Values are masked in the evidence. High confidence matches are `critical`, the others `medium`, or `info` in a test or documentation file. Documented sample values, such as AWS keys ending in `EXAMPLE`, are not reported |
+| `security` / `secret_scan` | Provider keys and tokens, private key headers and similar secrets (SEC-005). Values are masked in the evidence. High confidence matches are `critical`, the others `medium`, in every file, tests and docs included. Documented sample values, such as AWS keys ending in `EXAMPLE`, are not reported |
 | `security` / `security_patterns` | `sql_injection` (SEC-001), `xss` (SEC-003, JavaScript and TypeScript only), `dynamic_eval` (SEC-004), `weak_crypto` (SEC-006), `insecure_random` (SEC-008) |
 | `architecture` / `circular_imports` | `circular_imports` (ARC-001) for Python, JavaScript and TypeScript |
 | `code_quality` / `metric_thresholds` | `complexity` (CQ-004, above 15), `nesting` (CQ-005, above 4), `function_length` (CQ-006, above 80 lines) |
@@ -37,7 +37,7 @@ Each finding message starts with a finding name. When a rule is listed, the find
 | `api_contract` / `orphan_endpoints` | `orphan_endpoint` and `orphan_call` (API-002): a route no inspected file calls, or a call matching no route |
 | `data_privacy` / `pii_patterns` | `ssn`, `email_literal` and `credit_card` (PRIV-002), `pii_logging` (PRIV-001), `insecure_storage` (PRIV-005), `tracking_without_consent_check` (PRIV-007), `data_retention` (PRIV-008) |
 
-In a test file (a `tests/` or `__tests__/` directory, or names such as `test_*.py`, `*_test.go`, `*.spec.ts`), the findings of `security_patterns`, `type_patterns`, `performance_patterns`, `api_patterns` and `pii_patterns` drop to `info` and end with `(test file)`, because fixtures hold unsafe code on purpose.
+In a test file (a `tests/` or `__tests__/` directory, or names such as `test_*.py`, `*_test.go`, `*.spec.ts`), the findings of `security_patterns`, `type_patterns`, `performance_patterns` and `api_patterns` drop to `info` and end with `(test file)`, because fixtures hold unsafe code on purpose. Secrets and personal data keep their severity there: committed in a test, they still leak.
 
 Some checks only see the files you pass. `circular_imports` and `orphan_endpoints` need the files that import each other or call each other, so run them on a directory or the whole repository, not on one file.
 

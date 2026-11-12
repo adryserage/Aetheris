@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from aetheris.checks.base import CheckContext, make_finding
 from aetheris.domain import Finding, Severity
-from aetheris.files import MAX_FILE_BYTES, is_doc_file, is_test_file
+from aetheris.files import MAX_FILE_BYTES
 
 _CONFIDENCE_RANK = {"high": 0, "medium": 1}
 
@@ -142,22 +142,15 @@ def secret_scan(ctx: CheckContext) -> list[Finding]:
         content = ctx.read(rel)
         if content is None or len(content) > MAX_FILE_BYTES:
             continue
-        # Docs and tests hold sample credentials. A provider-specific key there still counts.
-        sample_place = is_doc_file(rel) or is_test_file(rel)
         for number, line in enumerate(content.splitlines(), start=1):
             if len(line) > 2000:
                 continue
             for hit in find_secrets(line):
-                severity: Severity = (
-                    "info"
-                    if sample_place and hit.confidence != "high"
-                    else _SEVERITY[hit.confidence]
-                )
                 findings.append(
                     make_finding(
                         "secret_scan",
                         "security",
-                        severity,
+                        _SEVERITY[hit.confidence],
                         f"possible {hit.name.replace('_', ' ')}",
                         rel,
                         number,

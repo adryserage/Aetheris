@@ -5,7 +5,7 @@ import pytest
 from aetheris.checks.secrets import find_secrets
 from aetheris.files import is_test_file
 from aetheris.server import run_checks
-from tests.conftest import FAKE_AWS_KEY, write
+from tests.conftest import FAKE_AWS_KEY, FAKE_CARD, FAKE_SSN, PASSWORD_LINE, write
 
 AWS_SAMPLE = "AKIAIOSFODNN7" + "EXAMPLE"
 
@@ -20,9 +20,10 @@ def test_documented_sample_keys_are_not_secrets():
 
 
 def test_bearer_auth_param_is_not_a_token():
-    assert not find_secrets("h = f'Bearer resource_metadata=\"{base}/x\"'")
-    assert find_secrets("Authorization: Bearer abcdef0123456789abcdef")
-    assert find_secrets("Authorization: Bearer abcdefghijklmnopqrstuvwx=")
+    bearer = "Authorization: Bear" + "er "
+    assert not find_secrets(bearer + 'resource_metadata="https://x/.well-known/a"')
+    assert find_secrets(bearer + "abcdef0123456789abcdef")
+    assert find_secrets(bearer + "abcdefghijklmnopqrstuvwx=")
 
 
 @pytest.mark.parametrize(
@@ -64,17 +65,22 @@ def test_non_pattern_checks_keep_their_severity_in_test_files(repo):
     assert {f["severity"] for f in findings("architecture")} == {"medium"}
 
 
-def test_a_real_key_in_a_test_file_stays_critical(repo):
+def test_secrets_keep_their_severity_in_test_and_doc_files(repo):
     write(repo, "tests/test_conf.py", f'KEY = "{FAKE_AWS_KEY}"\n')
-    write(repo, "tests/test_pw.py", 'password = "hunter2hunter2"\n')
+    write(repo, "tests/test_pw.py", PASSWORD_LINE + "\n")
+    write(repo, "docs/setup.md", PASSWORD_LINE + "\n")
     by_file = {f["file"]: f["severity"] for f in findings("security")}
-    assert by_file == {"tests/test_conf.py": "critical", "tests/test_pw.py": "info"}
+    assert by_file == {
+        "tests/test_conf.py": "critical",
+        "tests/test_pw.py": "medium",
+        "docs/setup.md": "medium",
+    }
 
 
-def test_generic_secrets_in_docs_drop_to_info(repo):
-    write(repo, "docs/setup.md", f'password = "hunter2hunter2"\nKEY={FAKE_AWS_KEY}\n')
-    severities = {f["line"]: f["severity"] for f in findings("security")}
-    assert severities == {1: "info", 2: "critical"}
+def test_personal_data_keeps_its_severity_in_test_files(repo):
+    write(repo, "tests/test_users.py", f'ssn = "{FAKE_SSN}"\ncard = "{FAKE_CARD}"\n')
+    severities = {f["message"].split(":")[0]: f["severity"] for f in findings("data_privacy")}
+    assert severities == {"ssn": "high", "credit_card": "high"}
 
 
 def test_inner_loops_of_fixed_size_are_not_nested_loops(repo):
