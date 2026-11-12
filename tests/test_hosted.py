@@ -245,7 +245,7 @@ def test_hosted_schemas_expose_no_disk_or_git_parameter():
                 walk(value)
 
     for tool in tools:
-        walk(tool.inputSchema)
+        walk(tool.input_schema)
     assert len(tools) == 6
     assert not names & {"paths", "base", "diff", "repo", "scope"}
 
