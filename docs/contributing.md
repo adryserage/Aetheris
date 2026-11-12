@@ -11,4 +11,6 @@ The full guide is [CONTRIBUTING.md](https://github.com/adryserage/aetheris/blob/
 
 Report security issues privately, as described in [Security](security.md).
 
+Only the repository administrator cuts releases, as described in [Releasing](releasing.md).
+
 The rule pages in this site are generated from `aetheris/rules/*.yaml`. After you change a rule, run `python scripts/gen_rules_docs.py` and commit the updated `docs/rules/` pages. The test suite fails when they are stale.

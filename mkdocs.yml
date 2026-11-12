@@ -81,6 +81,7 @@ nav:
     - Security: security.md
     - Migrating from 3.x: migration.md
     - Contributing: contributing.md
+    - Releasing: releasing.md
 
 extra:
   social:
