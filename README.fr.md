@@ -56,7 +56,7 @@ Demandez ensuite à votre assistant, par exemple, « relis mes changements index
 
 ## Outils
 
-Aetheris expose cinq outils. Ensemble, ils forment le déroulé de revue que suit votre assistant.
+Aetheris expose six outils. Ensemble, ils forment le déroulé de revue que suit votre assistant.
 
 | Outil | Ce qu'il rend |
 |-------|---------------|
@@ -64,6 +64,7 @@ Aetheris expose cinq outils. Ensemble, ils forment le déroulé de revue que sui
 | `plan_review` | Les fichiers à relire par ordre de priorité (votre diff git, des chemins donnés ou tout le dépôt), les langages trouvés, et les agents à lancer, chacun avec sa raison |
 | `get_rules` | Les règles de revue d'un agent, au besoin pour un langage, et le schéma d'un résultat |
 | `run_checks` | Les résultats des vérifications d'un agent : secrets, vulnérabilités connues (OSV), métriques, imports circulaires, et motifs de sécurité, de typage, de performance, d'API ou de données personnelles |
+| `get_playbook` | Une méthode de revue à suivre, comme la revue différentielle d'un diff ou la vérification des faux positifs, adaptée des [Trail of Bits Skills](https://github.com/trailofbits/skills). `plan_review` et `get_rules` disent lesquelles s'appliquent |
 | `synthesize_report` | Un rapport unique à partir de tous les résultats : doublons fusionnés, tri par gravité, comptes et score de 0 à 100 |
 
 Les 10 agents portent 152 règles, rangées en fichiers YAML dans [`aetheris/rules/`](https://github.com/adryserage/aetheris/tree/main/aetheris/rules).
@@ -91,3 +92,5 @@ pip install "adryserage-aetheris==3.0.0"
 ## Licence
 
 Licence Apache 2.0. Voir [LICENSE](https://github.com/adryserage/aetheris/blob/main/LICENSE) et [NOTICE](https://github.com/adryserage/aetheris/blob/main/NOTICE).
+
+Les playbooks de [`aetheris/playbooks/trailofbits/`](https://github.com/adryserage/aetheris/tree/main/aetheris/playbooks/trailofbits) sont adaptés des [Trail of Bits Skills](https://github.com/trailofbits/skills) et restent sous [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.fr). Chaque fichier nomme son auteur, sa source et ce qui a été modifié.

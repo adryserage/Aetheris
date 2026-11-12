@@ -17,6 +17,7 @@ AgentId = Literal[
     "data_privacy",
 ]
 Severity = Literal["critical", "high", "medium", "low", "info"]
+PlaybookTask = Literal["analyze", "triage"]
 
 AGENT_IDS: tuple[AgentId, ...] = get_args(AgentId)
 SEVERITIES: tuple[Severity, ...] = get_args(Severity)
@@ -50,6 +51,24 @@ class Agent(BaseModel, frozen=True):
     summary: str
     rules: tuple[Rule, ...]
     checks: tuple[str, ...]
+
+
+class Playbook(BaseModel, frozen=True):
+    """A review method adapted from a third-party source, served with its attribution."""
+
+    id: str
+    title: str
+    agents: tuple[AgentId, ...]
+    task: PlaybookTask
+    languages: tuple[str, ...] = ()
+    when: str
+    source: str
+    source_commit: str
+    author: str
+    license: str
+    license_url: str
+    changes: str
+    steps: str
 
 
 class Finding(BaseModel):

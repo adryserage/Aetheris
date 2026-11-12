@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from aetheris import registry
-from aetheris.domain import Agent, Rule
+from aetheris.domain import Agent, Playbook, Rule
 
 
 def write(root: Path, rel: str, content: str) -> Path:
@@ -56,3 +56,31 @@ def fixture_agents(monkeypatch: pytest.MonkeyPatch) -> None:
         checks=("secret_scan",),
     )
     monkeypatch.setattr(registry, "AGENTS", {"security": agent})
+
+
+def make_playbook(id: str, agents: tuple, languages: tuple = ()) -> Playbook:
+    return Playbook(
+        id=id,
+        title=f"Title {id}",
+        agents=agents,
+        task="analyze",
+        languages=languages,
+        when="When testing.",
+        source=f"https://example.com/{id}",
+        source_commit="abc123",
+        author="Someone",
+        license="CC-BY-SA-4.0",
+        license_url="https://creativecommons.org/licenses/by-sa/4.0/",
+        changes="Condensed.",
+        steps="1. Do the thing.",
+    )
+
+
+@pytest.fixture
+def fixture_playbooks(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Two playbooks so the tools do not depend on the shipped playbook files."""
+    playbooks = (
+        make_playbook("pb-all", ("security",)),
+        make_playbook("pb-go", ("security", "metrics"), languages=("go",)),
+    )
+    monkeypatch.setattr(registry, "PLAYBOOKS", {p.id: p for p in playbooks})

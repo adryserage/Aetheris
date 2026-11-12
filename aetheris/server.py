@@ -1,4 +1,8 @@
-"""MCP server (stdio). Five tools that drive a code review; no AI API is ever called."""
+"""MCP server (stdio). Six tools that drive a code review; no AI API is ever called.
+
+Playbooks are review methods adapted from third-party sources (aetheris/playbooks/); get_playbook
+returns one with its attribution block, which must travel with any reproduction.
+"""
 
 import functools
 import json
@@ -31,7 +35,9 @@ NEXT_STEPS = (
     "run_checks(agent, paths) to get deterministic findings; 3) read the listed files and judge "
     "them against the rules, adding your own findings (source='assistant', same schema as "
     "the Finding schema returned by get_rules). Finish with synthesize_report(findings) on all "
-    "findings together, and report its score and top findings. Review qa_synthesis last."
+    "findings together, and report its score and top findings. Review qa_synthesis last. "
+    "When an agent lists playbooks, read each one with get_playbook(id) before judging, and "
+    "keep its attribution if you reproduce it."
 )
 
 _CODE_REASONS: dict[AgentId, str] = {
@@ -72,6 +78,23 @@ def _select_agents(
     return [{"id": a, "reason": chosen[a]} for a in _ordered(list(chosen))]
 
 
+def _playbooks_for(agent: str, scope: str, files: list[str]) -> list[dict[str, str]]:
+    reasons: dict[str, str] = {}
+    if agent == "qa_synthesis":
+        reasons["fp-check"] = "verify suspected security findings before reporting them"
+        reasons["vulnerability-triage-brocards"] = "triage reported vulnerabilities and CVEs"
+    if agent == "security":
+        if scope == "diff":
+            reasons["differential-review"] = "the scope is a diff"
+        if any(f.startswith(".github/workflows/") for f in files):
+            reasons["agentic-actions-auditor"] = "GitHub Actions workflows are in scope"
+    return [
+        {"id": pid, "task": registry.PLAYBOOKS[pid].task, "reason": reason}
+        for pid, reason in reasons.items()
+        if pid in registry.PLAYBOOKS and agent in registry.PLAYBOOKS[pid].agents
+    ]
+
+
 def _ordered(agents: Any) -> list[AgentId]:
     wanted = set(agents)
     ordered = [a for a in AGENT_IDS if a in wanted and a != "qa_synthesis"]
@@ -88,6 +111,7 @@ def list_agents() -> dict[str, Any]:
                 "summary": a.summary,
                 "rule_count": len(a.rules),
                 "checks": list(a.checks),
+                "playbook_count": sum(a.id in p.agents for p in registry.PLAYBOOKS.values()),
             }
             for a in registry.AGENTS.values()
         ],
@@ -133,25 +157,55 @@ def plan_review(
         "truncated": selection.truncated,
         "max_files": MAX_FILES,
         "languages": dict(languages.most_common()),
-        "agents": _select_agents(files, preset, agents),
+        "agents": [
+            {**a, "playbooks": _playbooks_for(a["id"], scope, files)}
+            for a in _select_agents(files, preset, agents)
+        ],
         "next_steps": NEXT_STEPS,
     }
 
 
 def get_rules(agent: AgentId, language: str | None = None) -> dict[str, Any]:
-    """Rules of one agent, optionally filtered by language, plus the Finding JSON schema."""
+    """Rules and playbooks of one agent, optionally filtered by language, plus the Finding schema."""
     found = registry.AGENTS.get(agent)
     if found is None:
         raise ValueError(f"no rule file loaded for agent {agent!r}")
     wanted = language.lower() if language else None
     rules = [r for r in found.rules if not wanted or not r.languages or wanted in r.languages]
+    playbooks = [
+        {"id": p.id, "title": p.title, "task": p.task, "when": p.when}
+        for p in registry.PLAYBOOKS.values()
+        if agent in p.agents and (not wanted or not p.languages or wanted in p.languages)
+    ]
     return {
         "agent": found.id,
         "name": found.name,
         "summary": found.summary,
         "language": wanted,
         "rules": [r.model_dump(exclude_defaults=True) for r in rules],
+        "playbooks": playbooks,
         "finding_schema": Finding.model_json_schema(),
+    }
+
+
+def get_playbook(id: str) -> dict[str, Any]:
+    """Steps of one playbook (ids from get_rules or plan_review) plus its attribution block."""
+    found = registry.PLAYBOOKS.get(id)
+    if found is None:
+        raise ValueError(f"unknown playbook {id!r}; known: {sorted(registry.PLAYBOOKS)}")
+    return {
+        "id": found.id,
+        "task": found.task,
+        "agents": list(found.agents),
+        "steps": found.steps,
+        "attribution": {
+            "title": found.title,
+            "author": found.author,
+            "source": found.source,
+            "license": found.license,
+            "license_url": found.license_url,
+            "changes": found.changes,
+        },
     }
 
 
@@ -197,7 +251,8 @@ def _compact(fn: Callable[..., dict[str, Any]]) -> Callable[..., str]:
 
 def build_server() -> FastMCP:
     mcp = FastMCP("aetheris", instructions=NEXT_STEPS)
-    for tool in (list_agents, plan_review, get_rules, run_checks, synthesize_report):
+    tools = (list_agents, plan_review, get_rules, get_playbook, run_checks, synthesize_report)
+    for tool in tools:
         mcp.tool(structured_output=False)(_compact(tool))
     return mcp
 

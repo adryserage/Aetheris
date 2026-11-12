@@ -56,7 +56,7 @@ Then ask your assistant something like "review my staged changes with Aetheris" 
 
 ## Tools
 
-Aetheris exposes five tools. Together they form the review flow your assistant follows.
+Aetheris exposes six tools. Together they form the review flow your assistant follows.
 
 | Tool | What it returns |
 |------|-----------------|
@@ -64,6 +64,7 @@ Aetheris exposes five tools. Together they form the review flow your assistant f
 | `plan_review` | The files to review in priority order (your git diff, given paths, or the whole repository), the languages found, and the agents to run, each with its reason |
 | `get_rules` | One agent's review rules, optionally for one language, and the schema of a finding |
 | `run_checks` | Findings from one agent's checks: secrets, known vulnerabilities (OSV), metrics, circular imports, and security, typing, performance, API or personal data patterns |
+| `get_playbook` | A review method to follow, such as a differential review of a diff or a false-positive check, adapted from [Trail of Bits Skills](https://github.com/trailofbits/skills). `plan_review` and `get_rules` say which ones apply |
 | `synthesize_report` | One report from all findings: duplicates merged, sorted by severity, counted, and scored from 0 to 100 |
 
 The 10 agents hold 152 rules, stored as YAML files in [`aetheris/rules/`](https://github.com/adryserage/aetheris/tree/main/aetheris/rules).
@@ -91,3 +92,5 @@ pip install "adryserage-aetheris==3.0.0"
 ## License
 
 Apache License 2.0. See [LICENSE](https://github.com/adryserage/aetheris/blob/main/LICENSE) and [NOTICE](https://github.com/adryserage/aetheris/blob/main/NOTICE).
+
+The playbooks in [`aetheris/playbooks/trailofbits/`](https://github.com/adryserage/aetheris/tree/main/aetheris/playbooks/trailofbits) are adapted from [Trail of Bits Skills](https://github.com/trailofbits/skills) and stay under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Each file names its author, its source and what was changed.

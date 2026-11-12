@@ -3,3 +3,10 @@ Copyright 2024-2026 Adryan Serage / Allowebs
 
 This product includes software developed by Adryan Serage and Allowebs
 (https://github.com/adryserage/aetheris).
+
+This product includes text adapted from Trail of Bits Skills
+(https://github.com/trailofbits/skills), licensed under the Creative Commons
+Attribution-ShareAlike 4.0 International license (CC BY-SA 4.0), and modified.
+Those adaptations live in aetheris/playbooks/trailofbits/ and remain under
+CC BY-SA 4.0; the full license text is in aetheris/playbooks/trailofbits/LICENSE.
+The rest of this product is licensed under the Apache License 2.0.

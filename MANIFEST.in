@@ -4,6 +4,7 @@ include LICENSE
 include NOTICE
 include CHANGELOG.md
 recursive-include aetheris/rules *.yaml
+recursive-include aetheris/playbooks *.md LICENSE
 
 prune build
 prune dist

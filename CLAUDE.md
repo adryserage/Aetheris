@@ -17,7 +17,8 @@ Serveur MCP open source (Apache 2.0) qui donne à l'assistant de code IA les rè
 
 ## Structure
 
-- `aetheris/server.py` : le serveur MCP et ses cinq outils (`list_agents`, `plan_review`, `get_rules`, `run_checks`, `synthesize_report`).
+- `aetheris/server.py` : le serveur MCP et ses six outils (`list_agents`, `plan_review`, `get_rules`, `run_checks`, `get_playbook`, `synthesize_report`).
+- `aetheris/playbooks/trailofbits/` : 7 méthodes de revue adaptées des Trail of Bits Skills, sous CC BY-SA 4.0 (licence dans le dossier, mention dans `NOTICE`). Chaque fichier porte en en-tête sa source au SHA près, son auteur et ses modifications. Une adaptation ne reprend que des phrases de la source, et reste sous CC BY-SA.
 - `aetheris/cli.py` : la commande `aetheris` (installation dans les clients, message de migration pour les anciennes commandes 3.x, qui sortent avec le code 2).
 - `aetheris/domain.py` : les types `Rule`, `Agent` et `Finding`, et les identifiants des 10 agents.
 - `aetheris/rules/<agent>.yaml` : les règles de revue de chaque agent. `aetheris/registry.py` les charge, les valide et définit les préréglages.

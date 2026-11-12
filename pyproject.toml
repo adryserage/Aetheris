@@ -68,7 +68,7 @@ where = ["."]
 include = ["aetheris*"]
 
 [tool.setuptools.package-data]
-aetheris = ["rules/*.yaml", "py.typed"]
+aetheris = ["rules/*.yaml", "playbooks/*/*.md", "playbooks/*/LICENSE", "py.typed"]
 
 [tool.black]
 line-length = 100

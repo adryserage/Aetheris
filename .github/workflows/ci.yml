@@ -142,4 +142,5 @@ jobs:
           export PATH="$RUNNER_TEMP/venv/bin:$PATH"
           aetheris --version
           python -c "import aetheris.server"
+          python -c "from aetheris import registry; assert registry.PLAYBOOKS"
           timeout 5 adryserage-aetheris </dev/null

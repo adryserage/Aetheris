@@ -5,6 +5,7 @@ import pytest
 
 from aetheris.server import (
     build_server,
+    get_playbook,
     get_rules,
     list_agents,
     plan_review,
@@ -12,10 +13,17 @@ from aetheris.server import (
 )
 from tests.conftest import write
 
-TOOLS = {"list_agents", "plan_review", "get_rules", "run_checks", "synthesize_report"}
+TOOLS = {
+    "list_agents",
+    "plan_review",
+    "get_rules",
+    "get_playbook",
+    "run_checks",
+    "synthesize_report",
+}
 
 
-def test_in_process_client_lists_exactly_the_five_tools_and_calls_one(repo):
+def test_in_process_client_lists_exactly_the_six_tools_and_calls_one(repo):
     from mcp.shared.memory import create_connected_server_and_client_session
 
     write(repo, "a.py", 'KEY = "AKIAIOSFODNN7EXAMPLE"\n')
@@ -34,7 +42,7 @@ def test_in_process_client_lists_exactly_the_five_tools_and_calls_one(repo):
     assert "AKIAIOSFODNN7EXAMPLE" not in called.content[0].text
 
 
-def test_list_agents_reports_rule_counts_checks_and_presets(fixture_agents):
+def test_list_agents_reports_rule_counts_checks_and_presets(fixture_agents, fixture_playbooks):
     result = list_agents()
     assert result["agents"] == [
         {
@@ -43,6 +51,7 @@ def test_list_agents_reports_rule_counts_checks_and_presets(fixture_agents):
             "summary": "Fixture agent.",
             "rule_count": 2,
             "checks": ["secret_scan"],
+            "playbook_count": 2,
         }
     ]
     assert "quick-scan" in result["presets"]
@@ -55,6 +64,58 @@ def test_get_rules_filters_by_language_and_returns_schema(fixture_agents):
     assert "severity" in everything["finding_schema"]["properties"]
     with pytest.raises(ValueError):
         get_rules("metrics")
+
+
+def test_get_rules_lists_playbooks_without_bodies(fixture_agents, fixture_playbooks):
+    listed = get_rules("security")["playbooks"]
+    assert [p["id"] for p in listed] == ["pb-all", "pb-go"]
+    assert set(listed[0]) == {"id", "title", "task", "when"}
+    assert [p["id"] for p in get_rules("security", "python")["playbooks"]] == ["pb-all"]
+
+
+def test_get_playbook_returns_steps_and_attribution(fixture_playbooks):
+    result = get_playbook("pb-all")
+    assert result["steps"] == "1. Do the thing."
+    assert result["attribution"] == {
+        "title": "Title pb-all",
+        "author": "Someone",
+        "source": "https://example.com/pb-all",
+        "license": "CC-BY-SA-4.0",
+        "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "changes": "Condensed.",
+    }
+    with pytest.raises(ValueError):
+        get_playbook("nope")
+
+
+def test_in_process_client_serves_a_shipped_playbook(repo):
+    from mcp.shared.memory import create_connected_server_and_client_session
+
+    async def scenario():
+        async with create_connected_server_and_client_session(build_server()._mcp_server) as c:
+            return await c.call_tool("get_playbook", {"id": "fp-check"})
+
+    payload = json.loads(asyncio.run(scenario()).content[0].text)
+    assert payload["attribution"]["license"] == "CC-BY-SA-4.0"
+    assert "Gate review" in payload["steps"]
+
+
+def _playbooks_of(plan, agent):
+    return {p["id"] for a in plan["agents"] if a["id"] == agent for p in a["playbooks"]}
+
+
+def test_plan_review_proposes_differential_review_for_a_diff_only(git_repo):
+    write(git_repo, "tracked.py", "x = 2\n")
+    diff = plan_review()
+    assert "differential-review" in _playbooks_of(diff, "security")
+    assert {"fp-check", "vulnerability-triage-brocards"} <= _playbooks_of(diff, "qa_synthesis")
+    assert "differential-review" not in _playbooks_of(plan_review(scope="repo"), "security")
+
+
+def test_plan_review_proposes_the_actions_audit_for_workflow_files(repo):
+    write(repo, ".github/workflows/ci.yml", "on: push\n")
+    plan = plan_review(scope="repo")
+    assert "agentic-actions-auditor" in _playbooks_of(plan, "security")
 
 
 def test_plan_review_diff_scope_lists_changed_files_and_agents(git_repo):
