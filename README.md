@@ -85,7 +85,7 @@ Bug reports and ideas go to [GitHub Issues](https://github.com/adryserage/aether
 
 ## Versions
 
-Aetheris follows [semantic versioning](https://semver.org). Every change is listed in [CHANGELOG.md](https://github.com/adryserage/aetheris/blob/main/CHANGELOG.md), and every version has a tag and a [GitHub release](https://github.com/adryserage/aetheris/releases).
+Version numbers go up by 0.0.1 for a small change, by 0.1.0 for a security fix and by 1.0.0 for a major change. Every change is listed in [CHANGELOG.md](https://github.com/adryserage/aetheris/blob/main/CHANGELOG.md), and every version has a tag and a [GitHub release](https://github.com/adryserage/aetheris/releases).
 
 Releases are rare: the maintainer cuts one when a change matters to many users. Until then, merged changes wait under `[Unreleased]`. To run the current `main` branch instead of the last release:
 

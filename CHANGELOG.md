@@ -3,13 +3,14 @@
 Tous les changements notables de ce projet seront documentés dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
-et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
+et la numérotation ajoute 0.0.1 pour un petit changement, 0.1.0 pour un correctif de sécurité et 1.0.0 pour un changement majeur.
 
 ## [Unreleased]
 
 ### 📝 Documentation
 
 - La branche `develop` disparaît : les pull requests visent `main`, depuis un fork ou une branche courte.
+- Nouvelle règle de numérotation : +0.0.1 pour un petit changement, +0.1.0 pour un correctif de sécurité, +1.0.0 pour un changement majeur.
 
 ## [4.0.1] - 2026-11-12
 
