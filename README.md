@@ -85,7 +85,7 @@ Bug reports and ideas go to [GitHub Issues](https://github.com/adryserage/aether
 
 ## Versions
 
-Aetheris follows [semantic versioning](https://semver.org). Every change is listed in [CHANGELOG.md](https://github.com/adryserage/aetheris/blob/main/CHANGELOG.md), and every version has a tag and a [GitHub release](https://github.com/adryserage/aetheris/releases). The download history is on [pepy.tech](https://pepy.tech/projects/adryserage-aetheris) and [pypistats.org](https://pypistats.org/packages/adryserage-aetheris).
+Aetheris follows [semantic versioning](https://semver.org). Every change is listed in [CHANGELOG.md](https://github.com/adryserage/aetheris/blob/main/CHANGELOG.md), and every version has a tag and a [GitHub release](https://github.com/adryserage/aetheris/releases).
 
 Releases are rare: the maintainer cuts one when a change matters to many users. Until then, merged changes wait under `[Unreleased]`. To run the current `main` branch instead of the last release:
 
@@ -106,3 +106,9 @@ pip install "adryserage-aetheris==3.0.0"
 Apache License 2.0. See [LICENSE](https://github.com/adryserage/aetheris/blob/main/LICENSE) and [NOTICE](https://github.com/adryserage/aetheris/blob/main/NOTICE).
 
 The playbooks in [`aetheris/playbooks/trailofbits/`](https://github.com/adryserage/aetheris/tree/main/aetheris/playbooks/trailofbits) are adapted from [Trail of Bits Skills](https://github.com/trailofbits/skills) and stay under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Each file names its author, its source and what was changed.
+
+## Downloads
+
+[![PyPI downloads per week](https://raw.githubusercontent.com/adryserage/aetheris/stats/downloads.en.svg)](https://pepy.tech/projects/adryserage-aetheris)
+
+The chart is redrawn every day from [pypistats.org](https://pypistats.org/packages/adryserage-aetheris), which keeps about six months of history. [pepy.tech](https://pepy.tech/projects/adryserage-aetheris) has the totals since the first release.

@@ -85,7 +85,7 @@ Les bogues et les idées vont dans les [GitHub Issues](https://github.com/adryse
 
 ## Versions
 
-Aetheris suit le [versionnage sémantique](https://semver.org/lang/fr/). Chaque changement est listé dans [CHANGELOG.md](https://github.com/adryserage/aetheris/blob/main/CHANGELOG.md), et chaque version a son étiquette et sa [release GitHub](https://github.com/adryserage/aetheris/releases). L'historique des téléchargements est sur [pepy.tech](https://pepy.tech/projects/adryserage-aetheris) et [pypistats.org](https://pypistats.org/packages/adryserage-aetheris).
+Aetheris suit le [versionnage sémantique](https://semver.org/lang/fr/). Chaque changement est listé dans [CHANGELOG.md](https://github.com/adryserage/aetheris/blob/main/CHANGELOG.md), et chaque version a son étiquette et sa [release GitHub](https://github.com/adryserage/aetheris/releases).
 
 Les releases sont rares : le mainteneur en publie une quand un changement compte pour beaucoup d'utilisateurs. D'ici là, les changements fusionnés attendent sous `[Unreleased]`. Pour lancer la branche `main` actuelle au lieu de la dernière release :
 
@@ -106,3 +106,9 @@ pip install "adryserage-aetheris==3.0.0"
 Licence Apache 2.0. Voir [LICENSE](https://github.com/adryserage/aetheris/blob/main/LICENSE) et [NOTICE](https://github.com/adryserage/aetheris/blob/main/NOTICE).
 
 Les playbooks de [`aetheris/playbooks/trailofbits/`](https://github.com/adryserage/aetheris/tree/main/aetheris/playbooks/trailofbits) sont adaptés des [Trail of Bits Skills](https://github.com/trailofbits/skills) et restent sous [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.fr). Chaque fichier nomme son auteur, sa source et ce qui a été modifié.
+
+## Téléchargements
+
+[![Téléchargements PyPI par semaine](https://raw.githubusercontent.com/adryserage/aetheris/stats/downloads.fr.svg)](https://pepy.tech/projects/adryserage-aetheris)
+
+Le graphique est redessiné chaque jour à partir de [pypistats.org](https://pypistats.org/packages/adryserage-aetheris), qui garde environ six mois d'historique. [pepy.tech](https://pepy.tech/projects/adryserage-aetheris) donne les totaux depuis la première version.

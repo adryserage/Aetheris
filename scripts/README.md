@@ -54,3 +54,13 @@ python scripts/gen_diagrams.py
 ```
 
 `README.md` et `README.fr.md` chargent les SVG depuis la branche `main` sur GitHub, ce qui marche aussi sur PyPI.
+
+## download_chart.py
+
+Dessine le graphique des téléchargements PyPI par semaine, en anglais et en français (`downloads.en.svg`, `downloads.fr.svg`), à partir de pypistats.org (environ six mois de données quotidiennes, sans les miroirs). La semaine en cours est en couleur plus claire.
+
+```bash
+python scripts/download_chart.py stats
+```
+
+Le workflow `download-chart.yml` le lance chaque jour et publie les deux fichiers sur la branche `stats`, que `README.md` et `README.fr.md` chargent. Si pypistats ne répond pas, le script sort avec le code 1 sans rien écrire, et le dernier graphique publié reste en place.
