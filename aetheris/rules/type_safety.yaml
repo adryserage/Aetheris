@@ -120,7 +120,7 @@ rules:
     severity: medium
     check: >-
       Look for narrowing conversions that can overflow or lose precision (int64 to int32,
-      float to int, `parseInt` without a radix, money stored as floating point, Go or C#
+      float to int, money stored as floating point, Go or C#
       integer casts from user-supplied sizes). Conversions checked against bounds first, or
       on values known to be small constants, are not violations.
     languages: []

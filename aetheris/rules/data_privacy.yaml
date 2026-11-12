@@ -8,11 +8,11 @@ rules:
     check: >-
       Look for log, print or telemetry calls that include emails, phone numbers, names with
       addresses, government ids, card numbers, health data, passwords, tokens, whole user
-      objects or whole request bodies. Raise it to critical for passwords, card data or
-      government ids. Logging an opaque user id or a masked value (`j***@example.com`) is
+      objects or whole request bodies. Raise it to critical for passwords, session tokens, API
+      keys, card data or government ids. Logging an opaque user id or a masked value (`j***@example.com`) is
       not a violation.
     languages: []
-    references: [CWE-532, CWE-359, "OWASP A09:2021", GDPR Art. 32]
+    references: [CWE-532, CWE-359, "OWASP A09:2021", "OWASP A09:2025", GDPR Art. 32]
   - id: PRIV-002
     title: Real personal data in source or fixtures
     severity: high
@@ -23,7 +23,7 @@ rules:
       card numbers such as `4111 1111 1111 1111`) and the check's matches on version strings
       or dates are not violations.
     languages: []
-    references: [CWE-359, GDPR Art. 5]
+    references: [CWE-359, GDPR Art. 32]
   - id: PRIV-003
     title: Sensitive data stored in cleartext
     severity: high
@@ -33,26 +33,26 @@ rules:
       Encryption provided by the storage layer and stated in the configuration (encrypted
       volumes, column encryption) counts as encrypted.
     languages: []
-    references: [CWE-312, GDPR Art. 32, "OWASP A02:2021"]
+    references: [CWE-312, GDPR Art. 32, "OWASP A04:2021"]
   - id: PRIV-004
     title: Card data stored or logged
     severity: critical
     check: >-
-      Look for full card numbers (PAN), CVV or CVC codes, or magnetic-stripe data stored in
-      a database, file, log or analytics event, and for card fields posted to the
-      application's own server instead of a payment processor's tokenization form. Storing
+      Look for CVV or CVC codes, magnetic-stripe data or PINs stored anywhere, and full card
+      numbers (PAN) stored or logged unencrypted or unmasked. Card fields posted to the
+      application's own server put it in PCI scope: report that as medium. Storing
       the processor's token, the last four digits or the card brand is not a violation.
     languages: []
     references: [PCI DSS Req. 3, CWE-312]
   - id: PRIV-005
     title: Tokens or personal data in browser storage
-    severity: high
+    severity: medium
     check: >-
       Look for authentication tokens, passwords, or personal data written to `localStorage`,
-      `sessionStorage` or IndexedDB, and cookies holding them without `HttpOnly` and `Secure`.
-      Non-sensitive UI preferences in browser storage are not violations.
+      `sessionStorage` or IndexedDB. Non-sensitive UI preferences in browser storage are not
+      violations.
     languages: [javascript, typescript]
-    references: [CWE-922, CWE-1004]
+    references: [CWE-922]
   - id: PRIV-006
     title: Personal data sent over plain HTTP
     severity: high
@@ -81,7 +81,7 @@ rules:
       report what the repository shows; a retention policy may live in infrastructure outside
       the repository, so phrase the finding as a question when the setting is not visible.
     languages: []
-    references: [GDPR Art. 5]
+    references: [GDPR Art. 5(1)(e)]
   - id: PRIV-009
     title: Deletion that leaves personal data behind
     severity: medium
@@ -101,14 +101,13 @@ rules:
       precise values where a coarse one would do (full IP address, exact location). Fields a
       legal or business process clearly needs are not violations.
     languages: []
-    references: [GDPR Art. 5, GDPR Art. 25]
+    references: [GDPR Art. 5(1)(c), GDPR Art. 25]
   - id: PRIV-011
     title: Personal data sent to a third party
     severity: medium
     check: >-
       Look for calls that send emails, names, user ids, IP addresses or free text written by
-      users to external services (analytics, error tracking, AI or LLM APIs, CRMs), including
-      error trackers configured to send request bodies or user context by default. Name the
+      users to external services (analytics, error tracking, AI or LLM APIs, CRMs). Name the
       service and the fields sent. Data sent only to the application's own infrastructure is
       not a violation.
     languages: []
@@ -141,10 +140,10 @@ rules:
       as `before_send`. A configuration that turns these off or scrubs known fields is not a
       violation.
     languages: []
-    references: [CWE-532]
+    references: [CWE-201, GDPR Art. 28]
   - id: PRIV-015
     title: Missing export path for a user's own data
-    severity: low
+    severity: info
     check: >-
       When the application stores accounts for people in the EU, look for an export or
       download feature that returns a user's personal data in a machine-readable format.

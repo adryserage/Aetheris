@@ -11,7 +11,7 @@ PATTERNS = [
     pattern("any_usage", r":\s*any\b|<any>|\bas\s+any\b", "medium", "'any' disables checks", _TS),
     pattern("unsafe_cast", r"\bas\s+unknown\s+as\b", "high", "double cast hides type errors", _TS),
     pattern(
-        "non_null_assertion", r"\w!\.|\w!\[", "high", "non-null assertion", _TS, ignore_case=False
+        "non_null_assertion", r"\w!\.|\w!\[", "medium", "non-null assertion", _TS, ignore_case=False
     ),
     pattern(
         "type_ignore",

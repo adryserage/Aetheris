@@ -4,11 +4,12 @@ summary: Reviews module boundaries, dependency direction and coupling across the
 rules:
   - id: ARC-001
     title: Circular dependency between modules
-    severity: high
+    severity: medium
     check: >-
       Look for import cycles between modules or packages, starting with the cycles the import
       graph check reports, and name the import that should be removed or inverted to break
-      each one. Imports done only for type checking (`if TYPE_CHECKING:`, `import type`) and
+      each one. Raise it to high when the cycle causes an import-time error or partial
+      initialization. Imports done only for type checking (`if TYPE_CHECKING:`, `import type`) and
       a lazy import inside a function used to break a known cycle are not cycles at runtime;
       report those as low only when the cycle shows a misplaced type.
     languages: []
@@ -117,7 +118,7 @@ rules:
     languages: []
     references: [CWE-1074]
   - id: ARC-012
-    title: Configuration and secrets scattered through code
+    title: Configuration scattered through code
     severity: medium
     check: >-
       Look for environment variables, URLs, feature flags or limits read in many modules with

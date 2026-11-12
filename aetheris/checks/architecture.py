@@ -179,7 +179,7 @@ def circular_imports(ctx: CheckContext) -> list[Finding]:
             make_finding(
                 "circular_imports",
                 "architecture",
-                "high",
+                "medium",
                 f"{len(component)} files import each other: {shown}"
                 + (f" (+{extra} more)" if extra > 0 else ""),
                 component[0],

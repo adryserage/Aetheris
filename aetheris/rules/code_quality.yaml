@@ -114,9 +114,10 @@ rules:
     title: Mutable default or shared state between calls
     severity: high
     check: >-
-      Look for mutable default arguments (`def f(x=[])`, `def f(opts={})`), class-level
-      lists or dicts mutated through instances, and closures in loops that capture the loop
-      variable by reference. A mutable default that is never mutated and only read is low.
+      Look for mutable default arguments (Python only: `def f(x=[])`, `def f(opts={})`),
+      class-level lists or dicts mutated through instances, and closures in loops over a `var`
+      variable (JavaScript) or late-bound closures (Python) that capture the loop variable by
+      reference. A mutable default that is never mutated and only read is low.
     languages: [python, javascript, typescript]
     references: []
   - id: CQ-013
@@ -134,7 +135,7 @@ rules:
     severity: low
     check: >-
       Look for `print`, `console.log`, `debugger`, `breakpoint()`, `pdb.set_trace`, `dump`,
-      hardcoded test credentials or URLs pointing to localhost, and TODO or FIXME comments
+      URLs pointing to localhost, and TODO or FIXME comments
       added by the change. Output that is the program's real interface (a CLI writing its
       result to stdout) and structured logging calls are not violations.
     languages: []
@@ -159,3 +160,14 @@ rules:
       not a violation.
     languages: []
     references: [CWE-362, CWE-367]
+  - id: CQ-017
+    title: Destructive or multi-step write without safeguard
+    severity: high
+    check: >-
+      Look for `DELETE` or `UPDATE` statements without a `WHERE` clause, migrations that drop
+      a column or table, and related writes (a debit and its credit, an order and its lines)
+      done outside a transaction. Raise it to critical when the loss cannot be undone, such as
+      data dropped with no backup, soft delete or reverse migration. Statements on a temporary
+      table, and related writes wrapped in a transaction, are not violations.
+    languages: []
+    references: []

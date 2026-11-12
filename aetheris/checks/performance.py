@@ -17,7 +17,7 @@ _IN_LOOP: list[tuple[str, re.Pattern[str], Severity, str]] = [
     (
         "n_plus_one",
         re.compile(r"\b(?:query|execute|findOne|findById|findMany|fetch|fetchone|select)\s*\("),
-        "high",
+        "medium",
         "database or network call inside a loop; batch it",
     ),
     (

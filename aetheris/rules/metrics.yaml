@@ -28,8 +28,9 @@ rules:
     check: >-
       Read the file-level cyclomatic complexity as the number of decision points plus one.
       As guidance, below 10 per function is simple, 10 to 15 is worth a second look, and above
-      15 is where code_quality rule CQ-004 applies. A file total is the sum over its functions,
-      so divide by the function count before comparing a file to these bands.
+      15 is where code_quality rule CQ-004 applies. Prefer the per-function numbers from the
+      `complexity` findings; a file total divided by the function count is only a rough
+      average.
     languages: []
     references: [CWE-1121]
   - id: MET-004
@@ -61,16 +62,6 @@ rules:
       repetition in business logic is where code_quality rule CQ-007 applies.
     languages: []
     references: [CWE-1041]
-  - id: MET-007
-    title: Maintainability index
-    severity: info
-    check: >-
-      When a maintainability index is available, read it on a 0 to 100 scale where higher is
-      easier to maintain. As guidance, above 65 is healthy, 40 to 65 needs attention, and below
-      40 marks a file worth refactoring first. Compare files of the same language only, since
-      the formula weighs syntax differently between languages.
-    languages: []
-    references: []
   - id: MET-008
     title: Rank files for review
     severity: info

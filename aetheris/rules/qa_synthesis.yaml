@@ -9,7 +9,7 @@ rules:
       Treat findings with `source` set to `check` as pattern matches, not confirmed defects.
       Open the file at the reported line and keep the finding only if the code really does
       what the rule describes; drop it otherwise and count it as a false positive in the
-      summary.
+      summary. After confirming, set the finding to the rule's severity.
     languages: []
     references: []
   - id: QA-002
@@ -20,7 +20,9 @@ rules:
       different agents that describe the same root cause at the same place (a hardcoded key
       flagged by security and data_privacy, a complex function flagged by metrics and
       code_quality): keep the most specific rule id, the highest severity, and mention the
-      other agents in the message.
+      other agents in the message. Known overlaps are duplication (ARC-006, CQ-007, MET-006),
+      validation (API-013, TYP-007, TYP-002), TLS (SEC-015, PRIV-006) and shared state
+      (ARC-007, CQ-016).
     languages: []
     references: []
   - id: QA-003
@@ -40,7 +42,9 @@ rules:
       Lower a finding by one level when the code cannot be reached from outside input (dead
       code, an internal script, a test helper) and raise it by one level when the code sits on
       a public endpoint, handles money, or touches personal data. Write the reason for any
-      change in the message, and never lower a confirmed leaked secret below critical.
+      change in the message, and never lower a confirmed leaked secret below critical. Do not
+      apply the personal-data raise to data_privacy rules or the public-endpoint raise to
+      api_contract rules: their severity already assumes it.
     languages: []
     references: []
   - id: QA-005
@@ -87,17 +91,21 @@ rules:
     check: >-
       Quote the 0 to 100 score `synthesize_report` returns, and explain it by the counts that
       produced it (critical 15, high 8, medium 3, low 1 point each subtracted from 100). Do not
-      compute a different score, weight categories again, or round it to a letter grade.
+      compute a different score, weight categories again, or round it to a letter grade. Call
+      `synthesize_report` only after QA-001 to QA-004, on the cleaned list with adjusted
+      severities, and call it again if you drop or change a finding. The score stops at 0 and
+      is not scaled to code size: do not compare scopes of different sizes.
     languages: []
     references: []
   - id: QA-010
     title: Verdict wording
     severity: info
     check: >-
-      End with exactly one verdict. Request changes when any critical or high finding
-      remains on code the change introduced. Approve with comments when only medium or lower
-      findings remain. Approve when nothing remains after false positives are removed, and
-      say that plainly instead of inventing minor issues.
+      End with exactly one verdict, treating every finding as introduced when the scope is
+      not a diff. Request changes when a critical or high finding remains on code the change
+      introduced, or a critical remains anywhere in scope. Approve with comments when what
+      remains is medium or lower, or high on untouched code. Approve when nothing remains after
+      false positives are removed, and say that plainly instead of inventing minor issues.
     languages: []
     references: []
   - id: QA-011

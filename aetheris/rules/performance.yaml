@@ -6,8 +6,8 @@ rules:
     title: Query inside a loop (N+1)
     severity: medium
     check: >-
-      Look for database queries, ORM lazy relation access, HTTP calls or cache lookups made
-      once per item inside a loop or a list comprehension over query results. Suggest
+      Look for database queries, ORM lazy relation access, HTTP calls or remote cache lookups
+      (Redis, Memcached) made once per item inside a loop or a list comprehension over query results. Suggest
       eager loading (`select_related`, `prefetch_related`, `include`, `JOIN`), a batched
       `IN` query or a DataLoader. Raise it to high on request paths where the loop size grows
       with user data. A loop over a small fixed set (a handful of config keys) is not a
@@ -33,7 +33,7 @@ rules:
       converting the searched collection to a set or map before the loop. Lookups on
       collections of a few elements are not violations.
     languages: []
-    references: [CWE-1067]
+    references: []
   - id: PERF-004
     title: String built by concatenation in a loop
     severity: low
@@ -92,7 +92,7 @@ rules:
       `http.Client{}` with no `Timeout`), so one slow dependency can hang a worker. Clients
       configured once with a default timeout are not violations.
     languages: []
-    references: [CWE-400]
+    references: [CWE-1088]
   - id: PERF-010
     title: Regular expression with catastrophic backtracking
     severity: high
@@ -106,8 +106,8 @@ rules:
     title: Repeated work that could be cached or hoisted
     severity: low
     check: >-
-      Look for the same pure computation, regex compilation, file read, config parse or
-      object construction repeated inside a loop or on every request when its inputs do not
+      Look for the same pure computation, regex compilation, file read, config parse, object
+      construction or sorting of the same collection repeated inside a loop or on every request when its inputs do not
       change. Suggest computing it once outside the loop or at startup. Work that depends on
       per-iteration data is not a violation.
     languages: []
@@ -121,7 +121,7 @@ rules:
       Only report what the migrations show; do not assume an index is missing when the
       schema is not in the repository.
     languages: []
-    references: []
+    references: [CWE-1067]
   - id: PERF-013
     title: Expensive rendering or recomputation in UI code
     severity: low

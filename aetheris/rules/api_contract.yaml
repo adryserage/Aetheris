@@ -83,15 +83,16 @@ rules:
     languages: []
     references: [RFC 9457]
   - id: API-009
-    title: Endpoint without authentication or object-level authorization
+    title: Endpoint without function-level authorization
     severity: critical
     check: >-
-      Look for API routes that return or change user data without an auth dependency,
-      decorator or middleware, and for routes that load a resource by an id from the path
-      without checking that the caller may access that specific object. Public endpoints that
-      are documented as public are not violations.
+      Look for admin or privileged API routes (user and role management, bulk export,
+      configuration changes) that check only that the caller is signed in, not that the caller
+      holds the role the function needs, and for HTTP methods on a resource that skip the role
+      check its other methods apply. Report missing authentication and object-level checks
+      under SEC-009 instead. Routes every signed-in user may call by design are not violations.
     languages: []
-    references: [CWE-862, CWE-639, "OWASP API1:2023", "OWASP API5:2023"]
+    references: [CWE-285, "OWASP API5:2023"]
   - id: API-010
     title: Response exposes internal or sensitive fields
     severity: high
@@ -123,7 +124,7 @@ rules:
     references: [CWE-770, "OWASP API4:2023"]
   - id: API-013
     title: Missing input validation on an endpoint
-    severity: high
+    severity: medium
     check: >-
       Look for handlers that read path, query or body values and use them without checking
       type, range, length or format at the boundary. Handlers whose framework validates the

@@ -11,7 +11,7 @@ rules:
       severity when it gives one (critical, high, moderate as medium, low) and high otherwise.
       Lower it to low only when the vulnerable function is clearly unused, and say why.
     languages: []
-    references: [CWE-1395, "OWASP A06:2021"]
+    references: [CWE-1395, "OWASP A06:2021", "OWASP A03:2025"]
   - id: DEP-002
     title: Vulnerable version with no fix available
     severity: medium
@@ -20,7 +20,7 @@ rules:
       advisory gives, or the alternative package if the project is abandoned. Do not suggest
       an upgrade that does not exist.
     languages: []
-    references: [CWE-1395, "OWASP A06:2021"]
+    references: [CWE-1395, "OWASP A06:2021", "OWASP A03:2025"]
   - id: DEP-003
     title: Version range resolves differently from what was checked
     severity: medium
@@ -42,7 +42,7 @@ rules:
       `go.sum`, `pubspec.lock`, `composer.lock`, `Gemfile.lock`). Libraries that publish ranges
       on purpose are not violations.
     languages: []
-    references: [CWE-1104]
+    references: ["OWASP A06:2021", "OWASP A03:2025"]
   - id: DEP-005
     title: Dependency fetched from an untrusted source
     severity: high
@@ -52,7 +52,7 @@ rules:
       (dependency confusion). A Git dependency pinned to a commit hash from the project's own
       organization is low; a private registry configured as the only index is not a violation.
     languages: []
-    references: [CWE-829, CWE-494, "OWASP A08:2021"]
+    references: [CWE-829, CWE-494, "OWASP A08:2021", "OWASP A08:2025"]
   - id: DEP-006
     title: Install script runs remote code
     severity: high
@@ -62,7 +62,7 @@ rules:
       without checking a hash or signature. Steps that verify a checksum or use a pinned,
       signed package are not violations.
     languages: []
-    references: [CWE-494, "OWASP A08:2021"]
+    references: [CWE-494, "OWASP A08:2021", "OWASP A08:2025"]
   - id: DEP-007
     title: Package declared but unused
     severity: low
@@ -86,12 +86,12 @@ rules:
     title: Unmaintained or deprecated package
     severity: medium
     check: >-
-      Look for packages the registry marks as deprecated, archived or yanked, or that the
+      Look for packages the registry marks as deprecated or archived, or that the
       advisory data describes as unmaintained, and name the replacement the package itself
       recommends. Do not call a package unmaintained from memory of its release history;
       only report what the data or the package's own notice says.
     languages: []
-    references: [CWE-1104, "OWASP A06:2021"]
+    references: [CWE-1104, "OWASP A06:2021", "OWASP A03:2025"]
   - id: DEP-010
     title: Duplicate or conflicting declarations
     severity: low
@@ -111,3 +111,14 @@ rules:
       were not checked. Never describe unchecked packages as safe.
     languages: []
     references: []
+  - id: DEP-012
+    title: Unpinned CI action or base image
+    severity: medium
+    check: >-
+      Look for CI steps that use a third-party action by branch (`uses: owner/action@main`),
+      container base images on `latest` or with no tag (`FROM image:latest`), and
+      `pull_request_target` workflows that check out and run code from the pull request.
+      Actions pinned to a commit SHA and images pinned to a digest or an exact version are not
+      violations.
+    languages: []
+    references: [CWE-829, "OWASP A08:2021", "OWASP A08:2025"]

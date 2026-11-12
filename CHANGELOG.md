@@ -10,9 +10,10 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 ### ✨ Nouvelles fonctionnalités
 
 - Serveur MCP en stdio, lancé par `uvx adryserage-aetheris` ou `python -m aetheris`. Il expose cinq outils qui forment le déroulé de revue : `list_agents`, `plan_review`, `get_rules`, `run_checks` et `synthesize_report`.
-- 10 agents portant 143 règles de revue, rangées en fichiers YAML dans `aetheris/rules/` : sécurité, architecture, qualité du code, métriques, dépendances, synthèse QA, typage, performance, contrat d'API, données personnelles.
+- 10 agents portant 152 règles de revue, rangées en fichiers YAML dans `aetheris/rules/` : sécurité, architecture, qualité du code, métriques, dépendances, synthèse QA, typage, performance, contrat d'API, données personnelles.
 - Vérifications sans IA : secrets masqués, vulnérabilités connues par OSV, métriques par fonction, imports circulaires, motifs de sécurité, de typage, de performance, d'API et de données personnelles (cartes validées par Luhn), points d'arrivée d'API orphelins.
 - Lecture limitée au dossier du projet (`AETHERIS_ROOT` ou dossier courant). Le seul appel réseau va à OSV.
+- Les règles ont été relues par un relecteur indépendant, avec les références vérifiées sur les sources officielles (MITRE CWE, OWASP, RGPD, RFC). 41 corrections : références mal appariées, affirmations techniques fausses, gravités alignées, méthode de synthèse QA cohérente avec le score. Les références OWASP Top 10 2025 sont ajoutées à côté des 2021. Ajout de 10 règles : vérification de signature ou de JWT absente, dépôt de fichier non contrôlé, opérations mémoire dangereuses (C, C++, Rust), pollution de prototype, limite d'essais sur l'authentification, comparaison de secret en temps non constant, injection d'en-tête ou de journal, entrée non fiable qui pilote un LLM avec outils, écriture destructrice sans garde-fou, action CI ou image non épinglée.
 - Chaque résultat d'une vérification porte l'identifiant de sa règle (`rule_id`, par exemple SEC-001). La requête SQL construite par concaténation, `%`, `.format()`, f-string ou gabarit JavaScript est détectée.
 - Commande `aetheris install` : ajoute le serveur MCP à Claude Code, Cursor et Claude Desktop, sans toucher aux autres serveurs déjà configurés. `aetheris uninstall` le retire, `aetheris serve` lance le serveur.
 

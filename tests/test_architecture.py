@@ -2,14 +2,14 @@ from aetheris.server import run_checks
 from tests.conftest import write
 
 
-def test_python_cycle_is_reported_as_high(repo):
+def test_python_cycle_is_reported_as_medium(repo):
     write(repo, "pkg/__init__.py", "")
     write(repo, "pkg/a.py", "from pkg import b\n")
     write(repo, "pkg/b.py", "from pkg.a import thing\n")
     write(repo, "pkg/c.py", "from pkg import a\n")
     findings = run_checks("architecture")["findings"]
     assert len(findings) == 1
-    assert findings[0]["severity"] == "high"
+    assert findings[0]["severity"] == "medium"
     assert "pkg/a.py" in findings[0]["message"] and "pkg/b.py" in findings[0]["message"]
     assert "pkg/c.py" not in findings[0]["message"]
 

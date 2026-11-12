@@ -66,7 +66,7 @@ Aetheris expose cinq outils. Ensemble, ils forment le déroulé de revue que sui
 | `run_checks` | Les résultats des vérifications d'un agent : secrets, vulnérabilités connues (OSV), métriques, imports circulaires, et motifs de sécurité, de typage, de performance, d'API ou de données personnelles |
 | `synthesize_report` | Un rapport unique à partir de tous les résultats : doublons fusionnés, tri par gravité, comptes et score de 0 à 100 |
 
-Les 10 agents portent 143 règles, rangées en fichiers YAML dans [`aetheris/rules/`](https://github.com/adryserage/aetheris/tree/main/aetheris/rules).
+Les 10 agents portent 152 règles, rangées en fichiers YAML dans [`aetheris/rules/`](https://github.com/adryserage/aetheris/tree/main/aetheris/rules).
 
 ## Ce qui quitte votre machine
 

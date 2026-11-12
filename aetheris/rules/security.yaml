@@ -13,18 +13,19 @@ rules:
       and query builders are not violations, and neither is interpolating a constant or a value
       checked against a fixed allowlist of identifiers.
     languages: []
-    references: [CWE-89, "OWASP A03:2021"]
+    references: [CWE-89, "OWASP A03:2021", "OWASP A05:2025"]
   - id: SEC-002
     title: OS command injection
     severity: critical
     check: >-
       Look for shell commands assembled from variables and run through `os.system`,
-      `subprocess` with `shell=True`, `child_process.exec`, `Runtime.exec` with a single string,
-      backticks, `system()` or `popen`. A command passed as an argument list without a shell
+      `subprocess` with `shell=True`, `child_process.exec`, `Runtime.exec` with a single string
+      (no shell, but arguments split on spaces: argument injection), backticks, `system()` or
+      `popen`. A command passed as an argument list without a shell
       (`subprocess.run([...])`, `execFile`, `spawn` without `shell: true`) is not a violation,
       and a fully constant command string is not one either.
     languages: []
-    references: [CWE-78, "OWASP A03:2021"]
+    references: [CWE-78, "OWASP A03:2021", "OWASP A05:2025"]
   - id: SEC-003
     title: Cross-site scripting
     severity: high
@@ -36,7 +37,7 @@ rules:
       `textContent`, framework bindings that escape by default, and HTML passed through a
       sanitizer such as DOMPurify are not violations.
     languages: []
-    references: [CWE-79, "OWASP A03:2021"]
+    references: [CWE-79, "OWASP A03:2021", "OWASP A05:2025"]
   - id: SEC-004
     title: Dynamic code evaluation
     severity: critical
@@ -46,7 +47,7 @@ rules:
       input from outside the process. Evaluation of a literal written in the source, or of
       code loaded only from the project's own files, is not a violation.
     languages: []
-    references: [CWE-94, CWE-95, "OWASP A03:2021"]
+    references: [CWE-94, CWE-95, CWE-1336, "OWASP A03:2021", "OWASP A05:2025"]
   - id: SEC-005
     title: Hardcoded secret
     severity: critical
@@ -58,7 +59,7 @@ rules:
       environment or a secret manager, and public identifiers such as publishable Stripe keys
       or OAuth client ids are not violations.
     languages: []
-    references: [CWE-798, "OWASP A07:2021"]
+    references: [CWE-798, "OWASP A07:2021", "OWASP A07:2025"]
   - id: SEC-006
     title: Weak cryptographic algorithm
     severity: high
@@ -66,9 +67,10 @@ rules:
       Look for MD5, SHA-1, DES, 3DES, RC4, ECB mode, RSA keys under 2048 bits or a fixed or
       zero IV used to protect data, sign messages, or verify integrity against an attacker.
       MD5 or SHA-1 used only as a non-security checksum, cache key or content hash for
-      deduplication is not a violation.
+      deduplication is not a violation. HMAC-SHA1 and HMAC-MD5 are not broken; report them as
+      low.
     languages: []
-    references: [CWE-327, CWE-328, "OWASP A02:2021"]
+    references: [CWE-327, CWE-328, CWE-326, "OWASP A02:2021", "OWASP A04:2025"]
   - id: SEC-007
     title: Password stored with a fast hash
     severity: high
@@ -77,7 +79,7 @@ rules:
       or without a salt) or stored reversibly encrypted. bcrypt, scrypt, Argon2 and PBKDF2
       with a high iteration count are not violations.
     languages: []
-    references: [CWE-916, "OWASP A02:2021"]
+    references: [CWE-916, "OWASP A02:2021", "OWASP A04:2025"]
   - id: SEC-008
     title: Insecure randomness for security values
     severity: high
@@ -88,7 +90,7 @@ rules:
       violations; `secrets`, `crypto.randomBytes`, `crypto.getRandomValues` and `SecureRandom`
       are the expected choices.
     languages: []
-    references: [CWE-330, CWE-338]
+    references: [CWE-330, CWE-338, "OWASP A02:2021", "OWASP A04:2025"]
   - id: SEC-009
     title: Missing authentication or authorization
     severity: critical
@@ -99,25 +101,28 @@ rules:
       public by design (health checks, login, public content) are not violations; confirm the
       check is not applied by middleware or a decorator before reporting.
     languages: []
-    references: [CWE-306, CWE-862, CWE-639, "OWASP A01:2021"]
+    references: [CWE-306, CWE-862, CWE-639, "OWASP A01:2021", "OWASP A01:2025", "OWASP API1:2023", "OWASP API2:2023"]
   - id: SEC-010
     title: Path traversal
-    severity: critical
+    severity: high
     check: >-
       Look for file paths built from request parameters, archive entry names or other
       outside input and passed to open, read, write, delete or send-file functions without
-      resolving the path and checking it stays inside an allowed directory. A path joined from
-      constants, or one validated with `realpath`/`resolve` plus a prefix check, is not a
-      violation; `os.path.join` alone does not protect against `../` or absolute paths.
+      resolving the path and checking it stays inside an allowed directory. Raise it to
+      critical when the path is used to write or delete files or can read secrets. A path
+      joined from constants, or one validated with `realpath`/`resolve` plus a prefix check, is
+      not a violation; `os.path.join` alone does not protect against `../` or absolute paths.
     languages: []
-    references: [CWE-22, "OWASP A01:2021"]
+    references: [CWE-22, "OWASP A01:2021", "OWASP A01:2025"]
   - id: SEC-011
     title: Server-side request forgery
     severity: high
     check: >-
       Look for HTTP clients fetching a URL, host or port taken from user input (webhooks,
       image fetchers, URL previews, import-from-URL features) without an allowlist of hosts
-      and a block on private, loopback and link-local addresses. A request to a fixed base URL
+      and a block on private, loopback and link-local addresses. The check must apply to the
+      resolved IP address and to every redirect. Raise it to critical when the response is
+      returned to the caller or cloud metadata is reachable. A request to a fixed base URL
       where the user only controls a path segment or query value is not a violation.
     languages: []
     references: [CWE-918, "OWASP A10:2021"]
@@ -131,27 +136,29 @@ rules:
       `yaml.safe_load` and deserialization of files the application wrote itself to a private
       location are not violations.
     languages: []
-    references: [CWE-502, "OWASP A08:2021"]
+    references: [CWE-502, "OWASP A08:2021", "OWASP A08:2025"]
   - id: SEC-013
     title: XML external entities
     severity: high
     check: >-
       Look for XML parsers that process untrusted documents with DTD or external entity
-      resolution left on (default `DocumentBuilderFactory`, `XMLInputFactory`, lxml with
-      `resolve_entities=True`, libxml with `LIBXML_NOENT`). `defusedxml`, parsers configured to
-      disallow DOCTYPE, and XML produced only by the application itself are not violations.
+      resolution left on (default `DocumentBuilderFactory`, `XMLInputFactory`, lxml before 5.0
+      with default settings, or `resolve_entities=True`, libxml with `LIBXML_NOENT`).
+      `defusedxml`, parsers configured to disallow DOCTYPE, and XML produced only by the
+      application itself are not violations.
     languages: []
-    references: [CWE-611, "OWASP A05:2021"]
+    references: [CWE-611, CWE-776, "OWASP A05:2021", "OWASP A02:2025"]
   - id: SEC-014
     title: Permissive CORS
     severity: high
     check: >-
-      Look for CORS settings that reflect any request `Origin` or use `*` while also allowing
+      Look for CORS settings that reflect any request `Origin` or accept `null` while allowing
       credentials, and for origin checks done with `startsWith`, `endsWith` or a substring
-      match. A wildcard origin on a public, unauthenticated, read-only API that sends no
+      match. A literal `*` with credentials is rejected by browsers; report it as medium. A
+      wildcard origin on a public, unauthenticated, read-only API that sends no
       cookies is not a violation.
     languages: []
-    references: [CWE-942, "OWASP A05:2021"]
+    references: [CWE-942, "OWASP A05:2021", "OWASP A02:2025"]
   - id: SEC-015
     title: TLS verification disabled
     severity: high
@@ -162,17 +169,18 @@ rules:
       network. The same setting confined to a test that talks to a local mock server is not
       a violation.
     languages: []
-    references: [CWE-295, "OWASP A02:2021"]
+    references: [CWE-295, "OWASP A07:2021", "OWASP A07:2025"]
   - id: SEC-016
     title: Sensitive data in error responses
     severity: medium
     check: >-
       Look for stack traces, SQL errors, file paths, internal hostnames or exception messages
       returned to the client, and for debug modes (`DEBUG = True`, `app.run(debug=True)`,
-      detailed error pages) enabled in production configuration. Logging the full error on the
-      server while returning a generic message is the expected pattern, not a violation.
+      detailed error pages) enabled in production configuration. Raise it to high for an
+      interactive debugger or debug console reachable in production. Logging the full error on
+      the server while returning a generic message is the expected pattern, not a violation.
     languages: []
-    references: [CWE-209, "OWASP A05:2021"]
+    references: [CWE-209, CWE-489, "OWASP A05:2021", "OWASP A02:2025"]
   - id: SEC-017
     title: Session cookie without secure flags
     severity: medium
@@ -182,27 +190,28 @@ rules:
       `SESSION_COOKIE_SECURE = False`. Cookies that hold only non-sensitive UI preferences are
       not violations.
     languages: []
-    references: [CWE-1004, CWE-614, "OWASP A07:2021"]
+    references: [CWE-1004, CWE-614, "OWASP A05:2021", "OWASP A02:2025"]
   - id: SEC-018
     title: Missing CSRF protection
     severity: high
     check: >-
       Look for state-changing endpoints (POST, PUT, PATCH, DELETE) authenticated by cookies
       where CSRF protection is disabled (`csrf_exempt`, `csrf: false`, middleware removed) and
-      no SameSite=Lax or Strict cookie or token check replaces it. APIs authenticated only by a
-      bearer token in a header are not violations.
+      no SameSite=Lax or Strict cookie or token check replaces it. SameSite=Lax counts only when
+      no GET handler changes state. APIs authenticated only by a bearer token in a header are
+      not violations.
     languages: []
-    references: [CWE-352, "OWASP A01:2021"]
+    references: [CWE-352, "OWASP A01:2021", "OWASP A01:2025"]
   - id: SEC-019
     title: Open redirect
     severity: medium
     check: >-
       Look for redirects whose target comes from a query parameter or form field (`next`,
-      `returnUrl`, `redirect`) without checking it is a relative path or a host on an
-      allowlist. A redirect to a fixed route, or to a value looked up from a server-side map,
+      `returnUrl`, `redirect`) without checking it is a relative path (reject `//host` and
+      `/\host`, which browsers treat as absolute) or a host on an allowlist. A redirect to a fixed route, or to a value looked up from a server-side map,
       is not a violation.
     languages: []
-    references: [CWE-601, "OWASP A01:2021"]
+    references: [CWE-601, "OWASP A01:2021", "OWASP A01:2025"]
   - id: SEC-020
     title: NoSQL or LDAP injection
     severity: high
@@ -212,4 +221,91 @@ rules:
       user input. Filters built from typed, validated scalar values and LDAP values escaped
       with the library's filter-escape function are not violations.
     languages: []
-    references: [CWE-943, CWE-90, "OWASP A03:2021"]
+    references: [CWE-943, CWE-90, "OWASP A03:2021", "OWASP A05:2025"]
+  - id: SEC-021
+    title: Signature or token verification skipped
+    severity: critical
+    check: >-
+      Look for JWTs decoded without verifying the signature (`verify=False`,
+      `verify_signature: False`, `jwt.decode` used where `jwt.verify` is needed), tokens
+      accepted with `alg: none`, verification calls that do not pin the expected algorithm, and
+      webhook handlers that skip the provider's HMAC signature check. Reading a claim from a
+      token that was already verified earlier in the same request, or decoding one in a test,
+      is not a violation.
+    languages: []
+    references: [CWE-347, "OWASP A02:2021", "OWASP A04:2025"]
+  - id: SEC-022
+    title: Unrestricted file upload
+    severity: high
+    check: >-
+      Look for upload handlers that accept a file without checking its type, size or name,
+      then store it under the name the client sent or serve it from a directory the web server
+      executes or renders. Uploads checked against an allowlist of types and a size limit,
+      renamed on the server, and stored outside the web root or served as attachments are not
+      violations.
+    languages: []
+    references: [CWE-434]
+  - id: SEC-023
+    title: Memory-unsafe operation
+    severity: critical
+    check: >-
+      Look for `strcpy`, `strcat`, `sprintf`, `gets`, and `memcpy` or `memmove` with a length
+      taken from input, array writes or reads without a bounds check, and memory used after
+      `free`. In Rust, look for `unsafe` blocks that dereference raw pointers or call such
+      functions on input-controlled sizes. Bounded calls given the real buffer size
+      (`snprintf`, `strlcpy`) and `unsafe` blocks whose invariant the surrounding code checks
+      are not violations.
+    languages: [c, cpp, rust]
+    references: [CWE-787, CWE-125, CWE-416]
+  - id: SEC-024
+    title: Prototype pollution
+    severity: high
+    check: >-
+      Look for recursive merge, deep clone or path assignment helpers (`merge`, `extend`,
+      `set(obj, path, value)`) that copy keys from request bodies or parsed JSON without
+      rejecting `__proto__`, `constructor` and `prototype`. Targets created with
+      `Object.create(null)`, `Map` objects, and helpers that skip those keys are not
+      violations.
+    languages: [javascript, typescript]
+    references: [CWE-1321]
+  - id: SEC-025
+    title: No rate limit on authentication endpoints
+    severity: medium
+    check: >-
+      Look for login, password reset and one-time code endpoints with no attempt limit,
+      lockout, backoff or CAPTCHA, so an attacker can guess passwords or codes. A limit
+      applied by middleware, an API gateway or the identity provider counts when the
+      repository shows it.
+    languages: []
+    references: [CWE-307, "OWASP API2:2023"]
+  - id: SEC-026
+    title: Secret compared in non-constant time
+    severity: medium
+    check: >-
+      Look for tokens, API keys, HMAC signatures or reset codes compared with `==`, `===`,
+      `equals` or `strcmp` against a value the caller sends. `hmac.compare_digest`,
+      `crypto.timingSafeEqual`, `MessageDigest.isEqual` and the password library's own verify
+      function are not violations.
+    languages: []
+    references: [CWE-208]
+  - id: SEC-027
+    title: Header or log injection
+    severity: medium
+    check: >-
+      Look for request values written into HTTP response headers (`Location`, `Set-Cookie`,
+      custom headers) or log lines without removing carriage returns and line feeds, so an
+      attacker can add headers or forge log entries. Frameworks that reject newlines in header
+      values, and structured loggers that encode each field, are not violations.
+    languages: []
+    references: [CWE-113, CWE-117]
+  - id: SEC-028
+    title: Untrusted input driving an LLM with tools
+    severity: high
+    check: >-
+      Look for external text (user messages, web pages, emails, files, tool results) placed
+      in the prompt of a model that can call tools, run code or change data, without limiting
+      those tools or asking for confirmation before side effects. Look also for model output
+      passed to `eval`, a shell, SQL or HTML without the handling any untrusted input gets. A
+      model with no tools whose output is shown as escaped text is not a violation.
+    languages: []
+    references: ["OWASP LLM01:2025", "OWASP LLM05:2025"]
