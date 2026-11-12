@@ -134,8 +134,7 @@ jobs:
 
   create-release:
     name: Create GitHub Release
-    needs: [guard, build, publish]
-    if: ${{ !cancelled() && needs.build.result == 'success' && (needs.publish.result == 'success' || (needs.publish.result == 'skipped' && inputs.skip_pypi)) }}
+    needs: [guard, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
