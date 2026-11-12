@@ -7,6 +7,10 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### 🔄 Compatibilité
+
+- Le serveur passe au SDK MCP 2 (`mcp>=2.3,<3`). Les six outils, leurs schémas et leurs messages d'erreur ne changent pas. `serverInfo.version` donne maintenant la version d'Aetheris au lieu de celle du SDK.
+
 ### 📝 Documentation
 
 - La branche `develop` disparaît : les pull requests visent `main`, depuis un fork ou une branche courte.

@@ -28,7 +28,7 @@ from typing import Any
 from urllib.parse import urlsplit
 
 import anyio
-import httpx
+import httpx2
 from starlette.applications import Starlette
 from starlette.datastructures import Headers
 from starlette.middleware import Middleware
@@ -116,7 +116,7 @@ FetchSession = Callable[[str, str], Awaitable[tuple[int, Any]]]
 
 
 async def fetch_session(url: str, token: str) -> tuple[int, Any]:
-    async with httpx.AsyncClient() as client:
+    async with httpx2.AsyncClient() as client:
         response = await client.get(
             url, headers={"Authorization": f"Bearer {token}", "Accept": "application/json"}
         )
@@ -324,7 +324,11 @@ def build_app(
 ) -> Starlette:
     mcp = build_server(hosted=True)
     endpoint = RequireToken(
-        mcp.streamable_http_app(),
+        mcp.streamable_http_app(
+            host="0.0.0.0",  # Host and Origin are checked by AllowedHosts, not by the SDK
+            stateless_http=True,
+            json_response=True,
+        ),
         config.base,
         config.service_key,
         verify or SessionVerifier(config.issuer),
