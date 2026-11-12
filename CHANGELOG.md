@@ -34,6 +34,7 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - Les specs des versions 2.5 à 3.0.0 sont archivées dans `docs/archive/specs/`, hors du site de documentation.
 - Retrait de l'outillage inutilisé : `.serena/`, `.specify/` et les commandes SpecKit, `docs-dev/`, `generate_bugs_cache.py`, `scripts/analyze_changes.py` et `scripts/create_missing_releases.py`.
 - Les releases ne partent plus toutes seules. `promote.yml` ne fusionne plus `develop` dans `main`, et `release.yml` ne publie que sur une étiquette `vX.Y.Z` ou un lancement manuel, plus à chaque push sur `main`.
+- GitHub Actions remis à niveau. Un seul `ci.yml` (lint, mypy, tests de Python 3.10 à 3.13, build, test d'installation du wheel) remplace `ci.yml` et `promote.yml`. `release.yml` refuse une étiquette qui ne correspond pas à la version du paquet, et les notes de release avertissent les utilisateurs de la 3.x. Les actions sont épinglées par SHA, avec des permissions minimales, et Dependabot vise `develop`. Retrait du graphique des téléchargements, qui échouait chaque jour.
 - `scheduled.yml` ne commite plus les rapports générés, qui restent disponibles comme artefacts des exécutions. Git ignore désormais `docs/analyses/` et `docs/metrics/`.
 
 ### 📝 Documentation

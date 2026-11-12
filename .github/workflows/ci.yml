@@ -1,49 +1,35 @@
-# Consolidated CI workflow: Quality, Security, and Dependencies
-# Replaces: ci-quality.yml, security-scan.yml, dependency-submission.yml
+# Quality checks on every push to develop or main and on every pull request.
 
 name: CI
 
 on:
   push:
-    branches: [main, master, develop]
-    paths:
-      - 'aetheris/**'
-      - 'tests/**'
-      - 'pyproject.toml'
-      - 'requirements*.txt'
+    branches: [develop, main]
   pull_request:
-    branches: [main, master, develop]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
-  actions: read
-  contents: write
-  security-events: write
-
-env:
-  PYTHON_VERSION: '3.11'
+  contents: read
 
 jobs:
-  # ============================================
-  # QUALITY CHECKS
-  # ============================================
   lint:
-    name: Lint & Format
+    name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
+          persist-credentials: false
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.10'
 
       - name: Install linters
-        run: pip install black flake8 isort mypy
+        run: pip install black flake8 isort
 
       - name: Check formatting (black)
         run: black --check --line-length 100 aetheris/ tests/
@@ -54,122 +40,106 @@ jobs:
       - name: Lint (flake8)
         run: flake8 aetheris/ tests/ --max-line-length=100 --extend-ignore=E203,W503,E501,E402,F401
 
-  test:
-    name: Test & Coverage
+  mypy:
+    name: Type check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
+          persist-credentials: false
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.10'
 
       - name: Install dependencies
-        run: |
-          pip install -e .
-          pip install pytest pytest-cov pytest-asyncio
-
-      - name: Run tests with coverage
-        run: pytest tests/ -v --cov=aetheris --cov-report=xml --cov-report=term-missing
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./coverage.xml
-          fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Generate coverage badge
-        run: |
-          COVERAGE=$(python -c "import xml.etree.ElementTree as ET; tree = ET.parse('coverage.xml'); print(f\"{float(tree.getroot().attrib.get('line-rate', 0)) * 100:.0f}\")" 2>/dev/null || echo "0")
-          echo "Coverage: ${COVERAGE}%"
-          mkdir -p .github/badges
-          if [ "$COVERAGE" -ge 80 ]; then COLOR="brightgreen"
-          elif [ "$COVERAGE" -ge 60 ]; then COLOR="yellow"
-          elif [ "$COVERAGE" -ge 40 ]; then COLOR="orange"
-          else COLOR="red"; fi
-          echo "{\"schemaVersion\":1,\"label\":\"coverage\",\"message\":\"${COVERAGE}%\",\"color\":\"${COLOR}\"}" > .github/badges/coverage.json
-        continue-on-error: true
-
-  type-check:
-    name: Type Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-
-      - name: Install dependencies
-        run: |
-          pip install -e .
-          pip install mypy types-requests types-PyYAML
+        run: pip install -e . mypy types-requests types-PyYAML
 
       - name: Run mypy
-        run: mypy aetheris/ --ignore-missing-imports --no-error-summary
+        run: mypy aetheris/
 
-  # ============================================
-  # SECURITY CHECKS
-  # ============================================
-  # NOTE: CodeQL requires GitHub Advanced Security (Organization plan for private repos)
-  # Enable when Advanced Security is available
-
-  dependency-review:
-    name: Dependency Review
+  test:
+    name: Test (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11', '3.12', '3.13']
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Dependency Review
-        uses: actions/dependency-review-action@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fail-on-severity: high
-          deny-licenses: GPL-3.0, AGPL-3.0
+          persist-credentials: false
 
-  pip-audit:
-    name: Pip Audit (CVE Scan)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version: ${{ matrix.python-version }}
 
-      - name: Install pip-audit
-        run: pip install pip-audit
+      - name: Install dependencies
+        run: pip install -e . pytest pytest-cov
 
-      - name: Run pip-audit
+      - name: Run tests (coverage printed on 3.12)
+        env:
+          PYTHON_VERSION: ${{ matrix.python-version }}
         run: |
-          pip install -e . || true
-          pip-audit --strict --progress-spinner off || true
-        continue-on-error: true
+          if [ "$PYTHON_VERSION" = "3.12" ]; then
+            pytest tests/ -v --cov=aetheris --cov-report=term-missing
+          else
+            pytest tests/ -v
+          fi
 
-  # ============================================
-  # DEPENDENCY SUBMISSION
-  # ============================================
-  submit-dependencies:
-    name: Submit Dependencies
+  build:
+    name: Build and check package
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
 
-      - name: Submit dependencies
-        uses: advanced-security/component-detection-dependency-submission-action@v0.0.2
+      - name: Build sdist and wheel
+        run: |
+          pip install build twine
+          python -m build
+
+      - name: Check metadata (twine)
+        run: twine check dist/*
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          directoryExclusionList: 'tests,docs,specs,.github'
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  smoke:
+    name: Smoke test wheel (Python ${{ matrix.python-version }})
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.13']
+    steps:
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dist
+          path: dist
+
+      - name: Install the wheel in a clean venv
+        run: |
+          python -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install dist/*.whl
+
+      - name: Check the installed package
+        working-directory: ${{ runner.temp }}
+        run: |
+          export PATH="$RUNNER_TEMP/venv/bin:$PATH"
+          aetheris --version
+          python -c "import aetheris.server"
+          timeout 5 adryserage-aetheris </dev/null

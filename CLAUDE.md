@@ -30,10 +30,11 @@ Serveur MCP open source (Apache 2.0) qui donne à l'assistant de code IA les rè
 
 ## Services et déploiement
 
-- Push sur `develop` : `promote.yml` lance le lint, les types et le build. Il ne fusionne rien.
-- Étiquette `vX.Y.Z` poussée, ou lancement manuel : `release.yml` construit le sdist et le wheel, les publie sur PyPI par Trusted Publishing (sans jeton), crée la release GitHub et déploie la doc sur GitHub Pages. Un push sur `main` ne publie rien.
-- `ci.yml` : lint, tests et types à chaque push ou PR qui touche `aetheris/`, `tests/` ou `pyproject.toml`.
-- `scheduled.yml` : graphique des téléchargements PyPI chaque jour (commit sur `main`), scan de sécurité chaque dimanche.
+- `ci.yml` : à chaque push sur `develop` ou `main`, à chaque PR et au lancement manuel. Lint et mypy en Python 3.10, tests de 3.10 à 3.13, build avec `twine check`, puis installation du wheel dans un venv vide (`aetheris --version`, démarrage du serveur).
+- `release.yml` : seulement sur une étiquette `vX.Y.Z` poussée, ou au lancement manuel avec une étiquette. Le job `guard` refuse une étiquette différente de la version de `pyproject.toml`. Ensuite : build, publication sur PyPI par Trusted Publishing (environnement `pypi`, sans jeton), release GitHub avec les notes tirées de `CHANGELOG.md` par `scripts/extract_release_notes.py`, qui échoue si la section manque et ajoute un avertissement quand elle contient « Changements incompatibles », et déploiement de la doc sur GitHub Pages. Un push sur `main` ne publie rien.
+- `scheduled.yml` : chaque dimanche, `pip-audit` sur le projet et `bandit` sur `aetheris/`.
+- Dependabot vise `develop`, pour `pip` et `github-actions`.
+- Les actions sont épinglées par SHA de commit, avec l'étiquette en commentaire. Chaque job a des permissions minimales et `persist-credentials: false`.
 - Serveurs : voir `~/.claude/FLUX.md`.
 
 ## Règles du projet
