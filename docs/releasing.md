@@ -14,7 +14,11 @@ The `main` ruleset requires no approval yet, because the project has no reviewer
 
 ## Steps
 
-The example releases 4.0.1. Pick the number from the last tag with [semantic versioning](https://semver.org): patch for fixes, minor for new features, major for breaking changes.
+The example releases 4.0.1. Pick the number from the last tag:
+
+- a small change, such as a fix or a minor improvement, raises the last number (4.0.0 to 4.0.1);
+- a security fix raises the middle number and resets the last one (4.0.1 to 4.1.0);
+- a major change, such as a new major version of a dependency or a change that breaks existing setups, raises the first number and resets the others (4.1.0 to 5.0.0).
 
 1. On a `release/4.0.1` branch from `main`, prepare the version:
 
