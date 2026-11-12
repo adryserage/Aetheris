@@ -85,6 +85,12 @@ Les bogues et les idées vont dans les [GitHub Issues](https://github.com/adryse
 
 Aetheris suit le [versionnage sémantique](https://semver.org/lang/fr/). Chaque changement est listé dans [CHANGELOG.md](https://github.com/adryserage/aetheris/blob/main/CHANGELOG.md), et chaque version a son étiquette et sa [release GitHub](https://github.com/adryserage/aetheris/releases).
 
+Les releases sont rares : le mainteneur en publie une quand un changement compte pour beaucoup d'utilisateurs. D'ici là, les changements fusionnés attendent sous `[Unreleased]`. Pour lancer la branche `main` actuelle au lieu de la dernière release :
+
+```bash
+uvx --from git+https://github.com/adryserage/Aetheris adryserage-aetheris
+```
+
 ## Venir de la 3.x
 
 La version 4.0 retire les commandes d'analyse, les intégrations des fournisseurs d'IA et le worker Railway. La commande `aetheris` reste, pour installer le serveur MCP. Les anciennes commandes comme `aetheris analysis` affichent ce qui a changé et sortent avec le code 2, pour qu'une CI échoue avec un message clair. Pour garder la CLI 3.x, fixez la dernière version 3.x :
