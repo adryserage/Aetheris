@@ -13,6 +13,10 @@ et ce projet adhère à [Semantic Versioning](https://semver.org/lang/fr/).
 - `secret_scan` ignore les valeurs d'exemple documentées, comme les clés AWS finissant par `EXAMPLE`, et le paramètre d'un en-tête `WWW-Authenticate` (`Bearer resource_metadata="..."`).
 - `nested_loops` passe en gravité `low` et ne signale plus une boucle interne sur un littéral ou une constante. `any_usage` respecte la casse et ne prend plus le mot « any » d'une docstring. `xss` ne vérifie plus que le JavaScript et le TypeScript.
 
+### 📝 Documentation
+
+- Le README affiche la version PyPI, le nombre de téléchargements et, à la fin, un graphique des téléchargements par semaine, redessiné chaque jour.
+
 ## [4.0.0] - 2026-11-12
 
 ### ✨ Nouvelles fonctionnalités
