@@ -7,6 +7,10 @@ et la numérotation augmente le dernier chiffre pour un petit changement, celui 
 
 ## [Unreleased]
 
+### 📝 Documentation
+
+- Les liens canoniques et le plan du site de doc pointent vers l'adresse servie par GitHub Pages (`/Aetheris/`), au lieu d'une adresse en minuscules qui répondait 404.
+
 ## [5.0.1] - 2026-11-12
 
 ### 📝 Documentation
