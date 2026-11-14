@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" width="760" height="300" role="img" aria-label="PyPI downloads per week">
+<rect width="760" height="300" rx="12" fill="#F5F7FA"/>
+<text x="56" y="32" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="17" font-weight="600" fill="#1F2933">PyPI downloads per week</text>
+<text x="56" y="52" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" fill="#52606D">7,811 downloads in 27 weeks, without mirrors. Updated 2026-11-14.</text>
+<line x1="56" y1="256.0" x2="736" y2="256.0" stroke="#D9DEE3" stroke-width="1"/>
+<text x="48" y="260.0" text-anchor="end" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" fill="#52606D">0</text>
+<line x1="56" y1="194.0" x2="736" y2="194.0" stroke="#D9DEE3" stroke-width="1"/>
+<text x="48" y="198.0" text-anchor="end" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" fill="#52606D">500</text>
+<line x1="56" y1="132.0" x2="736" y2="132.0" stroke="#D9DEE3" stroke-width="1"/>
+<text x="48" y="136.0" text-anchor="end" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" fill="#52606D">1,000</text>
+<line x1="56" y1="70.0" x2="736" y2="70.0" stroke="#D9DEE3" stroke-width="1"/>
+<text x="48" y="74.0" text-anchor="end" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" fill="#52606D">1,500</text>
+<rect x="59.8" y="255.5" width="17.6" height="0.5" rx="2" fill="#0F6E8C"><title>2026-05-11: 4</title></rect>
+<text x="56.0" y="276" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" fill="#52606D">May 2026</text>
+<rect x="85.0" y="249.6" width="17.6" height="6.4" rx="2" fill="#0F6E8C"><title>2026-05-18: 52</title></rect>
+<rect x="110.1" y="173.5" width="17.6" height="82.5" rx="2" fill="#0F6E8C"><title>2026-05-25: 665</title></rect>
+<rect x="135.3" y="211.2" width="17.6" height="44.8" rx="2" fill="#0F6E8C"><title>2026-06-01: 361</title></rect>
+<text x="131.6" y="276" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" fill="#52606D">Jun</text>
+<rect x="160.5" y="213.7" width="17.6" height="42.3" rx="2" fill="#0F6E8C"><title>2026-06-08: 341</title></rect>
+<rect x="185.7" y="239.3" width="17.6" height="16.7" rx="2" fill="#0F6E8C"><title>2026-06-15: 135</title></rect>
+<rect x="210.9" y="201.9" width="17.6" height="54.1" rx="2" fill="#0F6E8C"><title>2026-06-22: 436</title></rect>
+<rect x="236.1" y="212.8" width="17.6" height="43.2" rx="2" fill="#0F6E8C"><title>2026-06-29: 348</title></rect>
+<rect x="261.3" y="234.3" width="17.6" height="21.7" rx="2" fill="#0F6E8C"><title>2026-07-06: 175</title></rect>
+<text x="257.5" y="276" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" fill="#52606D">Jul</text>
+<rect x="286.4" y="227.6" width="17.6" height="28.4" rx="2" fill="#0F6E8C"><title>2026-07-13: 229</title></rect>
+<rect x="311.6" y="236.9" width="17.6" height="19.1" rx="2" fill="#0F6E8C"><title>2026-07-20: 154</title></rect>
+<rect x="336.8" y="250.4" width="17.6" height="5.6" rx="2" fill="#0F6E8C"><title>2026-07-27: 45</title></rect>
+<rect x="362.0" y="246.2" width="17.6" height="9.8" rx="2" fill="#0F6E8C"><title>2026-08-03: 79</title></rect>
+<text x="358.2" y="276" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" fill="#52606D">Aug</text>
+<rect x="387.2" y="252.5" width="17.6" height="3.5" rx="2" fill="#0F6E8C"><title>2026-08-10: 28</title></rect>
+<rect x="412.4" y="249.8" width="17.6" height="6.2" rx="2" fill="#0F6E8C"><title>2026-08-17: 50</title></rect>
+<rect x="437.6" y="251.7" width="17.6" height="4.3" rx="2" fill="#0F6E8C"><title>2026-08-24: 35</title></rect>
+<rect x="462.7" y="249.2" width="17.6" height="6.8" rx="2" fill="#0F6E8C"><title>2026-08-31: 55</title></rect>
+<rect x="487.9" y="248.3" width="17.6" height="7.7" rx="2" fill="#0F6E8C"><title>2026-09-07: 62</title></rect>
+<text x="484.1" y="276" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" fill="#52606D">Sep</text>
+<rect x="513.1" y="216.1" width="17.6" height="39.9" rx="2" fill="#0F6E8C"><title>2026-09-14: 322</title></rect>
+<rect x="538.3" y="178.9" width="17.6" height="77.1" rx="2" fill="#0F6E8C"><title>2026-09-21: 622</title></rect>
+<rect x="563.5" y="229.2" width="17.6" height="26.8" rx="2" fill="#0F6E8C"><title>2026-09-28: 216</title></rect>
+<rect x="588.7" y="186.6" width="17.6" height="69.4" rx="2" fill="#0F6E8C"><title>2026-10-05: 560</title></rect>
+<text x="584.9" y="276" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" fill="#52606D">Oct</text>
+<rect x="613.9" y="209.0" width="17.6" height="47.0" rx="2" fill="#0F6E8C"><title>2026-10-12: 379</title></rect>
+<rect x="639.0" y="225.5" width="17.6" height="30.5" rx="2" fill="#0F6E8C"><title>2026-10-19: 246</title></rect>
+<rect x="664.2" y="217.2" width="17.6" height="38.8" rx="2" fill="#0F6E8C"><title>2026-10-26: 313</title></rect>
+<rect x="689.4" y="175.2" width="17.6" height="80.8" rx="2" fill="#0F6E8C"><title>2026-11-02: 652</title></rect>
+<text x="685.6" y="276" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" fill="#52606D">Nov</text>
+<rect x="714.6" y="101.4" width="17.6" height="154.6" rx="2" fill="#9CCAD8"><title>2026-11-09: 1,247</title></rect>
+<text x="736" y="290" text-anchor="end" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" fill="#52606D"><tspan fill="#9CCAD8">■</tspan> current week, in progress</text>
+</svg>
