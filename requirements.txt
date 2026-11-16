@@ -7,4 +7,4 @@ pyyaml>=6.0
 
 # Outils de développement
 black>=26.10.1
-types-PyYAML>=6.0.12.20261103
+types-PyYAML>=6.0.12.20261111
