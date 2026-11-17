@@ -7,6 +7,8 @@ et la numérotation augmente le dernier chiffre pour un petit changement, celui 
 
 ## [Unreleased]
 
+## [5.0.2] - 2026-11-17
+
 ### 📝 Documentation
 
 - Le mode hébergé (`aetheris serve --http`) a sa page sur le site de doc : variables, image Docker, authentification, outils qui reçoivent le contenu des fichiers, limites et journaux. Le README le présente aussi.
@@ -1388,7 +1390,8 @@ et la numérotation augmente le dernier chiffre pour un petit changement, celui 
 - Génération de rapports détaillés en Markdown
 - Configuration flexible via variables d'environnement
 
-[Unreleased]: https://github.com/adryserage/aetheris/compare/v5.0.1...HEAD
+[Unreleased]: https://github.com/adryserage/aetheris/compare/v5.0.2...HEAD
+[5.0.2]: https://github.com/adryserage/aetheris/compare/v5.0.1...v5.0.2
 [5.0.1]: https://github.com/adryserage/aetheris/compare/v5.0.0...v5.0.1
 [5.0.0]: https://github.com/adryserage/aetheris/compare/v4.0.1...v5.0.0
 [4.0.1]: https://github.com/adryserage/aetheris/compare/v4.0.0...v4.0.1
