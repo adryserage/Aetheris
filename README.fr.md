@@ -56,6 +56,10 @@ Ajoutez ceci à `.cursor/mcp.json` dans votre projet, ou à `~/.cursor/mcp.json`
 
 Lancez `uvx adryserage-aetheris` comme serveur stdio.
 
+### Instance partagée en HTTP
+
+`aetheris serve --http` sert les mêmes outils en MCP streamable HTTP, avec une authentification par jeton ou par OAuth. L'assistant envoie le contenu des fichiers et le serveur ne lit aucun disque. Installez-le avec `pip install "adryserage-aetheris[hosted]"` ou construisez le `Dockerfile`. La configuration et les limites sont dans le [guide du mode hébergé](https://adryserage.github.io/Aetheris/hosted/) (en anglais).
+
 Demandez ensuite à votre assistant, par exemple, « relis mes changements indexés avec Aetheris » ou « fais un audit de sécurité Aetheris de ce dépôt ».
 
 ## Outils
