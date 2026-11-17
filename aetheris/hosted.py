@@ -325,7 +325,8 @@ def build_app(
     mcp = build_server(hosted=True)
     endpoint = RequireToken(
         mcp.streamable_http_app(
-            host="0.0.0.0",  # Host and Origin are checked by AllowedHosts, not by the SDK
+            # Every interface: AllowedHosts checks Host and Origin, not the SDK.
+            host="0.0.0.0",  # nosec B104
             stateless_http=True,
             json_response=True,
         ),
@@ -401,7 +402,8 @@ def main() -> None:
 
     uvicorn.run(
         build_app(config),
-        host="0.0.0.0",
+        # The container listens on every interface; AllowedHosts guards Host and Origin.
+        host="0.0.0.0",  # nosec B104
         port=config.port,
         log_config=None,
         access_log=False,
