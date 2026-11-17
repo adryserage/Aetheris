@@ -5,6 +5,7 @@
 - Aetheris never calls an AI provider. Your assistant does the reasoning, with its own provider and its own data policy. That provider still sees whatever your assistant reads, as it does without Aetheris.
 - The server reads files only under the project directory: `AETHERIS_ROOT` if set, otherwise the directory it starts in. A path that escapes it, through `..` or a symlink, is refused.
 - The only network call is the `osv_lookup` check of the dependency agent (`run_checks` with `agent="dependency"`). It sends package names, ecosystems and versions to the [OSV API](https://osv.dev). No source code leaves your machine.
+- In [hosted mode](hosted.md), the server reads no disk: it checks only the file contents your assistant sends, keeps nothing after answering and never logs contents or paths.
 - Secrets found by the `secret_scan` check are masked in every result.
 - `aetheris install` edits the MCP configuration of your clients (Claude Code, Cursor, Claude Desktop). It only adds or removes the `aetheris` entry, and it never rewrites a file it cannot parse.
 

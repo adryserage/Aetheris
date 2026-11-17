@@ -1,6 +1,6 @@
 # Tools
 
-The server exposes six tools over stdio. Every tool returns one JSON object as text. A tool that fails raises an MCP tool error with a message, described under each tool below.
+The server exposes six tools. This page describes them over stdio. In [hosted mode](hosted.md), `plan_review` and `run_checks` take file contents instead of paths on disk. Every tool returns one JSON object as text. A tool that fails raises an MCP tool error with a message, described under each tool below.
 
 | Tool | Purpose |
 | --- | --- |

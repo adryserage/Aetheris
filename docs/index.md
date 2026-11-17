@@ -24,6 +24,7 @@ Aetheris never calls a language model. Your assistant chooses which tools to cal
 | Page | What it covers |
 | --- | --- |
 | [Installation](installation.md) | `aetheris install`, manual setup, running from a checkout |
+| [Hosted mode](hosted.md) | `aetheris serve --http` for a shared instance: configuration, authentication, limits |
 | [Review flow](review-flow.md) | The six tools in order, with a real example |
 | [Tools](tools.md) | Arguments, defaults, results and limits of each tool |
 | [Agents](agents.md) | The 10 agents, their checks and their playbooks |

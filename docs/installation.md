@@ -58,6 +58,8 @@ Add this to `.cursor/mcp.json` in your project, or to `~/.cursor/mcp.json`:
 
 Run `uvx adryserage-aetheris` as a stdio server. The same command is available as `aetheris serve` when the package is installed.
 
+To run a shared instance over HTTP instead, see [Hosted mode](hosted.md).
+
 ## Choosing the project directory
 
 The server reads files under one directory, the project root. By default that is the directory the client starts it in. Set `AETHERIS_ROOT` to use another one. Every path an assistant passes to a tool is resolved inside this root, and a path that escapes it is refused.

@@ -60,6 +60,7 @@ nav:
   - Home: index.md
   - Getting started:
     - Installation: installation.md
+    - Hosted mode: hosted.md
     - Review flow: review-flow.md
   - Reference:
     - Tools: tools.md

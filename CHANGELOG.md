@@ -9,6 +9,7 @@ et la numérotation augmente le dernier chiffre pour un petit changement, celui 
 
 ### 📝 Documentation
 
+- Le mode hébergé (`aetheris serve --http`) a sa page sur le site de doc : variables, image Docker, authentification, outils qui reçoivent le contenu des fichiers, limites et journaux. Le README le présente aussi.
 - Les liens canoniques et le plan du site de doc pointent vers l'adresse servie par GitHub Pages (`/Aetheris/`), au lieu d'une adresse en minuscules qui répondait 404.
 
 ## [5.0.1] - 2026-11-12
