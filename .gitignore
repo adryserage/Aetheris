@@ -126,3 +126,4 @@ MANIFEST
 # Local assistant instructions, never committed
 CLAUDE.md
 .claude/
+.agents/
