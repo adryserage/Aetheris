@@ -7,6 +7,12 @@ et la numérotation augmente le dernier chiffre pour un petit changement, celui 
 
 ## [Unreleased]
 
+### 🐛 Corrections
+
+- `plan_review` propose `api_contract` aussi d'après le contenu des fichiers : un serveur Node sans framework (`createServer`, `req.method === 'GET'`) est reconnu, en local comme en mode hébergé quand le contenu est envoyé.
+- `sql_injection` ne signale plus une f-string Python qui n'interpole que des constantes de module, assignées une seule fois à partir de littéraux.
+- `nested_loops` ne signale plus une boucle interne qui parcourt une partie de l'élément de la boucle externe, comme des dossiers puis leurs fichiers. Une boucle sur `range(i, n)` reste signalée.
+
 ## [6.0.0] - 2026-11-27
 
 ### 💥 Changements incompatibles

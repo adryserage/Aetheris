@@ -20,6 +20,8 @@ _CALL_PATTERNS = [
     re.compile(r"\b(?:axios|ky|requests|httpx|http|dio)\.\w+\s*\(\s*[`'\"](?P<p>[^`'\"]+)[`'\"]"),
     re.compile(r"\$\.(?:get|post|ajax)\s*\(\s*['\"](?P<p>[^'\"]+)['\"]"),
 ]
+# A bare Node server answers by method instead of declaring routes.
+_SERVER_PATTERN = re.compile(r"\bcreateServer\s*\(|\b(?:req|request)\.method\s*[!=]==?\s*['\"]")
 _VERB_SEGMENT = re.compile(r"^(?:get|create|update|delete|fetch|add|remove)(?:[A-Z_\-]|$)")
 _PARAM = re.compile(r"\$\{[^}]*\}|\{[^}]*\}|<[^>]*>|:\w+")
 
@@ -31,6 +33,12 @@ class Route:
     path: str
     file: str
     line: int
+
+
+def serves_http(content: str) -> bool:
+    """True when the text declares HTTP routes or answers requests by method."""
+    patterns = [_SERVER_PATTERN, *_ROUTE_PATTERNS]
+    return any(p.search(content) for p in patterns)
 
 
 def _segments(path: str) -> tuple[str, ...]:

@@ -108,3 +108,51 @@ def test_html_sinks_are_only_checked_in_javascript_and_typescript(repo):
     write(repo, "page.ts", "el.innerHTML = html;\n")
     files = [f["file"] for f in findings("security") if f["message"].startswith("xss")]
     assert files == ["page.ts"]
+
+
+def test_sql_built_only_from_module_constants_is_not_an_injection(repo):
+    write(
+        repo,
+        "deploy.py",
+        'SERVICE = "abc"\nFILES = {"index.html": "/app/index.html"}\n'
+        'paths = ",".join(f"\'/data/{SERVICE}/{name}\'" for name in FILES)\n'
+        'sql = f"DELETE FROM volumes WHERE path in ({paths});"\n'
+        'target = "x"\ntarget = input()\n'
+        'q = f"DELETE FROM volumes WHERE path = {target}"\n'
+        'r = f"DELETE FROM volumes WHERE path = {user_path}"\n'
+        'table = "t"\n'
+        "def read(table):\n"
+        '    return f"SELECT * FROM t WHERE name = {table}"\n',
+    )
+    lines = [f["line"] for f in findings("security") if f["message"].startswith("sql_injection")]
+    assert lines == [7, 8, 11]
+
+
+def test_walking_folders_then_their_files_is_not_a_nested_loop(repo):
+    write(
+        repo,
+        "walk.mjs",
+        "for (const person of people) {\n"
+        "  const trash = join(ROOT, person, 'trash');\n"
+        "  let names;\n"
+        "  try { names = await readdir(trash); } catch { continue; }\n"
+        "  for (const name of names) {\n"
+        "    await unlink(join(trash, name));\n"
+        "  }\n"
+        "}\n",
+    )
+    write(
+        repo,
+        "pairs.py",
+        "for folder in folders:\n    for f in folder.files:\n        pass\n"
+        "for i in range(n):\n    for j in range(i, n):\n        pass\n"
+        "for a in items:\n    for b in others:\n        pass\n"
+        "for k in items:\n    for m in items[k:]:\n        pass\n"
+        "for x in rows:\n    for y in lst[:x]:\n        pass\n",
+    )
+    nested = [
+        (f["file"], f["line"])
+        for f in findings("performance")
+        if f["message"].startswith("nested_loops")
+    ]
+    assert nested == [("pairs.py", 4), ("pairs.py", 7), ("pairs.py", 10), ("pairs.py", 13)]

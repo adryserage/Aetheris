@@ -180,3 +180,30 @@ def test_a_crashing_check_is_reported_and_others_still_run(repo, monkeypatch):
     result = run_checks("security")
     assert "security_patterns: RuntimeError: boom" in result["errors"]
     assert result["finding_count"] == 1
+
+
+def test_plan_review_picks_api_contract_for_a_bare_node_server(repo):
+    write(
+        repo,
+        "srv.mjs",
+        "http.createServer((req, res) => {\n"
+        "  if (path === '/api/docs' && req.method === 'GET') return list(res);\n"
+        "});\n",
+    )
+    write(repo, "util.mjs", "export const add = (a, b) => a + b;\n")
+
+    def picked(paths: list[str]) -> list[str]:
+        return [a["id"] for a in plan_review(scope="paths", paths=paths)["agents"]]
+
+    assert "api_contract" in picked(["srv.mjs"])
+    assert "api_contract" not in picked(["util.mjs"])
+
+
+def test_planning_sent_files_reads_the_contents_it_is_given():
+    from aetheris.server import NamedFile, plan_sent_files
+
+    served = NamedFile(path="srv.mjs", content="if (req.method === 'POST') save(req);\n")
+    picked = [a["id"] for a in plan_sent_files([served])["agents"]]
+    assert "api_contract" in picked
+    named_only = [a["id"] for a in plan_sent_files([NamedFile(path="srv.mjs")])["agents"]]
+    assert "api_contract" not in named_only
