@@ -30,7 +30,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # The tag must match the version in pyproject.toml: PyPI refuses a second upload of a version.
+  # The tag must match __version__, the package's only version number: PyPI refuses a second upload.
   guard:
     name: Check tag matches project version
     runs-on: ubuntu-latest
@@ -61,16 +61,16 @@ jobs:
 
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
-      - name: Compare tag and pyproject.toml version
+      - name: Compare tag and aetheris/__init__.py version
         env:
           VERSION: ${{ steps.resolve.outputs.version }}
           TAG: ${{ steps.resolve.outputs.tag }}
         run: |
-          PROJECT_VERSION=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          PROJECT_VERSION=$(python -c "import ast; tree = ast.parse(open('aetheris/__init__.py').read()); print(next(n.value.value for n in tree.body if isinstance(n, ast.Assign) and getattr(n.targets[0], 'id', '') == '__version__'))")
           if [ "$VERSION" != "$PROJECT_VERSION" ]; then
-            echo "::error::Tag $TAG does not match pyproject.toml version $PROJECT_VERSION"
+            echo "::error::Tag $TAG does not match version $PROJECT_VERSION in aetheris/__init__.py"
             exit 1
           fi
           echo "Tag $TAG matches version $PROJECT_VERSION"
@@ -92,7 +92,7 @@ jobs:
 
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Build sdist and wheel
         run: |
@@ -132,9 +132,11 @@ jobs:
         with:
           packages-dir: dist/
 
+  # Nothing goes public before PyPI has the package, or before skip_pypi says it already has it.
   create-release:
     name: Create GitHub Release
-    needs: [guard, build]
+    needs: [guard, build, publish]
+    if: ${{ always() && needs.build.result == 'success' && (needs.publish.result == 'success' || needs.publish.result == 'skipped') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -146,7 +148,7 @@ jobs:
 
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Extract release notes from CHANGELOG
         id: notes
@@ -182,7 +184,7 @@ jobs:
 
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Install MkDocs and plugins
         run: pip install mkdocs mkdocs-material mkdocs-minify-plugin
@@ -196,7 +198,8 @@ jobs:
 
   deploy-docs:
     name: Deploy to GitHub Pages
-    needs: build-docs
+    needs: [build, build-docs, publish]
+    if: ${{ always() && needs.build.result == 'success' && needs.build-docs.result == 'success' && (needs.publish.result == 'success' || needs.publish.result == 'skipped') }}
     runs-on: ubuntu-latest
     permissions:
       pages: write

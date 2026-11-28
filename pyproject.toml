@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "adryserage-aetheris"
-version = "5.0.2"
+dynamic = ["version"]
 description = "MCP server with code review rules and reproducible checks (secrets, OSV vulnerabilities, metrics, dependency graphs) for AI coding assistants. No API key needed."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.13"
 license = {file = "LICENSE"}
 authors = [
     {name = "Adryan Serage", email = "adryan@allowebs.com"}
@@ -31,10 +31,9 @@ classifiers = [
     "Operating System :: MacOS",
     "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Topic :: Software Development :: Quality Assurance",
     "Topic :: Software Development :: Testing",
     "Topic :: Software Development :: Bug Tracking",
@@ -50,7 +49,7 @@ dependencies = [
     "pydantic>=2.0.0",
     "pathspec>=0.12.0",
     "requests>=2.32.0",
-    "pyyaml>=6.0",
+    "pyyaml>=6.0.4",
 ]
 
 [project.optional-dependencies]
@@ -67,6 +66,9 @@ Changelog = "https://github.com/adryserage/aetheris/blob/main/CHANGELOG.md"
 adryserage-aetheris = "aetheris.server:main"
 aetheris = "aetheris.cli:entry"
 
+[tool.setuptools.dynamic]
+version = {attr = "aetheris.__version__"}
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["aetheris*"]
@@ -76,7 +78,7 @@ aetheris = ["rules/*.yaml", "playbooks/*/*.md", "playbooks/*/LICENSE", "py.typed
 
 [tool.black]
 line-length = 100
-target-version = ["py310", "py311", "py312", "py313"]
+target-version = ["py313", "py314", "py315"]
 include = '\.pyi?$'
 extend-exclude = '''
 /(

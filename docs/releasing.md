@@ -22,7 +22,7 @@ The example releases 4.0.1. Pick the number from the last tag:
 
 1. On a `release/4.0.1` branch from `main`, prepare the version:
 
-    - set `version = "4.0.1"` in `pyproject.toml` and `__version__ = "4.0.1"` in `aetheris/__init__.py`;
+    - set `__version__ = "4.0.1"` in `aetheris/__init__.py`, the only place that holds the version (`pyproject.toml` reads it from there);
     - in `CHANGELOG.md`, rename `## [Unreleased]` to `## [4.0.1] - YYYY-MM-DD` and add an empty `## [Unreleased]` above it;
     - at the bottom of `CHANGELOG.md`, update the comparison links:
 
@@ -47,7 +47,7 @@ The example releases 4.0.1. Pick the number from the last tag:
     gh pr merge <pr> --merge
     ```
 
-3. Check the version number, then tag `main` and push the tag. The tag push cannot be undone: the GitHub release and the documentation go public a few minutes later, without waiting for any approval.
+3. Check the version number, then tag `main` and push the tag. The tag starts the release workflow, but nothing goes public before the next step.
 
     ```bash
     git checkout main && git pull && git tag v4.0.1 && git push origin v4.0.1
@@ -57,15 +57,14 @@ The example releases 4.0.1. Pick the number from the last tag:
 
 ## What the release workflow does
 
-`release.yml` first checks that the tag matches the version in `pyproject.toml`. If they differ, it stops and nothing is published.
+`release.yml` first checks that the tag matches `__version__` in `aetheris/__init__.py`. If they differ, it stops and nothing is published.
 
-It then builds the package and the documentation. These steps follow in parallel:
+It then builds the package and the documentation. The package waits for the `pypi` approval, then goes to PyPI with Trusted Publishing, without a token. Once PyPI has it:
 
 - the GitHub release is created, with the notes taken from the version's section in `CHANGELOG.md`;
-- this documentation is deployed to GitHub Pages;
-- the package waits for the `pypi` approval, then goes to PyPI with Trusted Publishing, without a token.
+- this documentation is deployed to GitHub Pages.
 
-Only PyPI waits for the approval. If the approval is refused or the PyPI upload fails, the GitHub release still exists, for a version nobody can install. Fix the cause and run the release again (below), or delete that GitHub release.
+If the approval is refused or the PyPI upload fails, neither happens. Fix the cause and run the release again (below).
 
 The GitHub release fails when `CHANGELOG.md` has no section for the version. A section with a "Changements incompatibles" (breaking changes) heading gets a warning at the top of the notes.
 
