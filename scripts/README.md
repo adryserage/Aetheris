@@ -41,7 +41,7 @@ Le script attend un format de CHANGELOG conforme à [Keep a Changelog](https://k
 
 Ce script est utilisé automatiquement par le workflow `.github/workflows/release.yml` qui se déclenche lors de la création d'un tag de version (ex: `v1.1.0`). Le workflow:
 
-1. Extrait la version du tag et vérifie qu'elle correspond à celle de `pyproject.toml`
+1. Extrait la version du tag et vérifie qu'elle correspond à `__version__` dans `aetheris/__init__.py`
 2. Utilise ce script pour extraire les notes du CHANGELOG
 3. Crée une release GitHub avec ces notes
 
