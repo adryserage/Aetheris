@@ -1,0 +1,43 @@
+# A pull request that changes the package adds its line under [Unreleased] in CHANGELOG.md.
+# The "no changelog" label skips the check for changes users cannot see.
+
+name: Changelog
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  changelog:
+    name: Changelog entry
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'no changelog') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check that CHANGELOG.md changes with the package
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          changed=$(git diff --name-only "$BASE...$HEAD")
+          if ! grep -qE '^(aetheris/|pyproject\.toml$)' <<<"$changed"; then
+            echo "The package is unchanged: no changelog entry needed."
+            exit 0
+          fi
+          if grep -qx 'CHANGELOG.md' <<<"$changed"; then
+            echo "CHANGELOG.md is updated."
+            exit 0
+          fi
+          echo "::error::This pull request changes aetheris/ or pyproject.toml without touching CHANGELOG.md. Add a line under [Unreleased] that says what changes for users, or add the 'no changelog' label if users cannot see the change."
+          exit 1
