@@ -19,6 +19,11 @@ _FIXED_SIZE_LOOP = re.compile(
     r"^for\b.*?\b(?:in|of)\s+"
     r"(?P<it>\([^()]*\)|\[[^\[\]]*\]|\{[^{}]*\}|_?[A-Z][A-Z0-9_]*)\s*[:){]"
 )
+_LOOP_HEAD = re.compile(
+    r"^for\s*(?:await\s*)?\(?\s*(?:(?:const|let|var)\s+)?(?P<vars>.+?)\s+(?:in|of)\s+(?P<it>.+)$"
+)
+_ASSIGN = re.compile(r"(?:^|[\s;{(])(?P<name>[A-Za-z_$][\w$]*)\s*=(?![=>])(?P<value>.*)")
+_WORD = re.compile(r"[A-Za-z_$][\w$]*")
 _IN_LOOP: list[tuple[str, re.Pattern[str], Severity, str]] = [
     (
         "n_plus_one",
@@ -49,6 +54,25 @@ _LINE_PATTERNS = [
 ]
 
 
+def _walks_outer_item(lines: list[str], outer: int, inner: int) -> bool:
+    """The inner loop goes through a part of the outer loop's item (folders, then their files).
+
+    Each element is then visited once. The inner iterable must start with the item itself, or
+    with a name assigned from it in the outer body: `items[i:]` or `range(i, n)` stay quadratic.
+    """
+    outer_head = _LOOP_HEAD.match(lines[outer - 1].strip())
+    inner_head = _LOOP_HEAD.match(lines[inner - 1].strip())
+    first = _WORD.match(inner_head["it"]) if inner_head else None
+    if not outer_head or not first:
+        return False
+    derived = set(_WORD.findall(outer_head["vars"]))
+    for line in lines[outer : inner - 1]:
+        for assign in _ASSIGN.finditer(line):
+            if derived & set(_WORD.findall(assign["value"])):
+                derived.add(assign["name"])
+    return first.group() in derived
+
+
 def _loop_findings(ctx: CheckContext) -> list[Finding]:
     findings: list[Finding] = []
     for rel in ctx.code_files():
@@ -68,7 +92,12 @@ def _loop_findings(ctx: CheckContext) -> list[Finding]:
             if _LOOP.match(stripped):
                 fixed = _FIXED_SIZE_LOOP.match(stripped)
                 fixed = fixed if fixed and " for " not in fixed["it"] else None
-                if stack and stack[-1][1] not in reported_outer and not fixed:
+                if (
+                    stack
+                    and stack[-1][1] not in reported_outer
+                    and not fixed
+                    and not _walks_outer_item(lines, stack[-1][1], number)
+                ):
                     outer = stack[-1][1]
                     reported_outer.add(outer)
                     findings.append(

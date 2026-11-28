@@ -24,6 +24,7 @@ from pydantic import BaseModel
 from aetheris import __version__, registry
 from aetheris.changes import GitError, changed_files
 from aetheris.checks import CHECKS, CheckContext
+from aetheris.checks.api_contract import serves_http
 from aetheris.domain import AGENT_IDS, AgentId, Finding, severity_rank
 from aetheris.files import (
     MAX_FILE_BYTES,
@@ -32,6 +33,7 @@ from aetheris.files import (
     is_manifest,
     language_of,
     project_root,
+    read_text,
     select_files,
 )
 from aetheris.synthesis import synthesize
@@ -71,8 +73,11 @@ _CODE_REASONS: dict[AgentId, str] = {
 }
 
 
+Reader = Callable[[str], str | None]
+
+
 def _select_agents(
-    files: list[str], preset: str | None, agents: list[AgentId] | None
+    files: list[str], preset: str | None, agents: list[AgentId] | None, read: Reader
 ) -> list[dict[str, str]]:
     if agents:
         return [{"id": a, "reason": "requested explicitly"} for a in _ordered(agents)]
@@ -93,6 +98,8 @@ def _select_agents(
     hints = ("api", "route", "controller", "endpoint", "handler")
     if any(h in f.lower() for f in files for h in hints):
         chosen["api_contract"] = "files look like API routes or handlers"
+    elif any(language_of(f) and serves_http(read(f) or "") for f in files):
+        chosen["api_contract"] = "files declare HTTP routes or answer requests by method"
     if not chosen:
         chosen["security"] = "secrets can sit in any text file"
     chosen["qa_synthesis"] = "merges all findings into one report"
@@ -144,7 +151,11 @@ def list_agents() -> dict[str, Any]:
 
 
 def _plan(
-    selected: list[str], scope: str, preset: str | None, agents: list[AgentId] | None
+    selected: list[str],
+    scope: str,
+    preset: str | None,
+    agents: list[AgentId] | None,
+    read: Reader,
 ) -> dict[str, Any]:
     files = sorted(
         selected,
@@ -158,7 +169,7 @@ def _plan(
         "languages": dict(languages.most_common()),
         "agents": [
             {**a, "playbooks": _playbooks_for(a["id"], scope, files)}
-            for a in _select_agents(files, preset, agents)
+            for a in _select_agents(files, preset, agents, read)
         ],
     }
 
@@ -186,7 +197,7 @@ def plan_review(
         selection = select_files(root)
     return {
         "root": str(root),
-        **_plan(selection.files, scope, preset, agents),
+        **_plan(selection.files, scope, preset, agents, functools.partial(read_text, root)),
         "base": base if scope == "diff" else None,
         "truncated": selection.truncated,
         "max_files": MAX_FILES,
@@ -224,13 +235,15 @@ def plan_sent_files(
     """Plan a review of files you will send: priority order, languages, agents, next steps.
 
     Pass the files you mean to review (path is enough here). Agents are chosen from the file
-    names. The server never sees your project: run_checks needs the contents.
+    names, and from the contents you include. The server never sees your project: run_checks
+    needs the contents.
     """
     named = files or []
     _within_limit(named)
+    contents = {check_label(f.path): f.content for f in named if f.content is not None}
     labels = list(dict.fromkeys(check_label(f.path) for f in named))
     return {
-        **_plan(labels, "provided", preset, agents),
+        **_plan(labels, "provided", preset, agents, contents.get),
         "max_files": MAX_SENT_FILES,
         "next_steps": HOSTED_NEXT_STEPS,
     }
