@@ -148,11 +148,12 @@ def test_walking_folders_then_their_files_is_not_a_nested_loop(repo):
         "for i in range(n):\n    for j in range(i, n):\n        pass\n"
         "for a in items:\n    for b in others:\n        pass\n"
         "for k in items:\n    for m in items[k:]:\n        pass\n"
-        "for x in rows:\n    for y in lst[:x]:\n        pass\n",
+        "for x in rows:\n    for y in lst[:x]:\n        pass\n"
+        "for a in users:\n    for b in [u for u in users if u != a]:\n        pass\n",
     )
     nested = [
         (f["file"], f["line"])
         for f in findings("performance")
         if f["message"].startswith("nested_loops")
     ]
-    assert nested == [("pairs.py", 4), ("pairs.py", 7), ("pairs.py", 10), ("pairs.py", 13)]
+    assert nested == [("pairs.py", n) for n in (4, 7, 10, 13, 16)]
