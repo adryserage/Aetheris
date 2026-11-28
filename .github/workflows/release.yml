@@ -132,9 +132,11 @@ jobs:
         with:
           packages-dir: dist/
 
+  # Nothing goes public before PyPI has the package, or before skip_pypi says it already has it.
   create-release:
     name: Create GitHub Release
-    needs: [guard, build]
+    needs: [guard, build, publish]
+    if: ${{ always() && needs.build.result == 'success' && (needs.publish.result == 'success' || needs.publish.result == 'skipped') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -196,7 +198,8 @@ jobs:
 
   deploy-docs:
     name: Deploy to GitHub Pages
-    needs: build-docs
+    needs: [build, build-docs, publish]
+    if: ${{ always() && needs.build.result == 'success' && needs.build-docs.result == 'success' && (needs.publish.result == 'success' || needs.publish.result == 'skipped') }}
     runs-on: ubuntu-latest
     permissions:
       pages: write
