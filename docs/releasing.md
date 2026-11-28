@@ -22,7 +22,7 @@ The example releases 4.0.1. Pick the number from the last tag:
 
 1. On a `release/4.0.1` branch from `main`, prepare the version:
 
-    - set `version = "4.0.1"` in `pyproject.toml` and `__version__ = "4.0.1"` in `aetheris/__init__.py`;
+    - set `__version__ = "4.0.1"` in `aetheris/__init__.py`, the only place that holds the version (`pyproject.toml` reads it from there);
     - in `CHANGELOG.md`, rename `## [Unreleased]` to `## [4.0.1] - YYYY-MM-DD` and add an empty `## [Unreleased]` above it;
     - at the bottom of `CHANGELOG.md`, update the comparison links:
 
@@ -57,7 +57,7 @@ The example releases 4.0.1. Pick the number from the last tag:
 
 ## What the release workflow does
 
-`release.yml` first checks that the tag matches the version in `pyproject.toml`. If they differ, it stops and nothing is published.
+`release.yml` first checks that the tag matches `__version__` in `aetheris/__init__.py`. If they differ, it stops and nothing is published.
 
 It then builds the package and the documentation. These steps follow in parallel:
 

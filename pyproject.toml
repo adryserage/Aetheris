@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "adryserage-aetheris"
-version = "5.0.2"
+dynamic = ["version"]
 description = "MCP server with code review rules and reproducible checks (secrets, OSV vulnerabilities, metrics, dependency graphs) for AI coding assistants. No API key needed."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -68,6 +68,9 @@ Changelog = "https://github.com/adryserage/aetheris/blob/main/CHANGELOG.md"
 [project.scripts]
 adryserage-aetheris = "aetheris.server:main"
 aetheris = "aetheris.cli:entry"
+
+[tool.setuptools.dynamic]
+version = {attr = "aetheris.__version__"}
 
 [tool.setuptools.packages.find]
 where = ["."]
