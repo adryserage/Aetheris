@@ -7,6 +7,8 @@ et la numérotation augmente le dernier chiffre pour un petit changement, celui 
 
 ## [Unreleased]
 
+## [5.0.3] - 2026-11-27
+
 ### 🔄 Compatibilité
 
 - Python 3.14 et 3.15 sont pris en charge et testés par la CI. Aetheris demande maintenant PyYAML 6.0.4 ou plus récent, la première version qui a des wheels pour Python 3.15 : avec PyYAML 6.0.3, l'installation sous 3.15 échouait.
@@ -1394,7 +1396,8 @@ et la numérotation augmente le dernier chiffre pour un petit changement, celui 
 - Génération de rapports détaillés en Markdown
 - Configuration flexible via variables d'environnement
 
-[Unreleased]: https://github.com/adryserage/aetheris/compare/v5.0.2...HEAD
+[Unreleased]: https://github.com/adryserage/aetheris/compare/v5.0.3...HEAD
+[5.0.3]: https://github.com/adryserage/aetheris/compare/v5.0.2...v5.0.3
 [5.0.2]: https://github.com/adryserage/aetheris/compare/v5.0.1...v5.0.2
 [5.0.1]: https://github.com/adryserage/aetheris/compare/v5.0.0...v5.0.1
 [5.0.0]: https://github.com/adryserage/aetheris/compare/v4.0.1...v5.0.0
