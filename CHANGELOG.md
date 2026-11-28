@@ -7,6 +7,10 @@ et la numérotation augmente le dernier chiffre pour un petit changement, celui 
 
 ## [Unreleased]
 
+### 🔄 Compatibilité
+
+- Python 3.14 et 3.15 sont pris en charge et testés par la CI. Aetheris demande maintenant PyYAML 6.0.4 ou plus récent, la première version qui a des wheels pour Python 3.15 : avec PyYAML 6.0.3, l'installation sous 3.15 échouait.
+
 ## [5.0.2] - 2026-11-17
 
 ### 📝 Documentation
