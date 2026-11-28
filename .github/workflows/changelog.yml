@@ -1,5 +1,6 @@
 # A pull request that changes the package adds its line under [Unreleased] in CHANGELOG.md.
-# The "no changelog" label skips the check for changes users cannot see.
+# The "no changelog" label skips the check for changes users cannot see, and Dependabot
+# pull requests skip it too.
 
 name: Changelog
 
@@ -17,7 +18,7 @@ permissions:
 jobs:
   changelog:
     name: Changelog entry
-    if: ${{ !contains(github.event.pull_request.labels.*.name, 'no changelog') }}
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'no changelog') && github.event.pull_request.user.login != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
