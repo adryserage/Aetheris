@@ -7,6 +7,8 @@ et la numérotation augmente le dernier chiffre pour un petit changement, celui 
 
 ## [Unreleased]
 
+## [6.0.0] - 2026-11-27
+
 ### 💥 Changements incompatibles
 
 - Aetheris demande maintenant Python 3.13 ou plus récent, et la CI teste 3.13, 3.14 et 3.15. Sous Python 3.10, 3.11 ou 3.12, pip et uv installent encore la 5.0.3, qui reste disponible.
@@ -1400,7 +1402,8 @@ et la numérotation augmente le dernier chiffre pour un petit changement, celui 
 - Génération de rapports détaillés en Markdown
 - Configuration flexible via variables d'environnement
 
-[Unreleased]: https://github.com/adryserage/aetheris/compare/v5.0.3...HEAD
+[Unreleased]: https://github.com/adryserage/aetheris/compare/v6.0.0...HEAD
+[6.0.0]: https://github.com/adryserage/aetheris/compare/v5.0.3...v6.0.0
 [5.0.3]: https://github.com/adryserage/aetheris/compare/v5.0.2...v5.0.3
 [5.0.2]: https://github.com/adryserage/aetheris/compare/v5.0.1...v5.0.2
 [5.0.1]: https://github.com/adryserage/aetheris/compare/v5.0.0...v5.0.1
