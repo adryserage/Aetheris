@@ -11,7 +11,7 @@ Thanks for helping. Aetheris is mostly review rules and checks, so a better rule
 
 ## Development setup
 
-You need Python 3.10 or later and git.
+You need Python 3.13 or later and git.
 
 ```bash
 git clone https://github.com/adryserage/aetheris
