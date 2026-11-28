@@ -37,7 +37,7 @@ Run the server from your checkout in any MCP client with `uvx --from /path/to/ae
    pytest tests -q
    ```
 
-4. Add a line under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md) when users will notice the change.
+4. Add a line under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md) when users will notice the change. The Changelog check fails when a pull request changes `aetheris/` or `pyproject.toml` without one. For a change users cannot see, such as a refactor or a test, ask the maintainer for the `no changelog` label.
 5. Open the pull request against `main`. The maintainer cuts a release only when a change matters to many users, so a merged change can wait a while under `[Unreleased]`.
 
 ## Writing a rule
