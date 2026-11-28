@@ -36,4 +36,4 @@ body:
     id: client
     attributes:
       label: MCP client and Python version
-      placeholder: Claude Code 2.x, Python 3.12, macOS
+      placeholder: Claude Code 2.x, Python 3.13, macOS

@@ -61,7 +61,7 @@ jobs:
 
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Compare tag and aetheris/__init__.py version
         env:
@@ -92,7 +92,7 @@ jobs:
 
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Build sdist and wheel
         run: |
@@ -148,7 +148,7 @@ jobs:
 
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Extract release notes from CHANGELOG
         id: notes
@@ -184,7 +184,7 @@ jobs:
 
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Install MkDocs and plugins
         run: pip install mkdocs mkdocs-material mkdocs-minify-plugin

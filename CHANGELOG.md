@@ -7,6 +7,10 @@ et la numérotation augmente le dernier chiffre pour un petit changement, celui 
 
 ## [Unreleased]
 
+### 💥 Changements incompatibles
+
+- Aetheris demande maintenant Python 3.13 ou plus récent, et la CI teste 3.13, 3.14 et 3.15. Sous Python 3.10, 3.11 ou 3.12, pip et uv installent encore la 5.0.3, qui reste disponible.
+
 ## [5.0.3] - 2026-11-27
 
 ### 🔄 Compatibilité
